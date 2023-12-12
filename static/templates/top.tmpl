@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>FOXDEN</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{{.Base}}/images/favicon.ico">
+    <link rel="stylesheet" href="{{.Base}}/css/top.css">
+    <!-- https://imperavi.com/superkube/ -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/superkube@latest/dist/superkube.min.css">
+    <!--
+    <link rel="stylesheet" href="{{.Base}}/css/superkube.min.css">
+    -->
+    <script type="text/javascript" src="{{.Base}}/js/utils.js"></script>
+
+</head>
+<body>
+
+<header>
+    <div class="grid">
+        <div class="column column-4">
+            <a href="{{.Base}}/">
+                <img src="{{.Base}}/images/foxden-logo.png" style="width:150px;">
+                <!--
+                <img src="https://cdn.onlinewebfonts.com/svg/img_634087.png" alt="Analysis I" style="width:50px;">
+                -->
+            </a>
+        </div>
+        <div class="column column-4">
+            <div class="white">
+                <input class="input input-round" placeholder="Search item">
+            </div>
+        </div>
+        <div class="column column-4">
+            {{if eq .User ""}}
+                <a href="{{.Base}}/login" class="button button-light button-small">Login</a>
+                &nbsp; | &nbsp;
+                <a href="{{.Base}}/user/registration" class="button button-light button-small">Registry</a>
+            {{else}}
+                <span class="white margin-10">{{.User}}</span>
+                &nbsp; | &nbsp;
+                <a href="{{.Base}}/logout" class="button button-light button-small">Logout</a>
+            {{end}}
+        </div>
+    </div>
+
+</header>
+
+

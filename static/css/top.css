@@ -1,0 +1,156 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0px;
+}
+
+/* Style the header */
+header {
+  background-color: #CBC9A8;
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+.white {
+  color: white;
+}
+.margin-10 {
+    margin-top: 10px;
+}
+.margin-20 {
+    margin-top: 20px;
+}
+.menu {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 30px;
+}
+
+article {
+  float: left;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 300px;
+  padding-right: 300px;
+  background-color: #ffffff;
+  width:100%;
+  min-height: 600px;
+}
+.notebook {
+  float: left;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 100px;
+  padding-right: 100px;
+  background-color: #f1f1f1;
+  width:100%;
+  min-height: 600px;
+}
+
+/* Clear floats after the columns */
+section:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Style the footer */
+.foxden-center {
+  padding-top: 10px;
+  padding-left: 20px;
+  text-align: center;
+  background-color: #f1f1f1;
+  width:100%;
+  min-height: 600px;
+}
+
+/* Style the footer */
+footer {
+  background-color: gray;
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+
+.huge {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 25px;
+}
+
+.record {
+    padding: 30px;
+}
+.width-100 {
+    display: inline-block;
+    width: 100px;
+}
+.width-200 {
+    display: inline-block;
+    width: 200px;
+}
+
+/* Responsive layout - makes the two columns/boxes stack on top of each other instead of next to each other, on small screens */
+@media (max-width: 600px) {
+  nav, article {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.hide {
+    display: none;
+}
+.show {
+    display: block;
+/*    margin-top:6px;*/
+/*    border-top-width:1px;*/
+}
+.show_inline {
+    display: inline;
+/*    color: black;*/
+/*    background-color: white;*/
+}
+
+.submenu {
+    background-color: lightgrey;
+    margin-left: 5px;
+}
+.message {
+    width: 600px;
+}
+.s3-record {
+    font-family: Courier, monospace;
+    font-size: 18px;
+}
+.min-height {
+    min-height: 600px;
+}
+
+/*
+ * Google map settings 
+ * Always set the map height explicitly to define the size of the div element
+ * that contains the map. 
+ */
+#map {
+    height: 600px; /* The height is 400 pixels */
+    width: 100%; /* The width is the width of the web page */
+}
+
+/*
+ * overwrite superkube
+ */
+.sidebar {
+    background-color: #EBEBEB;
+}
+.button-foxden {
+    --button-background-color: #197B7E;
+}
+.round {
+    padding: 10px;
+    border: 1px dashed grey;
+    border-radius: 5px;
+}

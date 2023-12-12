@@ -1,2 +1,4 @@
 # Frontend
-Frontend service
+Frotnend service for FOXDEN
+
+![Architecture](/images/Architecture.png)
