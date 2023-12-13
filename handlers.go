@@ -12,6 +12,7 @@ import (
 
 	authz "github.com/CHESSComputing/common/authz"
 	srvConfig "github.com/CHESSComputing/common/config"
+	utils "github.com/CHESSComputing/common/utils"
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 )
@@ -59,7 +60,7 @@ type User struct {
 func errorTmpl(c *gin.Context, msg string, err error) string {
 	tmpl := makeTmpl(c, "Status")
 	tmpl["Content"] = template.HTML(fmt.Sprintf("<div>%s</div>\n<br/><h3>ERROR</h3>%v", msg, err))
-	content := tmplPage("error.tmpl", tmpl)
+	content := utils.TmplPage(StaticFs, "error.tmpl", tmpl)
 	return content
 }
 
@@ -67,7 +68,7 @@ func errorTmpl(c *gin.Context, msg string, err error) string {
 func successTmpl(c *gin.Context, msg string) string {
 	tmpl := makeTmpl(c, "Status")
 	tmpl["Content"] = template.HTML(fmt.Sprintf("<h3>SUCCESS</h3><div>%s</div>", msg))
-	content := tmplPage("success.tmpl", tmpl)
+	content := utils.TmplPage(StaticFs, "success.tmpl", tmpl)
 	return content
 }
 
@@ -99,8 +100,8 @@ func IndexHandler(c *gin.Context) {
 
 	// top and bottom HTTP content from our templates
 	tmpl := makeTmpl(c, "Home")
-	top := tmplPage("top.tmpl", tmpl)
-	bottom := tmplPage("bottom.tmpl", tmpl)
+	top := utils.TmplPage(StaticFs, "top.tmpl", tmpl)
+	bottom := utils.TmplPage(StaticFs, "bottom.tmpl", tmpl)
 	tmpl["LogoClass"] = "show"
 	tmpl["MapClass"] = "hide"
 	if user != "" {
@@ -108,7 +109,7 @@ func IndexHandler(c *gin.Context) {
 		tmpl["MapClass"] = "show"
 		tmpl["Users"] = user
 	}
-	content := tmplPage("index.tmpl", tmpl)
+	content := utils.TmplPage(StaticFs, "index.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(top+content+bottom))
 }
 
@@ -120,8 +121,8 @@ func DocsHandler(c *gin.Context) {
 		c.Set("user", user)
 	}
 	tmpl := makeTmpl(c, "Documentation")
-	top := tmplPage("top.tmpl", tmpl)
-	bottom := tmplPage("bottom.tmpl", tmpl)
+	top := utils.TmplPage(StaticFs, "top.tmpl", tmpl)
+	bottom := utils.TmplPage(StaticFs, "bottom.tmpl", tmpl)
 	tmpl["Title"] = "Documentation"
 	fname := "static/markdown/main.md"
 	var params DocsParams
@@ -135,16 +136,16 @@ func DocsHandler(c *gin.Context) {
 		tmpl["Content"] = content
 	}
 	tmpl["Content"] = template.HTML(content)
-	content = tmplPage("content.tmpl", tmpl)
+	content = utils.TmplPage(StaticFs, "content.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(top+content+bottom))
 }
 
 // LoginHandler provides access to GET /login endpoint
 func LoginHandler(c *gin.Context) {
 	tmpl := makeTmpl(c, "Login")
-	top := tmplPage("top.tmpl", tmpl)
-	bottom := tmplPage("bottom.tmpl", tmpl)
-	content := tmplPage("login.tmpl", tmpl)
+	top := utils.TmplPage(StaticFs, "top.tmpl", tmpl)
+	bottom := utils.TmplPage(StaticFs, "bottom.tmpl", tmpl)
+	content := utils.TmplPage(StaticFs, "login.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(top+content+bottom))
 }
 
@@ -162,15 +163,15 @@ func UserRegistryHandler(c *gin.Context) {
 		c.Set("user", user)
 	}
 	tmpl := makeTmpl(c, "User registration")
-	top := tmplPage("top.tmpl", tmpl)
-	bottom := tmplPage("bottom.tmpl", tmpl)
+	top := utils.TmplPage(StaticFs, "top.tmpl", tmpl)
+	bottom := utils.TmplPage(StaticFs, "bottom.tmpl", tmpl)
 	captchaStr := captcha.New()
 	if srvConfig.Config.Frontend.WebServer.Verbose > 0 {
 		log.Println("new captcha", captchaStr)
 	}
 	tmpl["CaptchaId"] = captchaStr
 	tmpl["CaptchaPublicKey"] = srvConfig.Config.Frontend.CaptchaPublicKey
-	content := tmplPage("user_registration.tmpl", tmpl)
+	content := utils.TmplPage(StaticFs, "user_registration.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(top+content+bottom))
 }
 
@@ -179,8 +180,8 @@ func UserRegistryHandler(c *gin.Context) {
 // LoginPostHandler provides access to POST /login endpoint
 func LoginPostHandler(c *gin.Context) {
 	tmpl := makeTmpl(c, "Login")
-	top := tmplPage("top.tmpl", tmpl)
-	bottom := tmplPage("bottom.tmpl", tmpl)
+	top := utils.TmplPage(StaticFs, "top.tmpl", tmpl)
+	bottom := utils.TmplPage(StaticFs, "bottom.tmpl", tmpl)
 	var form LoginForm
 	var content string
 	var err error
@@ -253,8 +254,8 @@ func LoginPostHandler(c *gin.Context) {
 // UserRegistryPostHandler provides access to POST /registry endpoint
 func UserRegistryPostHandler(c *gin.Context) {
 	tmpl := makeTmpl(c, "User registration")
-	top := tmplPage("top.tmpl", tmpl)
-	bottom := tmplPage("bottom.tmpl", tmpl)
+	top := utils.TmplPage(StaticFs, "top.tmpl", tmpl)
+	bottom := utils.TmplPage(StaticFs, "bottom.tmpl", tmpl)
 
 	// parse input form request
 	var form UserRegistrationForm
@@ -335,9 +336,9 @@ func UserRegistryPostHandler(c *gin.Context) {
 
 	// return page
 	// we regenerate top template with new user info
-	top = tmplPage("top.tmpl", tmpl)
+	top = utils.TmplPage(StaticFs, "top.tmpl", tmpl)
 	// create page content
 	tmpl["Content"] = template.HTML(content)
-	content = tmplPage("success.tmpl", tmpl)
+	content = utils.TmplPage(StaticFs, "success.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(top+content+bottom))
 }
