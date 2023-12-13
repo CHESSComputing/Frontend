@@ -9,6 +9,7 @@ import (
 	"time"
 
 	srvConfig "github.com/CHESSComputing/common/config"
+	utils "github.com/CHESSComputing/common/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,19 +18,9 @@ import (
 //go:embed static
 var StaticFs embed.FS
 
-// helper function to parse given template and return HTML page
-func tmplPage(tmpl string, tmplData TmplRecord) string {
-	if tmplData == nil {
-		tmplData = make(TmplRecord)
-	}
-	var templates Templates
-	page := templates.Tmpl(tmpl, tmplData)
-	return page
-}
-
 // helper function to make initial template struct
-func makeTmpl(c *gin.Context, title string) TmplRecord {
-	tmpl := make(TmplRecord)
+func makeTmpl(c *gin.Context, title string) utils.TmplRecord {
+	tmpl := make(utils.TmplRecord)
 	tmpl["Title"] = title
 	tmpl["User"] = ""
 	if user, ok := c.Get("user"); ok {
@@ -37,8 +28,8 @@ func makeTmpl(c *gin.Context, title string) TmplRecord {
 	}
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	tmpl["ServerInfo"] = srvConfig.Info()
-	tmpl["Top"] = tmplPage("top.tmpl", tmpl)
-	tmpl["Bottom"] = tmplPage("bottom.tmpl", tmpl)
+	tmpl["Top"] = utils.TmplPage(StaticFs, "top.tmpl", tmpl)
+	tmpl["Bottom"] = utils.TmplPage(StaticFs, "bottom.tmpl", tmpl)
 	tmpl["StartTime"] = time.Now().Unix()
 	return tmpl
 }
