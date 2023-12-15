@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	srvConfig "github.com/CHESSComputing/common/config"
-	utils "github.com/CHESSComputing/common/utils"
+	srvConfig "github.com/CHESSComputing/golib/config"
+	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
 )
 

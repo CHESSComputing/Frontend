@@ -10,9 +10,9 @@ import (
 	"log"
 	"net/http"
 
-	authz "github.com/CHESSComputing/common/authz"
-	srvConfig "github.com/CHESSComputing/common/config"
-	utils "github.com/CHESSComputing/common/utils"
+	authz "github.com/CHESSComputing/golib/authz"
+	srvConfig "github.com/CHESSComputing/golib/config"
+	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/dchest/captcha"
 	"github.com/gin-gonic/gin"
 )
@@ -201,7 +201,7 @@ func LoginPostHandler(c *gin.Context) {
 	}
 
 	// make a call to Authz service to check for a user
-	rurl := fmt.Sprintf("%s/oauth/authorize?client_id=%s&response_type=code", srvConfig.Config.Services.AuthzURL, srvConfig.Config.Authz.ClientId)
+	rurl := fmt.Sprintf("%s/oauth/authorize?client_id=%s&response_type=code", srvConfig.Config.Services.AuthzURL, srvConfig.Config.Authz.ClientID)
 	user := User{Login: form.User, Password: form.Password}
 	data, err := json.Marshal(user)
 	if err != nil {

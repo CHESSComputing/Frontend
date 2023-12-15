@@ -12,8 +12,8 @@ import (
 	"net/url"
 	"strings"
 
-	authz "github.com/CHESSComputing/common/authz"
-	srvConfig "github.com/CHESSComputing/common/config"
+	authz "github.com/CHESSComputing/golib/authz"
+	srvConfig "github.com/CHESSComputing/golib/config"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
 	cryptoutils "github.com/vkuznet/cryptoutils"
@@ -76,7 +76,7 @@ func refreshToken() error {
 			return err
 		}
 	} else {
-		err = _token.Validate(srvConfig.Config.Authz.ClientId)
+		err = _token.Validate(srvConfig.Config.Authz.ClientID)
 	}
 	return err
 }
@@ -84,7 +84,7 @@ func refreshToken() error {
 // helper function to obtain JWT token from Authz service
 func getToken() (authz.Token, error) {
 	var token authz.Token
-	rurl := fmt.Sprintf("%s/oauth/token?client_id=%s&client_secret=%s&grant_type=client_credentials&scope=read", srvConfig.Config.Services.AuthzURL, srvConfig.Config.Authz.ClientId, srvConfig.Config.Authz.ClientSecret)
+	rurl := fmt.Sprintf("%s/oauth/token?client_id=%s&client_secret=%s&grant_type=client_credentials&scope=read", srvConfig.Config.Services.AuthzURL, srvConfig.Config.Authz.ClientID, srvConfig.Config.Authz.ClientSecret)
 	resp, err := http.Get(rurl)
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
@@ -101,7 +101,7 @@ func getToken() (authz.Token, error) {
 	}
 
 	// validate our token
-	var jwtKey = []byte(srvConfig.Config.Authz.ClientId)
+	var jwtKey = []byte(srvConfig.Config.Authz.ClientID)
 	claims := &authz.Claims{}
 	tkn, err := jwt.ParseWithClaims(reqToken, claims, func(token *jwt.Token) (any, error) {
 		return jwtKey, nil
