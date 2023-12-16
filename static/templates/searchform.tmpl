@@ -1,0 +1,70 @@
+<!-- searchform.tmpl -->
+<br/>
+
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-8">
+        <form action="{{.Base}}/search" method="post" name="web_search" id="web_search" class="">
+            <div class="form-item">
+                <div class="">
+                    {{if .Query}}
+                    <input class="input" type="text" name="query" value="{{.Query}}">
+                    {{else}}
+                    <input class="input" type="text" name="query" placeholder="Use tag:value or free-text search keywords, e.g. proposal:123 test data">
+                    {{end}}
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="column column-1">
+        <button class="button button-primary">Search</button>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-10">
+Need more help on Query Language?
+<button class="button button-small" onclick="ToggleTag('help')">Show Me</button>
+<div id="help" class="hide" style>
+    You may either use free-text search queries or choose explicit keyword search attributes.
+    For later please use <code>key:value</code> syntax, e.g.
+    <code>Email:user@gmail.com</code>.
+    <br/>
+    You may combine keyword search together along with free text. For example,
+    if you are looking for data sample with known user, proposal number and some description
+    you may use the query as following:
+<pre>
+Email:user@gmail.com Proposal:12345 mydescription
+</pre>
+    <br/>
+    You may also search for records using
+    <a href="https://www.mongodb.com/docs/manual/tutorial/query-documents/">MongoDB queries</a>:
+<pre>
+# fetch all queries
+{}
+
+# search for specific key:value pair where "key" is your record key
+# and "value" is your record value. The keys are always strings, while
+# values can be any data-type or mongo query expression, see next example:
+{"key":"value"}
+
+# search for specific condition, e.g. "key" value is greater than one
+{"key": {"$gt": 1}}
+
+# search using regex patterns, e.g.
+{"dataset":{"$regex":".*sample-tlyhrzpbwc01zbpi"}}
+</pre>
+</div>
+<br/>
+
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+
+<!-- end of web_searchform.tmpl -->

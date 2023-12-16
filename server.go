@@ -26,11 +26,12 @@ var StaticFs embed.FS
 
 var _oauthServer *oauthServer.Server
 var _header, _footer string
+var Verbose int
 
 func header() string {
 	if _header == "" {
 		tmpl := server.MakeTmpl(StaticFs, "Header")
-		tmpl["Base"] = srvConfig.Config.CHESSMetaData.WebServer.Base
+		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 		_header = server.TmplPage(StaticFs, "header.tmpl", tmpl)
 	}
 	return _header
@@ -38,7 +39,7 @@ func header() string {
 func footer() string {
 	if _footer == "" {
 		tmpl := server.MakeTmpl(StaticFs, "Footer")
-		tmpl["Base"] = srvConfig.Config.CHESSMetaData.WebServer.Base
+		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 		_footer = server.TmplPage(StaticFs, "footer.tmpl", tmpl)
 	}
 	return _footer
@@ -46,7 +47,7 @@ func footer() string {
 
 // helper function to handle base path of URL requests
 func base(api string) string {
-	b := srvConfig.Config.CHESSMetaData.WebServer.Base
+	b := srvConfig.Config.Frontend.WebServer.Base
 	return utils.BasePath(b, api)
 }
 
@@ -72,9 +73,10 @@ func setupRouter() *gin.Engine {
 
 	// POST end-poinst
 	r.POST("/login", LoginPostHandler)
+	r.POST("/kauth", KAuthHandler)
 
 	// static files
-	for _, dir := range []string{"js", "css", "images"} {
+	for _, dir := range []string{"js", "css", "images", "templates"} {
 		filesFS, err := fs.Sub(StaticFs, "static/"+dir)
 		if err != nil {
 			panic(err)
@@ -89,6 +91,8 @@ func setupRouter() *gin.Engine {
 
 // Server defines our HTTP server
 func Server() {
+	// set Verbose level
+	Verbose = srvConfig.Config.Frontend.Verbose
 
 	// setup oauth parts
 	manager := manage.NewDefaultManager()

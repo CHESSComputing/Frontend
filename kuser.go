@@ -1,5 +1,10 @@
 package main
 
+// module to handle kerberos access
+//
+// Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
+//
+
 import (
 	"errors"
 	"fmt"
@@ -7,7 +12,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	srvConfig "github.com/CHESSComputing/golib/config"
 	"gopkg.in/jcmturner/gokrb5.v7/client"
@@ -15,11 +19,7 @@ import (
 	"gopkg.in/jcmturner/gokrb5.v7/credentials"
 )
 
-// module to handle kerberos access
-//
-// Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
-//
-
+/*
 // helper function to extract username from auth-session cookie
 func username(r *http.Request) (string, error) {
 	if srvConfig.Config.Authz.TestMode {
@@ -45,6 +45,14 @@ func username(r *http.Request) (string, error) {
 	user := arr[0]
 	return user, nil
 }
+
+// authentication function
+func auth(r *http.Request) error {
+	_, err := username(r)
+	return err
+}
+
+*/
 
 // https://github.com/jcmturner/gokrb5/issues/7
 func kuserFromCache(cacheFile string) (*credentials.Credentials, error) {
@@ -73,12 +81,6 @@ func kuser(user, password string) (*credentials.Credentials, error) {
 		return nil, err
 	}
 	return client.Credentials, nil
-}
-
-// authentication function
-func auth(r *http.Request) error {
-	_, err := username(r)
-	return err
 }
 
 // helper function to check user credentials for POST requests

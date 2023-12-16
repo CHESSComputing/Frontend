@@ -1,19 +1,62 @@
+<!-- login.tmpl -->
 <section>
-  <article>
-      <form class="form" action="{{.Base}}/login" method="post">
-        <div class="form-item">
-            <label>User Name <span class="hint hint-req">*</span></label>
-            <input class="input" type="text" name="user">
-        </div>
-        <div class="form-item">
-            <label>User Password <span class="hint hint-req">*</span></label>
-            <input class="input" type="password" name="password">
-        </div>
-        <div class="form-item">
-            <button class="button button-primary">Save</button>
-            <button class="button">Cancel</button>
-        </div>
-    </form>
+    <article>
 
-  </article>
+        <div class="grid">
+          <div class="column-2">
+          </div>
+          <div class="column-8">
+              <form class="form" action="{{.Base}}/kauth" method="post">
+                <h2>CLASSE credentials</h2>
+                <div class="form-item">
+                    <label>User Name <span class="hint hint-req">*</span></label>
+                    <input class="input" type="text" name="name">
+                </div>
+                <div class="form-item">
+                    <label>User Password <span class="hint hint-req">*</span></label>
+                    <input class="input" type="password" name="password">
+                </div>
+                <div class="form-item">
+                    <button class="button button-primary">Login</button>
+                </div>
+              </form>
+          </div>
+          <div class="column-2">
+          </div>
+      </div>
+
+
+    <hr/>
+
+        <div class="grid">
+          <div class="column-4">
+          </div>
+          <div class="column-4">
+
+            <div class="auth-center">
+                <div>
+                    Or, authenticate yourself with
+                    <a href="https://www.wikiwand.com/en/OAuth">OAuth</a> providers:
+                </div>
+                <br/>
+                <a href="{{.GithubLogin}}">
+                  <img src="{{.Base}}/images/github_login.png" alt="GitHub login" class="width-200">
+                </a>
+                <br/>
+                <a href="{{.GoogleLogin}}">
+                  <img src="{{.Base}}/images/google_login.png" alt="Google login" class="width-200">
+                </a>
+                <br/>
+                <a href="{{.FacebookLogin}}">
+                  <img src="{{.Base}}/images/facebook_login.png" alt="Facebook login" class="width-200">
+                </a>
+            </div>
+
+          </div>
+          <div class="column-4">
+          </div>
+      </div>
+
+    </article>
 </section>
+<!-- end of login.tmpl -->

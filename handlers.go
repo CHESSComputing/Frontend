@@ -44,9 +44,7 @@ type User struct {
 // helper function to provide error page
 func handleError(c *gin.Context, msg string, err error) {
 	page := server.ErrorPage(StaticFs, msg, err)
-	w := c.Writer
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte(header() + page + footer()))
+	c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // helper function to provides error template message
@@ -84,47 +82,69 @@ func validateUser(c *gin.Context) (oauth2.GrantType, *oauth2.TokenGenerateReques
 // KAuthHandler provides kerberos authentication handler
 func KAuthHandler(c *gin.Context) {
 	// get http request/writer
-	w := c.Writer
+	//     w := c.Writer
 	r := c.Request
-	// if in test mode or do not use keytab
-	if srvConfig.Config.Kerberos.Keytab == "" || srvConfig.Config.Frontend.TestMode {
-		gt, treq, err := validateUser(c)
-		if err != nil {
-			msg := "wrong user credentials"
-			handleError(c, msg, err)
-			return
-		}
-		tokenInfo, err := _oauthServer.GetAccessToken(c, gt, treq)
-		if err != nil {
-			msg := "wrong access token"
-			handleError(c, msg, err)
-			return
-		}
-		// set custom token attributes
-		duration := srvConfig.Config.Authz.TokenExpires
-		if duration > 0 {
-			tokenInfo.SetCodeExpiresIn(time.Duration(duration))
-		}
-		tmap := _oauthServer.GetTokenData(tokenInfo)
-		data, err := json.MarshalIndent(tmap, "", "  ")
-		if err != nil {
-			msg := "fail to marshal token map"
-			handleError(c, msg, err)
-			return
-		}
 
-		tmpl := server.MakeTmpl(StaticFs, "Success")
-		tmpl["Content"] = fmt.Sprintf("<br/>Generated token:<br/><pre>%s</pre>", string(data))
-		page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
-		w.Write([]byte(header() + page + footer()))
+	user, err := c.Cookie("user")
+	if err == nil && user != "" {
+		log.Println("found user cookie", user)
+		c.Redirect(http.StatusFound, "/search")
 		return
 	}
 
+	expiration := time.Now().Add(24 * time.Hour)
+	// in test mode we'll set user as TestUser
+	if srvConfig.Config.Frontend.TestMode {
+		log.Println("frontend test mode")
+		c.Set("user", "TestUser")
+		//         cookie := http.Cookie{Name: "user", Value: "TestUser", Expires: expiration}
+		//         http.SetCookie(w, &cookie)
+		c.Redirect(http.StatusFound, "/search")
+		return
+	}
+
+	/*
+		// if in test mode or do not use keytab
+		if srvConfig.Config.Kerberos.Keytab == "" || srvConfig.Config.Frontend.TestMode {
+			gt, treq, err := validateUser(c)
+			if err != nil {
+				msg := "wrong user credentials"
+				handleError(c, msg, err)
+				return
+			}
+			tokenInfo, err := _oauthServer.GetAccessToken(c, gt, treq)
+			if err != nil {
+				msg := "wrong access token"
+				handleError(c, msg, err)
+				return
+			}
+			// set custom token attributes
+			duration := srvConfig.Config.Authz.TokenExpires
+			if duration > 0 {
+				tokenInfo.SetCodeExpiresIn(time.Duration(duration))
+			}
+			tmap := _oauthServer.GetTokenData(tokenInfo)
+			data, err := json.MarshalIndent(tmap, "", "  ")
+			if err != nil {
+				msg := "fail to marshal token map"
+				handleError(c, msg, err)
+				return
+			}
+
+			tmpl := server.MakeTmpl(StaticFs, "Success")
+			tmpl["Content"] = fmt.Sprintf("<br/>Generated token:<br/><pre>%s</pre>", string(data))
+			page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
+			w.Write([]byte(header() + page + footer()))
+			return
+		}
+	*/
+
 	// First, we need to get the value of the `code` query param
-	err := r.ParseForm()
+	err = r.ParseForm()
 	if err != nil {
-		log.Printf("could not parse http form, error %v\n", err)
-		w.WriteHeader(http.StatusBadRequest)
+		content := server.ErrorPage(StaticFs, "could not parse http form", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
 	}
 	name := r.FormValue("name")
 	password := r.FormValue("password")
@@ -132,32 +152,28 @@ func KAuthHandler(c *gin.Context) {
 	if name != "" && password != "" {
 		creds, err = kuser(name, password)
 		if err != nil {
-			msg := "wrong user credentials"
-			handleError(c, msg, err)
+			content := server.ErrorPage(StaticFs, "wrong user credentials", err)
+			c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 			return
 		}
 	} else {
-		msg := "user/password is empty"
-		handleError(c, msg, err)
+		content := server.ErrorPage(StaticFs, "user/password is empty", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
 	if creds == nil {
-		msg := "unable to obtain user credentials"
-		handleError(c, msg, err)
+		content := server.ErrorPage(StaticFs, "unable to obtain user credentials", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
 
-	expiration := time.Now().Add(24 * time.Hour)
-	msg := fmt.Sprintf("%s-%v", creds.UserName(), creds.Authenticated())
-	//     byteArray := encrypt([]byte(msg), Config.StoreSecret)
-	//     n := bytes.IndexByte(byteArray, 0)
-	//     s := string(byteArray[:n])
-	cookie := http.Cookie{Name: "auth-session", Value: msg, Expires: expiration}
-	http.SetCookie(w, &cookie)
-
-	// TODO: I need to generate valid token
-	//     w.Header().Set("Location", "/data")
-	w.WriteHeader(http.StatusFound)
+	// store user name in c.Context
+	c.Set("user", name)
+	//     c.SetCookie("user", name, expiration, "/", domain string, secure, httpOnly bool) {
+	cookie := http.Cookie{Name: "user", Value: name, Expires: expiration}
+	http.SetCookie(c.Writer, &cookie)
+	log.Println("KAuthHandler set cookie user", name)
+	c.Redirect(http.StatusFound, "/search")
 }
 
 // MainHandler provides access to GET / end-point
@@ -175,6 +191,7 @@ func MainHandler(c *gin.Context) {
 // LoginHandler provides access to GET /login endpoint
 func LoginHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Login")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	content := server.TmplPage(StaticFs, "login.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
@@ -232,7 +249,43 @@ func DocsHandler(c *gin.Context) {
 
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+	w := c.Writer
+	r := c.Request
+	user, err := c.Cookie("user")
+	log.Println("SearchHandler", user, err)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+
+	// create search template form
+	tmpl := server.MakeTmpl(StaticFs, "Search")
+
+	// if we got GET request it is /search web form
+	if r.Method == "GET" {
+		tmpl["Query"] = ""
+		tmpl["User"] = user
+		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(header() + page + footer()))
+		return
+	}
+
+	// if we get POST request we'll process user query
+	query := r.FormValue("query")
+	if Verbose > 0 {
+		log.Printf("search query='%s' user=%v", query, user)
+	}
+	if err != nil {
+		msg := "unable to parse user query"
+		handleError(c, msg, err)
+		return
+	}
+
+	// TODO: send query to Discovery Service
+	page := "TODO: send query to Discovery Service"
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // MetaDataHandler provides access to GET /search endpoint
@@ -255,7 +308,7 @@ func LoginPostHandler(c *gin.Context) {
 
 	if err = c.ShouldBind(&form); err != nil {
 		content = errorTmpl(c, "login form binding error", err)
-		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
 
