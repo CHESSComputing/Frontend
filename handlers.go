@@ -82,13 +82,13 @@ func validateUser(c *gin.Context) (oauth2.GrantType, *oauth2.TokenGenerateReques
 // KAuthHandler provides kerberos authentication handler
 func KAuthHandler(c *gin.Context) {
 	// get http request/writer
-	//     w := c.Writer
+	w := c.Writer
 	r := c.Request
 
 	user, err := c.Cookie("user")
 	if err == nil && user != "" {
 		log.Println("found user cookie", user)
-		c.Redirect(http.StatusFound, "/search")
+		c.Redirect(http.StatusFound, "/services")
 		return
 	}
 
@@ -97,47 +97,11 @@ func KAuthHandler(c *gin.Context) {
 	if srvConfig.Config.Frontend.TestMode {
 		log.Println("frontend test mode")
 		c.Set("user", "TestUser")
-		//         cookie := http.Cookie{Name: "user", Value: "TestUser", Expires: expiration}
-		//         http.SetCookie(w, &cookie)
-		c.Redirect(http.StatusFound, "/search")
+		cookie := http.Cookie{Name: "user", Value: "TestUser", Expires: expiration}
+		http.SetCookie(w, &cookie)
+		c.Redirect(http.StatusFound, "/services")
 		return
 	}
-
-	/*
-		// if in test mode or do not use keytab
-		if srvConfig.Config.Kerberos.Keytab == "" || srvConfig.Config.Frontend.TestMode {
-			gt, treq, err := validateUser(c)
-			if err != nil {
-				msg := "wrong user credentials"
-				handleError(c, msg, err)
-				return
-			}
-			tokenInfo, err := _oauthServer.GetAccessToken(c, gt, treq)
-			if err != nil {
-				msg := "wrong access token"
-				handleError(c, msg, err)
-				return
-			}
-			// set custom token attributes
-			duration := srvConfig.Config.Authz.TokenExpires
-			if duration > 0 {
-				tokenInfo.SetCodeExpiresIn(time.Duration(duration))
-			}
-			tmap := _oauthServer.GetTokenData(tokenInfo)
-			data, err := json.MarshalIndent(tmap, "", "  ")
-			if err != nil {
-				msg := "fail to marshal token map"
-				handleError(c, msg, err)
-				return
-			}
-
-			tmpl := server.MakeTmpl(StaticFs, "Success")
-			tmpl["Content"] = fmt.Sprintf("<br/>Generated token:<br/><pre>%s</pre>", string(data))
-			page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
-			w.Write([]byte(header() + page + footer()))
-			return
-		}
-	*/
 
 	// First, we need to get the value of the `code` query param
 	err = r.ParseForm()
@@ -169,11 +133,10 @@ func KAuthHandler(c *gin.Context) {
 
 	// store user name in c.Context
 	c.Set("user", name)
-	//     c.SetCookie("user", name, expiration, "/", domain string, secure, httpOnly bool) {
 	cookie := http.Cookie{Name: "user", Value: name, Expires: expiration}
-	http.SetCookie(c.Writer, &cookie)
+	http.SetCookie(w, &cookie)
 	log.Println("KAuthHandler set cookie user", name)
-	c.Redirect(http.StatusFound, "/search")
+	c.Redirect(http.StatusFound, "/services")
 }
 
 // MainHandler provides access to GET / end-point
@@ -221,7 +184,7 @@ func ServicesHandler(c *gin.Context) {
 		tmpl["MapClass"] = "show"
 		tmpl["Users"] = user
 	}
-	content := server.TmplPage(StaticFs, "index.tmpl", tmpl)
+	content := server.TmplPage(StaticFs, "services.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>FOXDEN</title>
+    <title>CHESS Data Management</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="{{.Base}}/images/favicon.ico">
@@ -19,28 +19,17 @@
 <header>
     <div class="grid">
         <div class="column column-4">
-            <a href="{{.Base}}/">
-                <img src="{{.Base}}/images/foxden-logo.png" style="width:150px;">
-                <!--
-                <img src="https://cdn.onlinewebfonts.com/svg/img_634087.png" alt="Analysis I" style="width:50px;">
-                -->
-            </a>
-        </div>
-        <div class="column column-4">
-            <div class="white">
-                <input class="input input-round" placeholder="Search item">
+            <div class="huge">
+                CHESS Data Management
             </div>
         </div>
         <div class="column column-4">
-            {{if eq .User ""}}
-                <a href="{{.Base}}/login" class="button button-light button-small">Login</a>
-                &nbsp; | &nbsp;
-                <a href="{{.Base}}/user/registration" class="button button-light button-small">Registry</a>
-            {{else}}
-                <span class="white margin-10">{{.User}}</span>
-                &nbsp; | &nbsp;
-                <a href="{{.Base}}/logout" class="button button-light button-small">Logout</a>
-            {{end}}
+        </div>
+        <div class="column column-4">
+            <a href="{{.Base}}/services" class="button button-small">Services</a>
+            <a href="{{.Base}}/docs" class="button button-small">Documentation</a>
+<!--            &nbsp; | &nbsp;-->
+            <a href="{{.Base}}/logout" class="button button-small">Logout</a>
         </div>
     </div>
 
