@@ -1,7 +1,7 @@
-![Architecture](images/Infrastructure.png)
+![Architecture](images/Architecture.png)
 
-# FOXDEN architecture
-The FOXDEN architecture is based on loosely coupled set of MicroServices:
+# Architecture
+CHESS Data Management architecture is based on loosely coupled set of MicroServices:
 - the frontend service to provide web UI interface to end-users
 - the authentication service to provide authentication to end-users
   - upon successfull authentication it issue valid token used across all other
@@ -18,9 +18,6 @@ infrustructure. For details of data flow please refer to
 [data-flow](docs/dataflow.md) documentation.
 For further details please refer to [implementation](docs/implementation.md)
 and [apis](docs/apis.md) details.
-
-So far, the FOXDEN framework is work in progress, please refer to our
-current list of [TODO tasks](docs/TODO.md).
 
 We rely on many different technologies which we outline in
 [references](docs/references.md) document.

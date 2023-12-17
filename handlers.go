@@ -146,6 +146,7 @@ func MainHandler(c *gin.Context) {
 	user, err := c.Cookie("user")
 	if err == nil {
 		c.Set("user", user)
+		ServicesHandler(c)
 	} else {
 		LoginHandler(c)
 	}
@@ -171,19 +172,14 @@ func ServicesHandler(c *gin.Context) {
 	if err != nil {
 		LoginHandler(c)
 	}
-	if srvConfig.Config.Frontend.WebServer.Verbose > 0 {
+	if Verbose > 0 {
 		log.Printf("user from c.Cookie: '%s'", user)
 	}
 
 	// top and bottom HTTP content from our templates
 	tmpl := server.MakeTmpl(StaticFs, "Home")
-	tmpl["LogoClass"] = "show"
 	tmpl["MapClass"] = "hide"
-	if user != "" {
-		tmpl["LogoClass"] = "hide"
-		tmpl["MapClass"] = "show"
-		tmpl["Users"] = user
-	}
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	content := server.TmplPage(StaticFs, "services.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
@@ -212,8 +208,6 @@ func DocsHandler(c *gin.Context) {
 
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
-	w := c.Writer
-	r := c.Request
 	user, err := c.Cookie("user")
 	log.Println("SearchHandler", user, err)
 	if err != nil {
@@ -223,20 +217,19 @@ func SearchHandler(c *gin.Context) {
 
 	// create search template form
 	tmpl := server.MakeTmpl(StaticFs, "Search")
+	tmpl["Query"] = ""
+	tmpl["User"] = user
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 
 	// if we got GET request it is /search web form
-	if r.Method == "GET" {
-		tmpl["Query"] = ""
-		tmpl["User"] = user
-		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	if c.Request.Method == "GET" {
 		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(header() + page + footer()))
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 		return
 	}
 
 	// if we get POST request we'll process user query
-	query := r.FormValue("query")
+	query := c.Request.FormValue("query")
 	if Verbose > 0 {
 		log.Printf("search query='%s' user=%v", query, user)
 	}
@@ -251,13 +244,33 @@ func SearchHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
-// MetaDataHandler provides access to GET /search endpoint
+// MetaDataHandler provides access to GET /meta endpoint
 func MetaDataHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
 }
 
-// ProvenanceHandler provides access to GET /search endpoint
+// ProvenanceHandler provides access to GET /provenance endpoint
 func ProvenanceHandler(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+}
+
+// AIMLHandler provides access to GET /aiml endpoint
+func AIMLHandler(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+}
+
+// AnalysisHandler provides access to GET /analysis endpoint
+func AnalysisHandler(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+}
+
+// VisualizationHandler provides access to GET /visualization endpoint
+func VisualizationHandler(c *gin.Context) {
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+}
+
+// DataHandler provides access to GET /data endpoint
+func DataHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
 }
 
@@ -307,7 +320,7 @@ func LoginPostHandler(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	if srvConfig.Config.Frontend.WebServer.Verbose > 0 {
+	if Verbose > 0 {
 		log.Printf("INFO: Authz response %+v, error %v", response, err)
 	}
 	if response.Status != "ok" {
@@ -318,13 +331,13 @@ func LoginPostHandler(c *gin.Context) {
 	}
 
 	c.Set("user", form.User)
-	if srvConfig.Config.Frontend.WebServer.Verbose > 0 {
+	if Verbose > 0 {
 		log.Printf("login from user %s, url path %s", form.User, c.Request.URL.Path)
 	}
 
 	// set our user cookie
 	if _, err := c.Cookie("user"); err != nil {
-		if srvConfig.Config.Frontend.WebServer.Verbose > 0 {
+		if Verbose > 0 {
 			log.Printf("set cookie user=%s domain=%s", form.User, domain())
 		}
 		c.SetCookie("user", form.User, 3600, "/", domain(), false, true)

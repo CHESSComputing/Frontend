@@ -1,4 +1,6 @@
 <!-- searchform.tmpl -->
+<section>
+    <article>
 <br/>
 
 <div class="grid">
@@ -9,9 +11,9 @@
             <div class="form-item">
                 <div class="">
                     {{if .Query}}
-                    <input class="input input-round" type="text" name="query" value="{{.Query}}">
+                    <input class="input" type="text" name="query" value="{{.Query}}">
                     {{else}}
-                    <input class="input input-round" type="text" name="query" placeholder="Use tag:value or free-text search keywords, e.g. proposal:123 test data">
+                    <input class="input" type="text" name="query" placeholder="Use tag:value or free-text search keywords, e.g. proposal:123 test data">
                     {{end}}
                 </div>
             </div>
@@ -67,4 +69,6 @@ Email:user@gmail.com Proposal:12345 mydescription
     </div>
 </div>
 
+    </article>
+</section>
 <!-- end of web_searchform.tmpl -->

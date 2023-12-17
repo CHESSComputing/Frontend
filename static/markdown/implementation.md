@@ -1,4 +1,4 @@
-# FOXDEN implementation 
-![Architecture](/images/Architecture.png)
+# CHESS Data Management implementation 
+![Implementation](/images/Implementation.png)
 
 ---
