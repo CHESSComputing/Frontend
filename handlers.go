@@ -7,13 +7,17 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	authz "github.com/CHESSComputing/golib/authz"
 	srvConfig "github.com/CHESSComputing/golib/config"
+	"github.com/CHESSComputing/golib/mongo"
 	server "github.com/CHESSComputing/golib/server"
+	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-oauth2/oauth2/v4"
 	"gopkg.in/jcmturner/gokrb5.v7/credentials"
@@ -42,9 +46,10 @@ type User struct {
 //
 
 // helper function to provide error page
-func handleError(c *gin.Context, msg string, err error) {
+func handleError(c *gin.Context, status int, msg string, err error) {
+	log.Printf("ERROR: %s %s, %v", status, msg, err)
 	page := server.ErrorPage(StaticFs, msg, err)
-	c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+page+footer()))
+	c.Data(status, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // helper function to provides error template message
@@ -235,7 +240,7 @@ func SearchHandler(c *gin.Context) {
 	}
 	if err != nil {
 		msg := "unable to parse user query"
-		handleError(c, msg, err)
+		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -246,7 +251,34 @@ func SearchHandler(c *gin.Context) {
 
 // MetaDataHandler provides access to GET /meta endpoint
 func MetaDataHandler(c *gin.Context) {
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+	user, err := c.Cookie("user")
+	if err != nil {
+		LoginHandler(c)
+	}
+
+	tmpl := server.MakeTmpl(StaticFs, "Data")
+	tmpl["Base"] = srvConfig.Config.CHESSMetaData.WebServer.Base
+	tmpl["User"] = user
+	tmpl["Date"] = time.Now().Unix()
+	tmpl["Beamlines"] = _beamlines
+	var forms []string
+	for idx, fname := range srvConfig.Config.CHESSMetaData.SchemaFiles {
+		cls := "hide"
+		if idx == 0 {
+			cls = ""
+		}
+		form, err := genForm(c, fname, nil)
+		if err != nil {
+			msg := "could not parse http form"
+			handleError(c, http.StatusInternalServerError, msg, err)
+			return
+		}
+		beamlineForm := fmt.Sprintf("<div id=\"%s\" class=\"%s\">%s</div>", utils.FileName(fname), cls, form)
+		forms = append(forms, beamlineForm)
+	}
+	tmpl["Form"] = template.HTML(strings.Join(forms, "\n"))
+	page := server.TmplPage(StaticFs, "metaforms.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // ProvenanceHandler provides access to GET /provenance endpoint
@@ -345,4 +377,86 @@ func LoginPostHandler(c *gin.Context) {
 
 	// redirect
 	c.Redirect(http.StatusFound, "/")
+}
+
+// UploadJsonHandler handles upload of JSON record
+func UploadJsonHandler(c *gin.Context) {
+
+	user, err := c.Cookie("user")
+	if err != nil {
+		LoginHandler(c)
+	}
+
+	r := c.Request
+	w := c.Writer
+	// get beamline value from the form
+	sname := r.FormValue("SchemaName")
+
+	// read form file
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		msg := "unable to read file form"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	defer file.Close()
+
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(file)
+	var rec mongo.Record
+	if err == nil {
+		err = json.Unmarshal(body, &rec)
+		if err != nil {
+			log.Println("unable to read HTTP JSON record, error:", err)
+		}
+	}
+	tmpl := server.MakeTmpl(StaticFs, "Upload")
+	tmpl["User"] = user
+	tmpl["Date"] = time.Now().Unix()
+	schemaFiles := srvConfig.Config.CHESSMetaData.SchemaFiles
+	if sname != "" {
+		// construct proper schema files order which will be used to generate forms
+		sfiles := []string{}
+		// add scheme file which matches our desired schema
+		for _, f := range schemaFiles {
+			if strings.Contains(f, sname) {
+				sfiles = append(sfiles, f)
+			}
+		}
+		// add rest of schema files
+		for _, f := range schemaFiles {
+			if !strings.Contains(f, sname) {
+				sfiles = append(sfiles, f)
+			}
+		}
+		schemaFiles = sfiles
+		// construct proper bemalines order
+		blines := []string{sname}
+		for _, b := range _beamlines {
+			if b != sname {
+				blines = append(blines, b)
+			}
+		}
+		tmpl["Beamlines"] = blines
+	} else {
+		tmpl["Beamlines"] = _beamlines
+	}
+	var forms []string
+	for idx, fname := range schemaFiles {
+		cls := "hide"
+		if idx == 0 {
+			cls = ""
+		}
+		form, err := genForm(c, fname, &rec)
+		if err != nil {
+			log.Println("ERROR", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		beamlineForm := fmt.Sprintf("<div id=\"%s\" class=\"%s\">%s</div>", utils.FileName(fname), cls, form)
+		forms = append(forms, beamlineForm)
+	}
+	tmpl["Form"] = template.HTML(strings.Join(forms, "\n"))
+	page := server.TmplPage(StaticFs, "metaforms.tmpl", tmpl)
+	w.Write([]byte(header() + page + footer()))
 }

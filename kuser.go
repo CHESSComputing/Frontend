@@ -19,41 +19,6 @@ import (
 	"gopkg.in/jcmturner/gokrb5.v7/credentials"
 )
 
-/*
-// helper function to extract username from auth-session cookie
-func username(r *http.Request) (string, error) {
-	if srvConfig.Config.Authz.TestMode {
-		return "test", nil
-	}
-	cookie, err := r.Cookie("auth-session")
-	if err != nil {
-		return "", err
-	}
-
-	//     byteArray := decrypt([]byte(cookie.Value), Config.StoreSecret)
-	//     n := bytes.IndexByte(byteArray, 0)
-	//     s := string(byteArray[:n])
-
-	s := cookie.Value
-
-	arr := strings.Split(s, "-")
-	if len(arr) != 2 {
-		msg := "Unable to decript auth-session"
-		log.Printf("ERROR: %s", msg)
-		return "", errors.New(msg)
-	}
-	user := arr[0]
-	return user, nil
-}
-
-// authentication function
-func auth(r *http.Request) error {
-	_, err := username(r)
-	return err
-}
-
-*/
-
 // https://github.com/jcmturner/gokrb5/issues/7
 func kuserFromCache(cacheFile string) (*credentials.Credentials, error) {
 	cfg, err := config.Load(srvConfig.Config.Kerberos.Krb5Conf)

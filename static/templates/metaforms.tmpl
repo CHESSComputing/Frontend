@@ -1,0 +1,141 @@
+<!-- metaforms.tmpl -->
+<br/>
+<div class="huge container-3 centered">
+    META DATA UPLOAD FORMS
+</div>
+<br/>
+<div class="grid">
+    <div class="column column-1">
+        <!-- left empty column -->
+    </div>
+
+    <div class="column column-2">
+
+        <div class="form-container center-90">
+
+            <div class="">
+                <div>
+                    <img src="{{.Base}}/images/chess-logo.png" width="200px" alt="CHESS MetaData" />
+                </div>
+            <h3>Beamlines</h3>
+            <select id="beamlines" class="input column-5" onChange="selectBeamline();">
+        {{range $b := .Beamlines}}
+            <option value="{{$b}}">{{$b}}</option>
+        {{end}}
+            </select>
+            </div>
+            <br/>
+            <hr/>
+            <br/>
+
+            <div>
+                <form class="form-content" method="post" action="{{.Base}}/api" enctype="multipart/form-data">
+                <h3>Upload spec file</h3>
+                <br/>
+                <div class="form-item">
+                    <label> Configuration file </label>
+                    <input class="input" name="file" type="file">
+                </div>
+                <div class="form-item flex">
+                    <div class="is-append push-right">
+                        <div class="column-8">
+                            <input class="input" type="hidden" id="Form1SchemaName" name="SchemaName" value=""/>
+                            <input class="input" type="hidden" name="User" value="{{.User}}"/>
+                        </div>
+                        <button class="button button-small button-primary">Submit</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+
+            <div>
+                <form class="form-content" method="post" action="{{.Base}}/json" enctype="multipart/form-data">
+                <h3>Use JSON file</h3>
+                <br/>
+                <div class="form-item">
+                    <label> Provided JSON file will fill the web form </label>
+                    <input class="input" name="file" type="file">
+                </div>
+                <div class="form-item flex">
+                    <div class="is-append push-right">
+                        <div class="column-8">
+                            <input class="input" type="hidden" id="Form2SchemaName" name="SchemaName" value=""/>
+                            <input class="input" type="hidden" name="User" value="{{.User}}"/>
+                        </div>
+                        <button class="button button-small button-secondary button-gray">Upload</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+
+    </div>
+    <div class="column column-8">
+
+    {{.Form}}
+
+    </div>
+
+    <div class="column column-1">
+        <!-- right empty column -->
+    </div>
+</div>
+
+<script>
+function move(prevTag, nextTag)
+{
+    HideTag("Generic");
+    HideTag("Material");
+    HideTag("Experiment");
+    HideTag("Final");
+    if(validateInput(prevTag) == true) {
+        ShowTag(nextTag);
+    }
+}
+function validateInput(tag)
+{
+    var fieldset = document.getElementById(tag);
+    var docs = fieldset.getElementsByTagName("input");
+    for(var i=0; i<docs.length; i++) {
+        if(docs[i].required && docs[i].value == "") {
+            ShowTag(tag);
+            docs[i].focus();
+            docs[i].className = "alert alert-info is-req column-9";
+            return false;
+        }
+    }
+    return true;
+}
+function disable(tid)
+{
+    var doc = document.getElementById(tid);
+    doc.value = "";
+    doc.disabled = true;
+}
+function disableOption(tid, val)
+{
+    var docs = document.getElementById(tid);
+    for(var i=0; i<docs.length; i++) {
+        docs[i].disabled=true;
+    }
+}
+function selectBeamline()
+{
+    var docs=document.getElementById("beamlines");
+    for(var i=0; i<docs.length; i++) {
+        HideTag(docs[i].value);
+    }
+    ShowTag(docs.value);
+    setSchemaName();
+}
+function setSchemaName()
+{
+    var docs=document.getElementById("beamlines");
+    var sdoc=document.getElementById("Form1SchemaName");
+    sdoc.value=docs.value;
+    var sdoc=document.getElementById("Form2SchemaName");
+    sdoc.value=docs.value;
+}
+setSchemaName();
+</script>
+<!-- end of metaforms.tmpl -->

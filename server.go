@@ -7,8 +7,9 @@ import (
 	"log"
 	"net/http"
 
+	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
-	"github.com/CHESSComputing/golib/server"
+	server "github.com/CHESSComputing/golib/server"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-oauth2/oauth2/v4/generates"
@@ -24,6 +25,9 @@ import (
 //go:embed static
 var StaticFs embed.FS
 
+// global variables
+var _beamlines []string
+var _smgr beamlines.SchemaManager
 var _oauthServer *oauthServer.Server
 var _header, _footer string
 var Verbose int
@@ -121,6 +125,19 @@ func Server() {
 	_oauthServer = oauthServer.NewServer(oauthServer.NewConfig(), manager)
 	_oauthServer.SetAllowGetAccessRequest(true)
 	_oauthServer.SetClientInfoHandler(oauthServer.ClientFormHandler)
+
+	// initialize schema manager
+	_smgr = beamlines.SchemaManager{}
+	for _, fname := range srvConfig.Config.CHESSMetaData.SchemaFiles {
+		_, err := _smgr.Load(fname)
+		if err != nil {
+			log.Fatalf("unable to load %s error %v", fname, err)
+		}
+		_beamlines = append(_beamlines, utils.FileName(fname))
+	}
+	log.Println("Schema", _smgr.String())
+
+	// initialize router
 	r := setupRouter()
 	sport := fmt.Sprintf(":%d", srvConfig.Config.Frontend.WebServer.Port)
 	log.Printf("Start HTTP server %s", sport)

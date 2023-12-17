@@ -30,6 +30,32 @@ header {
   padding-left: 30px;
 }
 
+fieldset {
+    font-family: inherit;
+    border-radius: 4px;
+    padding: 32px;
+}
+
+fieldset legend {
+    font-size: .75em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: rgba(17,17,19,.5);
+    padding: 0 1rem;
+    margin-left: -1rem;
+    top: 2px;
+    position: relative;
+    line-height: 0;
+}
+
+fieldset, form {
+    margin-bottom: 16px;
+}
+
+fieldset, figure pre {
+    border: 1px solid rgba(17,17,19,.1);
+}
+
 article {
   float: left;
   padding-top: 10px;

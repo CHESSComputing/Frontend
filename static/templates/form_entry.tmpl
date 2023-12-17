@@ -1,0 +1,44 @@
+{{if .List }}
+<div class="form-item">
+{{if eq .Class  "hint hint-req"}}
+    <label class="{{.Class}}">{{.Key}} (&#42;)</label>
+{{else}}
+    <label class="{{.Class}}"><b>{{.Key}}</b></label>
+{{end}}
+
+{{if ne .Description "Not Available"}}
+    <label>{{.Description}}</label>
+{{end}}
+    <div name="{{.Key}}" class="form-item">
+{{if eq .Multiple "multiple"}}
+        <select class="input column-5" name="{{.Key}}" multiple>
+{{else}}
+        <select class="input column-5" name="{{.Key}}">
+{{end}}
+{{range $val := .Selected}}
+        <option value="{{$val}}" selected>{{$val}}</option>
+{{end}}
+{{range $val := .Value}}
+        <option value="{{$val}}">{{$val}}</option>
+{{end}}
+    </select>
+    </div>
+</div>
+{{else}}
+<div class="form-item">
+{{if eq .Class  "hint hint-req"}}
+    <label class="{{.Class}}">{{.Key}} (&#42;)</label>
+{{else}}
+    <label class="{{.Class}}"><b>{{.Key}}</b></label>
+{{end}}
+{{if ne .Description "Not Available"}}
+    <label>{{.Description}}</label>
+{{end}}
+
+{{if eq .Type "checkbox" }}
+    <input type="checkbox" name={{.Key}} value={{.Value}}>
+{{else}}
+    <input name="{{.Key}}" type="text" class="input column-9" value="{{.Value}}" placeholder="{{.Placeholder}}" {{.Required}}>
+{{end}}
+</div>
+{{end}}
