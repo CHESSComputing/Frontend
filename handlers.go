@@ -16,8 +16,9 @@ import (
 	authz "github.com/CHESSComputing/golib/authz"
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
-	"github.com/CHESSComputing/golib/mongo"
+	mongo "github.com/CHESSComputing/golib/mongo"
 	server "github.com/CHESSComputing/golib/server"
+	services "github.com/CHESSComputing/golib/services"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-oauth2/oauth2/v4"
@@ -324,9 +325,9 @@ func MetaDataHandler(c *gin.Context) {
 }
 
 // helper function to parse metadata upload form using user's provided file
-func parseFileUploadForm(c *gin.Context) (server.MetaRecord, error) {
+func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	r := c.Request
-	mrec := server.MetaRecord{}
+	mrec := services.MetaRecord{}
 	user, _ := c.Cookie("user")
 
 	// read schema name from web form
@@ -334,7 +335,7 @@ func parseFileUploadForm(c *gin.Context) (server.MetaRecord, error) {
 	sname := r.FormValue("SchemaName")
 	mrec.Schema = sname
 	if sname != "" {
-		schema = server.SchemaFileName(sname)
+		schema = beamlines.SchemaFileName(sname)
 	}
 	if sname == "" {
 		msg := "client does not provide schema name"
@@ -360,9 +361,9 @@ func parseFileUploadForm(c *gin.Context) (server.MetaRecord, error) {
 }
 
 // helper function to parse meta upload web form
-func parseFormUploadForm(c *gin.Context) (server.MetaRecord, error) {
+func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	r := c.Request
-	mrec := server.MetaRecord{}
+	mrec := services.MetaRecord{}
 	user, _ := c.Cookie("user")
 	// read schemaName from form itself
 	var sname string
@@ -373,7 +374,7 @@ func parseFormUploadForm(c *gin.Context) (server.MetaRecord, error) {
 		}
 	}
 	mrec.Schema = sname
-	fname := server.SchemaFileName(sname)
+	fname := beamlines.SchemaFileName(sname)
 	schema, err := _smgr.Load(fname)
 	if err != nil {
 		log.Println("ERROR", err)
@@ -444,7 +445,7 @@ func MetaFileUploadHandler(c *gin.Context) {
 }
 
 // MetaUploadHandler manages upload of record to MetaData service
-func MetaUploadHandler(c *gin.Context, mrec server.MetaRecord) {
+func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	user, err := c.Cookie("user")
 	if err != nil {
 		LoginHandler(c)

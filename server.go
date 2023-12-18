@@ -10,6 +10,7 @@ import (
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
 	server "github.com/CHESSComputing/golib/server"
+	services "github.com/CHESSComputing/golib/services"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-oauth2/oauth2/v4/generates"
@@ -29,7 +30,7 @@ var StaticFs embed.FS
 var _beamlines []string
 var _smgr beamlines.SchemaManager
 var _oauthServer *oauthServer.Server
-var _httpReadRequest, _httpWriteRequest *server.HttpRequest
+var _httpReadRequest, _httpWriteRequest *services.HttpRequest
 var _header, _footer string
 var Verbose int
 
@@ -142,8 +143,8 @@ func Server() {
 	log.Println("Schema", _smgr.String())
 
 	// initialize http request
-	_httpReadRequest = server.NewHttpRequest("read", Verbose)
-	_httpWriteRequest = server.NewHttpRequest("write", Verbose)
+	_httpReadRequest = services.NewHttpRequest("read", Verbose)
+	_httpWriteRequest = services.NewHttpRequest("write", Verbose)
 
 	// initialize router
 	r := setupRouter()
