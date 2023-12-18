@@ -214,7 +214,7 @@ func DocsHandler(c *gin.Context) {
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	user, err := c.Cookie("user")
-	log.Println("SearchHandler", user, err)
+	log.Println("SearchHandler", user, err, c.Request.Method)
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -243,6 +243,35 @@ func SearchHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
+
+	// obtain valid token
+	scope := "read"
+	_httpRequest.GetToken(scope)
+
+	// create POST payload
+	rec := make(map[string]string)
+	rec["query"] = query
+	rec["user"] = user
+	rec["client"] = "frontend"
+	data, err := json.Marshal(rec)
+	if err != nil {
+		msg := "unable to parse user query"
+		handleError(c, http.StatusInternalServerError, msg, err)
+		return
+	}
+	// create POST form payload
+	//     contentType := "application/x-www-form-urlencoded"
+	//     form := url.Values{}
+	//     form.Add("user", user)
+	//     form.Add("query", string(query))
+	//     form.Add("client", "cli")
+
+	// TODO: replace request to Discovery service
+	// place request to MetaData service
+	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
+	//     resp, err := _httpRequest.Post(rurl, contentType, strings.NewReader(form.Encode()))
+	resp, err := _httpRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	log.Println("### MetaData response %+v, error %v", resp, err)
 
 	// TODO: send query to Discovery Service
 	page := "TODO: send query to Discovery Service"

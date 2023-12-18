@@ -29,6 +29,7 @@ var StaticFs embed.FS
 var _beamlines []string
 var _smgr beamlines.SchemaManager
 var _oauthServer *oauthServer.Server
+var _httpRequest *server.HttpRequest
 var _header, _footer string
 var Verbose int
 
@@ -82,6 +83,7 @@ func setupRouter() *gin.Engine {
 	// POST end-poinst
 	//     r.POST("/login", LoginPostHandler)
 	r.POST("/login", KAuthHandler)
+	r.POST("/search", SearchHandler)
 
 	// static files
 	for _, dir := range []string{"js", "css", "images", "templates"} {
@@ -136,6 +138,9 @@ func Server() {
 		_beamlines = append(_beamlines, utils.FileName(fname))
 	}
 	log.Println("Schema", _smgr.String())
+
+	// initialize http request
+	_httpRequest = server.NewHttpRequest(Verbose)
 
 	// initialize router
 	r := setupRouter()
