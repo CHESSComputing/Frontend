@@ -10,7 +10,7 @@ build:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
-	go clean; rm -rf pkg; go build -o web ${flags}
+	go clean; rm -rf pkg; go build -o srv ${flags}
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
@@ -21,8 +21,8 @@ build_darwin_amd64:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
-	go clean; rm -rf pkg web_darwin; GOOS=darwin go build -o web ${flags}
-	mv web web_darwin_amd64
+	go clean; rm -rf pkg srv_darwin; GOOS=darwin go build -o srv ${flags}
+	mv srv srv_darwin_amd64
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
@@ -31,8 +31,8 @@ build_darwin_arm64:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
-	go clean; rm -rf pkg web_darwin; GOARCH=arm64 GOOS=darwin go build -o web ${flags}
-	mv web web_darwin_arm64
+	go clean; rm -rf pkg srv_darwin; GOARCH=arm64 GOOS=darwin go build -o srv ${flags}
+	mv srv srv_darwin_arm64
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
@@ -41,8 +41,8 @@ build_amd64:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
-	go clean; rm -rf pkg web_linux; GOOS=linux go build -o web ${flags}
-	mv web web_amd64
+	go clean; rm -rf pkg srv_linux; GOOS=linux go build -o srv ${flags}
+	mv srv srv_amd64
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
@@ -51,27 +51,27 @@ build_power8:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
-	go clean; rm -rf pkg web_power8; GOARCH=ppc64le GOOS=linux go build -o web ${flags}
+	go clean; rm -rf pkg srv_power8; GOARCH=ppc64le GOOS=linux go build -o srv ${flags}
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
-	mv web web_power8
+	mv srv srv_power8
 
 build_arm64:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
-	go clean; rm -rf pkg web_arm64; GOARCH=arm64 GOOS=linux go build -o web ${flags}
+	go clean; rm -rf pkg srv_arm64; GOARCH=arm64 GOOS=linux go build -o srv ${flags}
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
-	mv web web_arm64
+	mv srv srv_arm64
 
 build_windows:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
-	go clean; rm -rf pkg web.exe; GOARCH=amd64 GOOS=windows go build -o web.exe ${flags}
+	go clean; rm -rf pkg srv.exe; GOARCH=amd64 GOOS=windows go build -o srv.exe ${flags}
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
