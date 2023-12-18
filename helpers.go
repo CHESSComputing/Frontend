@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
+	"strconv"
 	"strings"
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
+	srvConfig "github.com/CHESSComputing/golib/config"
 	mongo "github.com/CHESSComputing/golib/mongo"
 	server "github.com/CHESSComputing/golib/server"
 	utils "github.com/CHESSComputing/golib/utils"
@@ -279,4 +282,88 @@ func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, req
 		}
 	}
 	return server.TmplPage(StaticFs, "form_entry.tmpl", tmpl)
+}
+
+// helper function to parser form values
+func parseValue(schema *beamlines.Schema, key string, items []string) (any, error) {
+	r, ok := schema.Map[key]
+	if !ok {
+		if srvConfig.Config.Frontend.TestMode && utils.InList(key, beamlines.SkipKeys) {
+			return "", nil
+		}
+		msg := fmt.Sprintf("No key %s found in schema map", key)
+		log.Printf("ERROR: %s", msg)
+		return false, errors.New(msg)
+	} else if r.Type == "list_str" {
+		return items, nil
+	} else if strings.HasPrefix(r.Type, "list_int") {
+		// parse given values to int data type
+		var vals []int
+		for _, values := range items {
+			for _, val := range strings.Split(values, " ") {
+				v, err := strconv.Atoi(val)
+				if err == nil {
+					vals = append(vals, v)
+				} else {
+					msg := fmt.Sprintf("ERROR: unable to parse input '%v' into int data-type, %v", items, err)
+					return items, errors.New(msg)
+				}
+			}
+		}
+		return vals, nil
+	} else if strings.HasPrefix(r.Type, "list_float") {
+		// parse given values to float data type
+		var vals []float64
+		for _, values := range items {
+			for _, val := range strings.Split(values, " ") {
+				v, err := strconv.ParseFloat(val, 32)
+				if err == nil {
+					vals = append(vals, v)
+				} else {
+					msg := fmt.Sprintf("ERROR: unable to parse input '%v' into float data-type, %v", items, err)
+					return items, errors.New(msg)
+				}
+			}
+		}
+		return vals, nil
+	} else if r.Type == "string" {
+		return items[0], nil
+	} else if r.Type == "bool" {
+		v, err := strconv.ParseBool(items[0])
+		if err == nil {
+			return v, nil
+		}
+		msg := fmt.Sprintf("Unable to parse boolean value for key=%s, please come back to web form and choose either true or false", key)
+		log.Printf("ERROR: %s", msg)
+		return false, errors.New(msg)
+	} else if strings.HasPrefix(r.Type, "int") {
+		v, err := strconv.ParseInt(items[0], 10, 64)
+		if err == nil {
+			if r.Type == "int64" {
+				return int64(v), nil
+			} else if r.Type == "int32" {
+				return int32(v), nil
+			} else if r.Type == "int16" {
+				return int16(v), nil
+			} else if r.Type == "int8" {
+				return int8(v), nil
+			} else if r.Type == "int" {
+				return int(v), nil
+			}
+			return v, nil
+		}
+		return 0, err
+	} else if strings.HasPrefix(r.Type, "float") {
+		v, err := strconv.ParseFloat(items[0], 64)
+		if err == nil {
+			if r.Type == "float32" {
+				return float32(v), nil
+			}
+			return v, nil
+		}
+		return 0.0, err
+	}
+	msg := fmt.Sprintf("Unable to parse form value for key %s", key)
+	log.Printf("ERROR: %s", msg)
+	return 0, errors.New(msg)
 }

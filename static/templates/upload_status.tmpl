@@ -1,0 +1,25 @@
+<section>
+    <article>
+
+    <div class="grid">
+        <div class="column column-12">
+            <div><b>SCHEMA:</b> {{.Schema}}</div>
+            <div class="{{.Class}}">{{.Message}}</div>
+            {{if .JsonRecord }}
+            <div class="">
+                <h3>JSON record</h3>
+                <br/>
+                <pre id="json_record" class="hide">{{.JsonRecord}}</pre>
+                <a href="javascript:FlipTag('json_record')" class="button is-secondary is-small is-gray">Show</a>
+                <a href="javascript:SaveRecord()" class="button is-secondary is-small">Save</a>
+                <br/>
+                <h3>MetaData server response</h3>
+                <pre id="response_record" class="">{{.ResponseRecord}}</pre>
+            </div>
+            {{end}}
+        </div>
+    </div>
+
+
+    </article>
+</section>

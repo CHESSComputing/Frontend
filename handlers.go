@@ -14,6 +14,7 @@ import (
 	"time"
 
 	authz "github.com/CHESSComputing/golib/authz"
+	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
 	"github.com/CHESSComputing/golib/mongo"
 	server "github.com/CHESSComputing/golib/server"
@@ -245,8 +246,7 @@ func SearchHandler(c *gin.Context) {
 	}
 
 	// obtain valid token
-	scope := "read"
-	_httpRequest.GetToken(scope)
+	_httpReadRequest.GetToken()
 
 	// create POST payload
 	rec := make(map[string]string)
@@ -259,21 +259,34 @@ func SearchHandler(c *gin.Context) {
 		handleError(c, http.StatusInternalServerError, msg, err)
 		return
 	}
-	// create POST form payload
-	//     contentType := "application/x-www-form-urlencoded"
-	//     form := url.Values{}
-	//     form.Add("user", user)
-	//     form.Add("query", string(query))
-	//     form.Add("client", "cli")
 
 	// TODO: replace request to Discovery service
 	// place request to MetaData service
 	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
-	//     resp, err := _httpRequest.Post(rurl, contentType, strings.NewReader(form.Encode()))
-	resp, err := _httpRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
-	log.Println("### MetaData response %+v, error %v", resp, err)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		handleError(c, http.StatusInternalServerError, msg, err)
+		return
+	}
 
-	// TODO: send query to Discovery Service
+	// parse data records from meta-data service
+	var records []mongo.Record
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		content := errorTmpl(c, "unable to read response body, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	err = json.Unmarshal(data, &records)
+	if err != nil {
+		content := errorTmpl(c, "unable to unmarshal response, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+
+	// TODO: parse results and present them in web form
 	page := "TODO: send query to Discovery Service"
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
@@ -308,6 +321,170 @@ func MetaDataHandler(c *gin.Context) {
 	tmpl["Form"] = template.HTML(strings.Join(forms, "\n"))
 	page := server.TmplPage(StaticFs, "metaforms.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+}
+
+// helper function to parse metadata upload form using user's provided file
+func parseFileUploadForm(c *gin.Context) (server.MetaRecord, error) {
+	r := c.Request
+	mrec := server.MetaRecord{}
+	user, _ := c.Cookie("user")
+
+	// read schema name from web form
+	var schema string
+	sname := r.FormValue("SchemaName")
+	mrec.Schema = sname
+	if sname != "" {
+		schema = server.SchemaFileName(sname)
+	}
+	if sname == "" {
+		msg := "client does not provide schema name"
+		return mrec, errors.New(msg)
+	}
+	if Verbose > 0 {
+		log.Printf("schema=%s, file=%s", sname, schema)
+	}
+
+	// process web form
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		return mrec, err
+	}
+	defer file.Close()
+	body, err := io.ReadAll(file)
+	var rec mongo.Record
+	err = json.Unmarshal(body, &rec)
+	rec["User"] = user
+	mrec.Record = rec
+	return mrec, err
+}
+
+// helper function to parse meta upload web form
+func parseFormUploadForm(c *gin.Context) (server.MetaRecord, error) {
+	r := c.Request
+	mrec := server.MetaRecord{}
+	user, _ := c.Cookie("user")
+	// read schemaName from form itself
+	var sname string
+	for k, items := range r.PostForm {
+		if k == "SchemaName" {
+			sname = items[0]
+			break
+		}
+	}
+	mrec.Schema = sname
+	fname := server.SchemaFileName(sname)
+	schema, err := _smgr.Load(fname)
+	if err != nil {
+		log.Println("ERROR", err)
+		return mrec, err
+	}
+	desc := ""
+	// r.PostForm provides url.Values which is map[string][]string type
+	// we convert it to Record
+	rec := make(mongo.Record)
+	for k, items := range r.PostForm {
+		if Verbose > 0 {
+			log.Println("### PostForm", k, items)
+		}
+		if k == "SchemaName" {
+			continue
+		}
+		if k == "Description" {
+			desc = strings.Join(items, " ")
+			continue
+		}
+		val, err := parseValue(schema, k, items)
+		if err != nil {
+			// check if given key is mandatory or optional
+			srec, ok := schema.Map[k]
+			if ok {
+				if srec.Optional {
+					log.Println("WARNING: unable to parse optional key", k)
+				} else {
+					log.Println("ERROR: unable to parse mandatory key", k, "error", err)
+					return mrec, err
+				}
+			} else {
+				if !utils.InList(k, beamlines.SkipKeys) {
+					log.Println("ERROR: no key", k, "found in schema map, error", err)
+					return mrec, err
+				}
+			}
+		}
+		rec[k] = val
+	}
+	rec["User"] = user
+	rec["Description"] = desc
+	if Verbose > 0 {
+		log.Printf("process form, record %v\n", rec)
+	}
+	mrec.Record = rec
+	return mrec, nil
+}
+
+// MetaFormUploadHandler provides access to GET /meta/form/upload endpoint
+func MetaFormUploadHandler(c *gin.Context) {
+	rec, err := parseFormUploadForm(c)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
+		return
+	}
+	MetaUploadHandler(c, rec)
+}
+
+// MetaFileUploadHandler provides access to GET /meta/file/upload endpoint
+func MetaFileUploadHandler(c *gin.Context) {
+	rec, err := parseFileUploadForm(c)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
+		return
+	}
+	MetaUploadHandler(c, rec)
+}
+
+// MetaUploadHandler manages upload of record to MetaData service
+func MetaUploadHandler(c *gin.Context, mrec server.MetaRecord) {
+	user, err := c.Cookie("user")
+	if err != nil {
+		LoginHandler(c)
+	}
+	tmpl := server.MakeTmpl(StaticFs, "Upload")
+
+	// prepare http writer
+	_httpWriteRequest.GetToken()
+
+	// place request to MetaData service
+	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
+	data, err := json.MarshalIndent(mrec, "", "  ")
+	if err != nil {
+		content := errorTmpl(c, "unable to marshal meta data record, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	tmpl["JsonRecord"] = template.HTML(string(data))
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	class := "alert alert-success"
+	msg := fmt.Sprintf("Your meta-data is inserted successfully")
+	if err != nil {
+		class = "alert alert-error"
+		msg = fmt.Sprintf("meta-data request processing error: %v", err)
+	}
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		class = "alert alert-error"
+		msg = fmt.Sprintf("read response error: %v", err)
+	}
+
+	tmpl["User"] = user
+	tmpl["Date"] = time.Now().Unix()
+	tmpl["Schema"] = mrec.Schema
+	tmpl["Message"] = msg
+	tmpl["Class"] = class
+	tmpl["ResponseRecord"] = template.HTML(string(data))
+	content := server.TmplPage(StaticFs, "upload_status.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // ProvenanceHandler provides access to GET /provenance endpoint
