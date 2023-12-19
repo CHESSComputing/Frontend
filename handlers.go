@@ -263,14 +263,13 @@ func SearchHandler(c *gin.Context) {
 
 	// TODO: replace request to Discovery service
 	// place request to MetaData service
-	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.MetaDataURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		msg := "unable to get meta-data from upstream server"
 		handleError(c, http.StatusInternalServerError, msg, err)
 		return
 	}
-
 	// parse data records from meta-data service
 	var records []mongo.Record
 	defer resp.Body.Close()
@@ -287,8 +286,17 @@ func SearchHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: parse results and present them in web form
-	page := "TODO: send query to Discovery Service"
+	content := records2html(user, records)
+	nrecords := -111 // TODO: it should be returned by request along with records
+
+	tmpl["Records"] = template.HTML(content)
+	tmpl["Total"] = nrecords
+	tmpl["StartIndex"] = 0
+	tmpl["EndIndex"] = 10
+	pages := server.TmplPage(StaticFs, "pagination.tmpl", tmpl)
+	tmpl["Pagination"] = template.HTML(pages)
+
+	page := server.TmplPage(StaticFs, "records.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
