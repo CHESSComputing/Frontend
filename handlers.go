@@ -271,7 +271,7 @@ func SearchHandler(c *gin.Context) {
 		return
 	}
 	// parse data records from meta-data service
-	var records []mongo.Record
+	var response services.ServiceStatus
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
@@ -279,15 +279,18 @@ func SearchHandler(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	err = json.Unmarshal(data, &records)
+	err = json.Unmarshal(data, &response)
 	if err != nil {
 		content := errorTmpl(c, "unable to unmarshal response, error", err)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-
+	if Verbose > 0 {
+		log.Printf("meta-data response\n%+v", response)
+	}
+	records := response.Response.Records
+	nrecords := response.Response.NRecords
 	content := records2html(user, records)
-	nrecords := -111 // TODO: it should be returned by request along with records
 
 	tmpl["Records"] = template.HTML(content)
 	tmpl["Total"] = nrecords
