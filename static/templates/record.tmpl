@@ -1,0 +1,31 @@
+<hr />
+
+<h3>DatasetID (DID): {{.Did}}</h3>
+Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, Sample: {{.Sample}}
+<div class="grid">
+    <div class="column column-1">
+        <a href="javascript:FlipTag('record-{{.Id}}')" class="button button-small">Record</a>
+    </div>
+    <div class="column column-1">
+        <form class="form-content" method="post" action="{{.Base}}/files">
+            <input type="hidden" name="_id" value="{{.Id}}">
+            <input type="hidden" name="did" value="{{.Did}}">
+            <input type="hidden" name="User" value="{{.User}}"/>
+            <button class="button button-small">Files</button>
+        </form>
+    </div>
+    <div class="column column-1">
+        <form class="form-content" method="post" action="{{.Base}}/update" enctype="multipart/form-data">
+            <input type="hidden" name="_id" value="{{.Id}}">
+            <input type="hidden" name="User" value="{{.User}}"/>
+            <input type="hidden" name="Description" value="{{.Description}}"/>
+            <input type="hidden" name="record" value="{{.Record}}">
+            <button class="button button-small">Update</button>
+        </form>
+    </div>
+    <div class="column column-9">
+    </div>
+</div>
+<div id="record-{{.Id}}" class="hide">
+    <pre>{{.RecordString}}</pre>
+</div>
