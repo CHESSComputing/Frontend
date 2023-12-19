@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -15,6 +16,52 @@ import (
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
 )
+
+// helper funtion to get record value
+func recValue(rec mongo.Record, attr string) string {
+	if val, ok := rec[attr]; ok {
+		switch v := val.(type) {
+		case float64:
+			if attr == "did" {
+				return fmt.Sprintf("%d", int64(val.(float64)))
+			}
+			return fmt.Sprintf("%f", v)
+		default:
+			return fmt.Sprintf("%v", v)
+		}
+	}
+	return "Not available"
+}
+
+// helper function to prepare HTML page for given mongo records
+func records2html(user string, records []mongo.Record) string {
+	var out []string
+	var srec string
+	for _, rec := range records {
+		tmpl := server.MakeTmpl(StaticFs, "Record")
+		tmpl["User"] = user
+		tmpl["Id"] = recValue(rec, "_id")
+		tmpl["Did"] = recValue(rec, "did")
+		tmpl["Cycle"] = recValue(rec, "Cycle")
+		tmpl["Beamline"] = recValue(rec, "Beamline")
+		tmpl["Btr"] = recValue(rec, "BTR")
+		tmpl["Sample"] = recValue(rec, "SampleName")
+		tmpl["Schema"] = recValue(rec, "Schema")
+		data, err := json.MarshalIndent(rec, "", "  ")
+		if err != nil {
+			log.Println("ERROR: unable to marshal record", rec, err)
+			srec = "Not available"
+		} else {
+			srec = string(data)
+		}
+		tmpl["Record"] = rec
+		tmpl["RecordString"] = srec
+		tmpl["Description"] = recValue(rec, "Description")
+		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
+		out = append(out, content)
+	}
+	return strings.Join(out, "\n")
+}
 
 // helper function to make pagination
 func pagination(c *gin.Context, query string, nres, startIdx, limit int) string {
