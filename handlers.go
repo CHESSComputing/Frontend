@@ -261,9 +261,8 @@ func SearchHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: replace request to Discovery service
-	// place request to MetaData service
-	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.MetaDataURL)
+	// search request to DataDiscovery service
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		msg := "unable to get meta-data from upstream server"
