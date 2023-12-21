@@ -19,5 +19,11 @@ infrustructure. For details of data flow please refer to
 For further details please refer to [implementation](docs/implementation.md)
 and [apis](docs/apis.md) details.
 
+### Usage
+Users may user CHESS Data Management system in many ways
+- web UI, please visi [serivces](services) page
+- [curl](https://curl.se/) client: [curl usage](docs/curl.md)
+- Command line tool: [client](docs/cli.md)
+
 We rely on many different technologies which we outline in
 [references](docs/references.md) document.
