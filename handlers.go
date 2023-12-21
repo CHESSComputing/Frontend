@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	authz "github.com/CHESSComputing/golib/authz"
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
 	mongo "github.com/CHESSComputing/golib/mongo"
@@ -21,7 +20,6 @@ import (
 	services "github.com/CHESSComputing/golib/services"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/go-oauth2/oauth2/v4"
 	"gopkg.in/jcmturner/gokrb5.v7/credentials"
 )
 
@@ -74,6 +72,7 @@ func successTmpl(c *gin.Context, msg string) string {
 // GET handlers
 //
 
+/*
 // helper function to validate user and generate token
 func validateUser(c *gin.Context) (oauth2.GrantType, *oauth2.TokenGenerateRequest, error) {
 	var gt oauth2.GrantType
@@ -85,6 +84,7 @@ func validateUser(c *gin.Context) (oauth2.GrantType, *oauth2.TokenGenerateReques
 	}
 	return gt, tgr, nil
 }
+*/
 
 // KAuthHandler provides kerberos authentication handler
 func KAuthHandler(c *gin.Context) {
@@ -270,7 +270,7 @@ func SearchHandler(c *gin.Context) {
 		return
 	}
 	// parse data records from meta-data service
-	var response services.ServiceStatus
+	var response services.ServiceResponse
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
@@ -287,8 +287,8 @@ func SearchHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Printf("meta-data response\n%+v", response)
 	}
-	records := response.Response.Records
-	nrecords := response.Response.NRecords
+	records := response.Results.Records
+	nrecords := response.Results.NRecords
 	content := records2html(user, records)
 
 	tmpl["Records"] = template.HTML(content)
@@ -525,6 +525,7 @@ func DataHandler(c *gin.Context) {
 
 // POST handlers
 
+/*
 // LoginPostHandler provides access to POST /login endpoint
 func LoginPostHandler(c *gin.Context) {
 	var form authz.LoginForm
@@ -595,6 +596,7 @@ func LoginPostHandler(c *gin.Context) {
 	// redirect
 	c.Redirect(http.StatusFound, "/")
 }
+*/
 
 // UploadJsonHandler handles upload of JSON record
 func UploadJsonHandler(c *gin.Context) {
