@@ -250,10 +250,11 @@ func SearchHandler(c *gin.Context) {
 	_httpReadRequest.GetToken()
 
 	// create POST payload
-	rec := make(map[string]string)
-	rec["query"] = query
-	rec["user"] = user
-	rec["client"] = "frontend"
+	// TODO: I need to introduce idx/limit in HTTP request
+	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{Query: query, Idx: 0, Limit: 10},
+	}
 	data, err := json.Marshal(rec)
 	if err != nil {
 		msg := "unable to parse user query"
