@@ -23,7 +23,7 @@ and [apis](docs/apis.md) details.
 Users may user CHESS Data Management system in many ways
 - web UI, please visi [serivces](services) page
 - [curl](https://curl.se/) client: [curl usage](docs/curl.md)
-- Command line tool: [client](docs/cli.md)
+- Command line tool: [client](docs/client.md)
 
 We rely on many different technologies which we outline in
 [references](docs/references.md) document.
