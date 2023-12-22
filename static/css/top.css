@@ -106,8 +106,17 @@ footer {
 }
 
 .huge {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 25px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 25px;
+}
+.large {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+}
+
+.upper {
+    text-transform: uppercase;
+    color: rgba(17,17,19,.5);
 }
 
 .record {
@@ -186,4 +195,12 @@ footer {
 
 .center {
     text-align: center;
+}
+
+.srv-advance {
+    background-color: #F4BD8A;
+}
+
+.srv-fair {
+    background-color: #F4E1D0;
 }
