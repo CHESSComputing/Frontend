@@ -17,6 +17,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//
+// helper functions
+//
+
+// helper function to provide error page
+func handleError(c *gin.Context, status int, msg string, err error) {
+	page := server.ErrorPage(StaticFs, msg, err)
+	c.Data(status, "text/html; charset=utf-8", []byte(header()+page+footer()))
+}
+
+// helper function to provides error template message
+func errorTmpl(c *gin.Context, msg string, err error) string {
+	tmpl := server.MakeTmpl(StaticFs, "Status")
+	tmpl["Content"] = template.HTML(fmt.Sprintf("<div>%s</div>\n<br/><h3>ERROR</h3>%v", msg, err))
+	content := server.TmplPage(StaticFs, "error.tmpl", tmpl)
+	return content
+}
+
+// helper functiont to provides success template message
+func successTmpl(c *gin.Context, msg string) string {
+	tmpl := server.MakeTmpl(StaticFs, "Status")
+	tmpl["Content"] = template.HTML(fmt.Sprintf("<h3>SUCCESS</h3><div>%s</div>", msg))
+	content := server.TmplPage(StaticFs, "success.tmpl", tmpl)
+	return content
+}
+
 // helper funtion to get record value
 func recValue(rec mongo.Record, attr string) string {
 	if val, ok := rec[attr]; ok {

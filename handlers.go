@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,56 +36,14 @@ type DocsParams struct {
 	Page string `uri:"page" binding:"required"`
 }
 
-// User represents structure used by users DB in Authz service to handle incoming requests
-type User struct {
-	Login    string
-	Password string
-}
-
-//
-// helper functions
-//
-
-// helper function to provide error page
-func handleError(c *gin.Context, status int, msg string, err error) {
-	//     log.Printf("ERROR: %d %s, %v", status, msg, err)
-	page := server.ErrorPage(StaticFs, msg, err)
-	c.Data(status, "text/html; charset=utf-8", []byte(header()+page+footer()))
-}
-
-// helper function to provides error template message
-func errorTmpl(c *gin.Context, msg string, err error) string {
-	tmpl := server.MakeTmpl(StaticFs, "Status")
-	tmpl["Content"] = template.HTML(fmt.Sprintf("<div>%s</div>\n<br/><h3>ERROR</h3>%v", msg, err))
-	content := server.TmplPage(StaticFs, "error.tmpl", tmpl)
-	return content
-}
-
-// helper functiont to provides success template message
-func successTmpl(c *gin.Context, msg string) string {
-	tmpl := server.MakeTmpl(StaticFs, "Status")
-	tmpl["Content"] = template.HTML(fmt.Sprintf("<h3>SUCCESS</h3><div>%s</div>", msg))
-	content := server.TmplPage(StaticFs, "success.tmpl", tmpl)
-	return content
-}
-
 //
 // GET handlers
 //
 
-/*
-// helper function to validate user and generate token
-func validateUser(c *gin.Context) (oauth2.GrantType, *oauth2.TokenGenerateRequest, error) {
-	var gt oauth2.GrantType
-	gt = "client_credentials"
-	tgr := &oauth2.TokenGenerateRequest{
-		ClientID:     srvConfig.Config.Authz.ClientID,
-		ClientSecret: srvConfig.Config.Authz.ClientSecret,
-		Request:      c.Request,
-	}
-	return gt, tgr, nil
+// ApisHandler provides all server routes
+func ApisHandler(c *gin.Context) {
+	server.ApisHandler(c, _routes)
 }
-*/
 
 // KAuthHandler provides kerberos authentication handler
 func KAuthHandler(c *gin.Context) {
@@ -215,6 +174,7 @@ func DocsHandler(c *gin.Context) {
 
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
+	r := c.Request
 	user, err := c.Cookie("user")
 	log.Println("SearchHandler", user, err, c.Request.Method)
 	if err != nil {
@@ -228,15 +188,15 @@ func SearchHandler(c *gin.Context) {
 	tmpl["User"] = user
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 
-	// if we got GET request it is /search web form
-	if c.Request.Method == "GET" {
+	// if we got GET request it is /search web form without query request
+	if r.Method == "GET" && r.FormValue("query") == "" {
 		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 		return
 	}
 
 	// if we get POST request we'll process user query
-	query := c.Request.FormValue("query")
+	query := r.FormValue("query")
 	if Verbose > 0 {
 		log.Printf("search query='%s' user=%v", query, user)
 	}
@@ -250,11 +210,25 @@ func SearchHandler(c *gin.Context) {
 	_httpReadRequest.GetToken()
 
 	// create POST payload
-	// TODO: I need to introduce idx/limit in HTTP request
+	var idx, limit int
+	idxStr := r.FormValue("idx")
+	if idxStr != "" {
+		idx, err = strconv.Atoi(idxStr)
+		log.Println("idx", idx, err)
+	}
+	limitStr := r.FormValue("limit")
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		log.Println("limit", limit, err)
+	}
+	if limit == 0 {
+		limit = -1
+	}
 	rec := services.ServiceRequest{
 		Client:       "frontend",
-		ServiceQuery: services.ServiceQuery{Query: query, Idx: 0, Limit: 10},
+		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
+	log.Println("### rec", rec.String())
 	data, err := json.Marshal(rec)
 	if err != nil {
 		msg := "unable to parse user query"
@@ -285,18 +259,15 @@ func SearchHandler(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	if Verbose > 0 {
+	if Verbose > 1 {
 		log.Printf("meta-data response\n%+v", response)
 	}
 	records := response.Results.Records
 	nrecords := response.Results.NRecords
 	content := records2html(user, records)
-
 	tmpl["Records"] = template.HTML(content)
-	tmpl["Total"] = nrecords
-	tmpl["StartIndex"] = 0
-	tmpl["EndIndex"] = 10
-	pages := server.TmplPage(StaticFs, "pagination.tmpl", tmpl)
+
+	pages := pagination(c, query, nrecords, idx, limit)
 	tmpl["Pagination"] = template.HTML(pages)
 
 	page := server.TmplPage(StaticFs, "records.tmpl", tmpl)
@@ -535,79 +506,6 @@ func DataHandler(c *gin.Context) {
 }
 
 // POST handlers
-
-/*
-// LoginPostHandler provides access to POST /login endpoint
-func LoginPostHandler(c *gin.Context) {
-	var form authz.LoginForm
-	var content string
-	var err error
-
-	if err = c.ShouldBind(&form); err != nil {
-		content = errorTmpl(c, "login form binding error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-
-	// encrypt provided user password before sending to Authz server
-	form, err = authz.EncryptLoginObject(form)
-	if err != nil {
-		content = errorTmpl(c, "unable to encrypt user password", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-
-	// make a call to Authz service to check for a user
-	rurl := fmt.Sprintf("%s/oauth/authorize?client_id=%s&response_type=code", srvConfig.Config.Services.AuthzURL, srvConfig.Config.Authz.ClientID)
-	user := User{Login: form.User, Password: form.Password}
-	data, err := json.Marshal(user)
-	if err != nil {
-		content = errorTmpl(c, "unable to marshal user form, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-	resp, err := http.Post(rurl, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		content = errorTmpl(c, "unable to POST request to Authz service, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-	defer resp.Body.Close()
-	data, err = io.ReadAll(resp.Body)
-	var response authz.Response
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		content = errorTmpl(c, "unable handle authz response, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-	if Verbose > 0 {
-		log.Printf("INFO: Authz response %+v, error %v", response, err)
-	}
-	if response.Status != "ok" {
-		msg := fmt.Sprintf("No user %s found in Authz service", form.User)
-		content = errorTmpl(c, msg, errors.New("user not found"))
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-
-	c.Set("user", form.User)
-	if Verbose > 0 {
-		log.Printf("login from user %s, url path %s", form.User, c.Request.URL.Path)
-	}
-
-	// set our user cookie
-	if _, err := c.Cookie("user"); err != nil {
-		if Verbose > 0 {
-			log.Printf("set cookie user=%s domain=%s", form.User, domain())
-		}
-		c.SetCookie("user", form.User, 3600, "/", domain(), false, true)
-	}
-
-	// redirect
-	c.Redirect(http.StatusFound, "/")
-}
-*/
 
 // UploadJsonHandler handles upload of JSON record
 func UploadJsonHandler(c *gin.Context) {

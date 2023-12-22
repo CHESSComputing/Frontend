@@ -32,6 +32,7 @@ var _smgr beamlines.SchemaManager
 var _oauthServer *oauthServer.Server
 var _httpReadRequest, _httpWriteRequest *services.HttpRequest
 var _header, _footer string
+var _routes gin.RoutesInfo
 var Verbose int
 
 func header() string {
@@ -68,6 +69,7 @@ func setupRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 
 	// GET end-points
+	r.GET("/apis", ApisHandler)
 	r.GET("/docs", DocsHandler)
 	r.GET("/docs/:page", DocsHandler)
 	r.GET("/login", LoginHandler)
@@ -82,7 +84,6 @@ func setupRouter() *gin.Engine {
 	r.GET("/data", DataHandler)
 
 	// POST end-poinst
-	//     r.POST("/login", LoginPostHandler)
 	r.POST("/login", KAuthHandler)
 	r.POST("/search", SearchHandler)
 	r.POST("/meta/form/upload", MetaFormUploadHandler)
@@ -100,6 +101,7 @@ func setupRouter() *gin.Engine {
 	}
 
 	r.GET("/", MainHandler)
+	_routes = r.Routes()
 	return r
 }
 
