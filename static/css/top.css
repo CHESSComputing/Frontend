@@ -183,3 +183,7 @@ footer {
     border: 1px dashed grey;
     border-radius: 5px;
 }
+
+.center {
+    text-align: center;
+}
