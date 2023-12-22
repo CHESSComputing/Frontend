@@ -88,6 +88,9 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int) string 
 
 // helper function to make URL
 func makeURL(url, urlType string, startIdx, limit, nres int) string {
+	if limit < 0 {
+		limit = nres
+	}
 	var out string
 	var idx int
 	if urlType == "first" {
