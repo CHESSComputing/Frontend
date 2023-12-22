@@ -87,6 +87,7 @@ func setupRouter() *gin.Engine {
 	r.POST("/search", SearchHandler)
 	r.POST("/meta/form/upload", MetaFormUploadHandler)
 	r.POST("/meta/file/upload", MetaFileUploadHandler)
+	r.POST("/populateform", UploadJsonHandler)
 
 	// static files
 	for _, dir := range []string{"js", "css", "images", "templates"} {

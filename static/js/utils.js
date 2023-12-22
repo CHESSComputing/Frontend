@@ -77,6 +77,18 @@ function ToggleTag(tag, link_tag) {
         }
     }
 }
+function ToggleButton(tag) {
+    var obj=document.getElementById(tag);
+    var val = obj.innerHTML;
+    const regex = /Show/g;
+    const found = val.match(regex);
+    if(found) {
+        obj.innerHTML = val.replace("Show", "Hide")
+    } else {
+        obj.innerHTML = val.replace("Hide", "Show")
+    }
+//    obj.innerHTML = (obj.innerHTML == 'Hide') ? 'Show' : 'Hide' ;
+}
 function ToggleTagNames(tag, link_tag) {
     var attrs=document.getElementsByName(tag);
     for(var i=0; i<attrs.length; ++i) {

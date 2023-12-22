@@ -47,7 +47,7 @@ type User struct {
 
 // helper function to provide error page
 func handleError(c *gin.Context, status int, msg string, err error) {
-	log.Printf("ERROR: %s %s, %v", status, msg, err)
+	//     log.Printf("ERROR: %d %s, %v", status, msg, err)
 	page := server.ErrorPage(StaticFs, msg, err)
 	c.Data(status, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
@@ -374,16 +374,13 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 // helper function to parse meta upload web form
 func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	r := c.Request
+	log.Printf("### parseFormUploadForm %+v", r)
 	mrec := services.MetaRecord{}
 	user, _ := c.Cookie("user")
-	// read schemaName from form itself
-	var sname string
-	for k, items := range r.PostForm {
-		if k == "SchemaName" {
-			sname = items[0]
-			break
-		}
-	}
+	// read schemaName from form beamlines drop-down
+	//     sname := r.FormValue("beamlines")
+	sname := r.FormValue("SchemaName")
+	log.Println("### parseFormUploadForm", sname, user)
 	mrec.Schema = sname
 	fname := beamlines.SchemaFileName(sname)
 	schema, err := _smgr.Load(fname)
@@ -395,9 +392,10 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	// r.PostForm provides url.Values which is map[string][]string type
 	// we convert it to Record
 	rec := make(mongo.Record)
-	for k, items := range r.PostForm {
+	for k, vals := range r.PostForm {
+		items := utils.UniqueFormValues(vals)
 		if Verbose > 0 {
-			log.Println("### PostForm", k, items)
+			log.Printf("### PostForm key=%s items=%v type(items)=%T", k, items, items)
 		}
 		if k == "SchemaName" {
 			continue
@@ -442,6 +440,7 @@ func MetaFormUploadHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
 		return
 	}
+	log.Println("### form record", rec.JsonString())
 	MetaUploadHandler(c, rec)
 }
 
@@ -489,12 +488,23 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 		msg = fmt.Sprintf("read response error: %v", err)
 	}
 
+	var sresp services.ServiceResponse
+	err = json.Unmarshal(data, &sresp)
+	if err != nil {
+		class = "alert alert-error"
+		msg = fmt.Sprintf("read response error: %v", err)
+	}
+	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
+		msg = fmt.Sprintf("<pre>%s<pre>", sresp.String())
+	}
+
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	tmpl["User"] = user
 	tmpl["Date"] = time.Now().Unix()
 	tmpl["Schema"] = mrec.Schema
 	tmpl["Message"] = msg
 	tmpl["Class"] = class
-	tmpl["ResponseRecord"] = template.HTML(string(data))
+	tmpl["ResponseRecord"] = template.HTML(sresp.JsonString())
 	content := server.TmplPage(StaticFs, "upload_status.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
@@ -632,6 +642,7 @@ func UploadJsonHandler(c *gin.Context) {
 	}
 	tmpl := server.MakeTmpl(StaticFs, "Upload")
 	tmpl["User"] = user
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	tmpl["Date"] = time.Now().Unix()
 	schemaFiles := srvConfig.Config.CHESSMetaData.SchemaFiles
 	if sname != "" {

@@ -221,6 +221,7 @@ func genForm(c *gin.Context, fname string, record *mongo.Record) (string, error)
 	}
 	form := strings.Join(out, "\n")
 	tmpl := server.MakeTmpl(StaticFs, "Form")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	tmpl["Beamline"] = beamline
 	tmpl["Form"] = template.HTML(form)
 	return server.TmplPage(StaticFs, "form_beamline.tmpl", tmpl), nil

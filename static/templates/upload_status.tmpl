@@ -5,16 +5,20 @@
         <div class="column column-12">
             <div><b>SCHEMA:</b> {{.Schema}}</div>
             <div class="{{.Class}}">{{.Message}}</div>
+            <div class="">
+                <h3>MetaData server response record</h3>
+                <br/>
+                <a href="javascript:FlipTag('response_record');ToggleButton('i1')" id='i1' class="button is-secondary is-small is-gray">Show</a>
+                <pre id="response_record" class="hide">{{.ResponseRecord}}</pre>
+            </div>
+            <hr/>
             {{if .JsonRecord }}
             <div class="">
-                <h3>JSON record</h3>
+                <h3>MetaData JSON record</h3>
                 <br/>
-                <pre id="json_record" class="hide">{{.JsonRecord}}</pre>
-                <a href="javascript:FlipTag('json_record')" class="button is-secondary is-small is-gray">Show</a>
+                <a href="javascript:FlipTag('json_record');ToggleButton(this)" class="button is-secondary is-small is-gray">Show</a>
                 <a href="javascript:SaveRecord()" class="button is-secondary is-small">Save</a>
-                <br/>
-                <h3>MetaData server response</h3>
-                <pre id="response_record" class="">{{.ResponseRecord}}</pre>
+                <pre id="json_record" class="hide">{{.JsonRecord}}</pre>
             </div>
             {{end}}
         </div>
