@@ -13,7 +13,6 @@ header {
   background-color: #CBC9A8;
   padding: 10px;
   text-align: center;
-/*  color: white;*/
 }
 .white {
   color: white;
@@ -64,7 +63,8 @@ article {
   padding-right: 300px;
   background-color: #ffffff;
   width:100%;
-  min-height: 1000px;
+  min-height: 600px;
+/*  height: 800px;*/
 }
 .notebook {
   float: left;
@@ -74,7 +74,7 @@ article {
   padding-right: 100px;
   background-color: #f1f1f1;
   width:100%;
-  min-height: 1000px;
+  height: 800px;
 }
 
 /* Clear floats after the columns */
@@ -91,13 +91,12 @@ section:after {
   text-align: center;
   background-color: #f1f1f1;
   width:100%;
-  min-height: 1000px;
+  height: 800px;
 }
 
 /* Style the footer */
 footer {
   background-color: #D6D6D6;
-  padding: 20px;
   text-align: center;
   color: white;
   min-height: 100px;

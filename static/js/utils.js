@@ -212,9 +212,9 @@ function ClearFilters() {
     load('/das/request?'+$('das_search').serialize());
 }
 // https://stackoverflow.com/questions/11071473/how-can-javascript-save-to-a-local-file
-function SaveRecord() {
+function SaveRecord(tag) {
   type = "text/plain";
-  rec = document.getElementById('json_record').innerHTML;
+  rec = document.getElementById(tag).innerHTML;
   var a = document.createElement("a");
   var file = new Blob([rec], {type: type});
   a.href = URL.createObjectURL(file);
@@ -232,4 +232,28 @@ function FlipRecord(rid) {
     sid.className = "show";
     jid.className = "hide";
   }
+}
+function ChangeHeight(tag) {
+    var id = document.getElementById(tag);
+    if (id) {
+        // get style of our tag element
+        const style = getComputedStyle(id)
+
+        // offset is height of header + top css elements
+        header = document.getElementById('header');
+        footer = document.getElementById('footer');
+        const headerStyle = getComputedStyle(header);
+        const footerStyle = getComputedStyle(footer);
+        var headerHeight = headerStyle.height.replace('px', '');
+        var footerHeight = footerStyle.height.replace('px', '');
+        var offset = Number(headerHeight) + Number(footerHeight);
+        const h = window.innerHeight-offset;
+        const tagHeight = style.height.replace('px', '');
+        console.log("tag height " + tagHeight + " inner height " + h);
+        if (tagHeight < h) {
+            var height = h.toString() + 'px';
+            console.log("change height of " + tag + " from " + style.height + " to " + height);
+            id.style.height = height;
+        }
+    }
 }

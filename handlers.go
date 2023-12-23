@@ -172,6 +172,71 @@ func DocsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// DBSFilesHandler provides access to GET /meta/files endpoint
+func DBSFilesHandler(c *gin.Context) {
+	/*
+	   <input type="hidden" name="_id" value="{{.Id}}">
+	   <input type="hidden" name="did" value="{{.Did}}">
+	   <input type="hidden" name="User" value="{{.User}}"/>
+	*/
+	r := c.Request
+	did := r.FormValue("did")
+
+	// obtain valid token
+	_httpReadRequest.GetToken()
+
+	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{},
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		msg := "unable to parse user query"
+		handleError(c, http.StatusInternalServerError, msg, err)
+		return
+	}
+
+	// search request to DataDiscovery service
+	rurl := fmt.Sprintf("%s/files?did=%s", srvConfig.Config.Services.DataBookkeepingURL, did)
+	resp, err := _httpReadRequest.Get(rurl)
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		handleError(c, http.StatusInternalServerError, msg, err)
+		return
+	}
+	// parse data records from meta-data service
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		content := errorTmpl(c, "unable to read response body, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	if Verbose > 1 {
+		log.Println("dbs data\n", string(data))
+	}
+	var records []mongo.Record
+	err = json.Unmarshal(data, &records)
+	if err != nil {
+		content := errorTmpl(c, "unable to unmarshal dbs data, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	var files []string
+	for _, r := range records {
+		if f, ok := r["logical_file_name"]; ok {
+			fname := f.(string)
+			files = append(files, fname)
+		}
+	}
+	tmpl := server.MakeTmpl(StaticFs, "DBS Files")
+	tmpl["Files"] = strings.Join(files, "\n")
+	tmpl["Data"] = string(data)
+	tmpl["Did"] = did
+	page := server.TmplPage(StaticFs, "dbs_files.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+}
+
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	r := c.Request
@@ -474,6 +539,7 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	tmpl["Date"] = time.Now().Unix()
 	tmpl["Schema"] = mrec.Schema
 	tmpl["Message"] = msg
+	tmpl["Status"] = sresp.Status
 	tmpl["Class"] = class
 	tmpl["ResponseRecord"] = template.HTML(sresp.JsonString())
 	content := server.TmplPage(StaticFs, "upload_status.tmpl", tmpl)

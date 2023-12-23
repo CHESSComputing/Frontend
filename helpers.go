@@ -80,6 +80,7 @@ func records2html(user string, records []mongo.Record) string {
 		} else {
 			srec = string(data)
 		}
+		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 		tmpl["Record"] = rec
 		tmpl["RecordString"] = srec
 		tmpl["Description"] = recValue(rec, "Description")

@@ -7,7 +7,7 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
         <a href="javascript:FlipTag('record-{{.Id}}')" class="button button-small">Record</a>
     </div>
     <div class="column column-1">
-        <form class="form-content" method="post" action="{{.Base}}/files">
+        <form class="form-content" method="post" action="{{.Base}}/dbs/files">
             <input type="hidden" name="_id" value="{{.Id}}">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="User" value="{{.User}}"/>
@@ -15,6 +15,8 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
         </form>
     </div>
     <div class="column column-1">
+        <a href="javascript:SaveRecord('json-record-{{.Id}}')" class="button button-small">Save</a>
+        <!--
         <form class="form-content" method="post" action="{{.Base}}/update" enctype="multipart/form-data">
             <input type="hidden" name="_id" value="{{.Id}}">
             <input type="hidden" name="User" value="{{.User}}"/>
@@ -22,10 +24,11 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
             <input type="hidden" name="record" value="{{.Record}}">
             <button class="button button-small">Update</button>
         </form>
+        -->
     </div>
     <div class="column column-9">
     </div>
 </div>
 <div id="record-{{.Id}}" class="hide">
-    <pre>{{.RecordString}}</pre>
+    <pre id="json-record-{{.Id}}">{{.RecordString}}</pre>
 </div>

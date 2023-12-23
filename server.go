@@ -86,6 +86,7 @@ func setupRouter() *gin.Engine {
 	// POST end-poinst
 	r.POST("/login", KAuthHandler)
 	r.POST("/search", SearchHandler)
+	r.POST("/dbs/files", DBSFilesHandler)
 	r.POST("/meta/form/upload", MetaFormUploadHandler)
 	r.POST("/meta/file/upload", MetaFileUploadHandler)
 	r.POST("/populateform", UploadJsonHandler)
