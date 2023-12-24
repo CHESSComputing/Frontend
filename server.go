@@ -3,9 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
-	"io/fs"
 	"log"
-	"net/http"
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
@@ -32,9 +30,9 @@ var _smgr beamlines.SchemaManager
 var _oauthServer *oauthServer.Server
 var _httpReadRequest, _httpWriteRequest *services.HttpRequest
 var _header, _footer string
-var _routes gin.RoutesInfo
 var Verbose int
 
+// helper function to define our header
 func header() string {
 	if _header == "" {
 		tmpl := server.MakeTmpl(StaticFs, "Header")
@@ -43,6 +41,8 @@ func header() string {
 	}
 	return _header
 }
+
+// helper function to define our footer
 func footer() string {
 	if _footer == "" {
 		tmpl := server.MakeTmpl(StaticFs, "Footer")
@@ -58,51 +58,33 @@ func base(api string) string {
 	return utils.BasePath(b, api)
 }
 
-// helper function which sets gin router and defines all our server end-points
+// helper function to initialize our router
 func setupRouter() *gin.Engine {
-	// Disable Console Color
-	// gin.DisableConsoleColor()
-	r := gin.Default()
-
-	// middlewares: https://gin-gonic.com/docs/examples/using-middleware/
-	// Recovery middleware recovers from any panics and writes a 500 if there was one.
-	r.Use(gin.Recovery())
-
-	// GET end-points
-	r.GET("/apis", ApisHandler)
-	r.GET("/docs", DocsHandler)
-	r.GET("/docs/:page", DocsHandler)
-	r.GET("/login", LoginHandler)
-	r.GET("/logout", LogoutHandler)
-	r.GET("/services", ServicesHandler)
-	r.GET("/search", SearchHandler)
-	r.GET("/meta", MetaDataHandler)
-	r.GET("/provenance", ProvenanceHandler)
-	r.GET("/aiml", AIMLHandler)
-	r.GET("/analysis", AnalysisHandler)
-	r.GET("/visualization", VisualizationHandler)
-	r.GET("/data", DataHandler)
-
-	// POST end-poinst
-	r.POST("/login", KAuthHandler)
-	r.POST("/search", SearchHandler)
-	r.POST("/dbs/files", DBSFilesHandler)
-	r.POST("/meta/form/upload", MetaFormUploadHandler)
-	r.POST("/meta/file/upload", MetaFileUploadHandler)
-	r.POST("/populateform", UploadJsonHandler)
-
-	// static files
-	for _, dir := range []string{"js", "css", "images", "templates"} {
-		filesFS, err := fs.Sub(StaticFs, "static/"+dir)
-		if err != nil {
-			panic(err)
-		}
-		m := fmt.Sprintf("%s/%s", srvConfig.Config.Frontend.WebServer.Base, dir)
-		r.StaticFS(m, http.FS(filesFS))
+	routes := []server.Route{
+		server.Route{Method: "GET", Path: "/", Handler: MainHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/docs", Handler: DocsHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/docs/:page", Handler: DocsHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/login", Handler: LoginHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/logout", Handler: LogoutHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/services", Handler: ServicesHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/search", Handler: SearchHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/meta", Handler: MetaDataHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/aiml", Handler: AIMLHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/analysis", Handler: AnalysisHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/visualization", Handler: VisualizationHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/data", Handler: DataHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/login", Handler: KAuthHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/search", Handler: SearchHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/dbs/files", Handler: DBSFilesHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/meta/form/upload", Handler: MetaFormUploadHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/meta/file/upload", Handler: MetaFileUploadHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/populateform", Handler: UploadJsonHandler, Authorized: false},
 	}
-
-	r.GET("/", MainHandler)
-	_routes = r.Routes()
+	r := server.Router(routes, StaticFs, "static",
+		srvConfig.Config.Frontend.WebServer.Base,
+		srvConfig.Config.Frontend.WebServer.Verbose,
+	)
 	return r
 }
 

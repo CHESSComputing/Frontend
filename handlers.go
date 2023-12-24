@@ -40,11 +40,6 @@ type DocsParams struct {
 // GET handlers
 //
 
-// ApisHandler provides all server routes
-func ApisHandler(c *gin.Context) {
-	server.ApisHandler(c, _routes)
-}
-
 // KAuthHandler provides kerberos authentication handler
 func KAuthHandler(c *gin.Context) {
 	// get http request/writer
