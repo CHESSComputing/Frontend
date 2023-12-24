@@ -169,11 +169,6 @@ func DocsHandler(c *gin.Context) {
 
 // DBSFilesHandler provides access to GET /meta/files endpoint
 func DBSFilesHandler(c *gin.Context) {
-	/*
-	   <input type="hidden" name="_id" value="{{.Id}}">
-	   <input type="hidden" name="did" value="{{.Did}}">
-	   <input type="hidden" name="User" value="{{.User}}"/>
-	*/
 	r := c.Request
 	did := r.FormValue("did")
 
@@ -207,7 +202,7 @@ func DBSFilesHandler(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	if Verbose > 1 {
+	if Verbose > 0 {
 		log.Println("dbs data\n", string(data))
 	}
 	var records []mongo.Record
@@ -219,7 +214,7 @@ func DBSFilesHandler(c *gin.Context) {
 	}
 	var files []string
 	for _, r := range records {
-		if f, ok := r["logical_file_name"]; ok {
+		if f, ok := r["file"]; ok {
 			fname := f.(string)
 			files = append(files, fname)
 		}
