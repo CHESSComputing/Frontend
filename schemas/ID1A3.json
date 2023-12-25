@@ -1,0 +1,805 @@
+[
+    {
+        "key": "Facility",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "User",
+        "description": "Facility where the experiment was performed, e.g. CHESS, APS, ESRF",
+        "placeholder": "CHESS"
+    },
+    {
+        "key": "Cycle",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "User",
+        "description": "Specify cycle (e.g. 2022-3)",
+        "placeholder": "2022-3"
+    },
+    {
+        "key": "PI",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "User",
+        "description": "Last name of the PI",
+        "placeholder": "batterman"
+    },
+    {
+        "key": "BTR",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "User",
+        "description": "BTR ID",
+        "placeholder": "batterman-1111-c"
+    },
+    {
+        "key": "Experimenters",
+        "type": "string",
+        "optional": true,
+        "multiple": true,
+        "section": "User",
+        "description": "List experimenters",
+        "placeholder": "Lastname1Initials, Lastname2Initials"
+    },
+    {
+        "key": "Beamline",
+        "type": "list_str",
+        "optional": false,
+        "multiple": false,
+        "section": "User",
+        "description": "Specify beamline",
+        "placeholder": "1A3",
+        "value": [
+            "",
+            "1A3",
+            "2A",
+            "3A",
+            "3B",
+            "4B",
+            "7A",
+            "7B2"
+        ]
+    },
+    {
+        "key": "StaffScientist",
+        "type": "list_str",
+        "optional": false,
+        "multiple": true,
+        "section": "User",
+        "description": "List staff scientists",
+        "placeholder": "KoJYP, NygrenKE, DasA",
+        "value": [
+            "",
+            "KoJYP",
+            "NygrenKE",
+            "DasA",
+            "GustafsonSE",
+            "ShanksKS"
+        ]        
+    },
+    {
+        "key": "BeamlineFundingPartner",
+        "type": "list_str",
+        "optional": false,
+        "multiple": false,
+        "section": "User",
+        "description": "Select a funding partner",
+        "placeholder": "MSNC_AFRL",
+        "value": [
+            "",
+            "CHEXS_NSF",
+            "MSNC_AFRL",
+            "MACCHESS_NSF_NIH",
+            "CHESSInternal"
+        ]
+    },
+    {
+        "key": "Affiliation",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "User",
+        "description": "Select affiliation",
+        "placeholder": "AirForce",
+        "value": [
+            "",
+            "AirForce",
+            "Army",
+            "Navy",
+            "OtherGov",
+            "Basic",
+            "Industry",
+            "Development"
+        ]
+    },    
+    {
+        "key": "DataLocationRaw",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "DataLocations",
+        "description": "Raw data location (do not input \"current\" in the path directory. Instead, specify the actual cycle, e.g. 2022-3)",
+        "placeholder": "/nfs/chess/aux/cycles/2022-2/id1a3/batterman-1111-c/raw_data/test-1"
+    },
+    {
+        "key": "DataLocationMeta",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "DataLocations",
+        "description": "Metadata location (do not input \"current\" in the path directory. Instead, specify the actual cycle, e.g. 2022-3)",
+        "placeholder": "/nfs/chess/aux/cycles/2022-2/id1a3/batterman-1111-c/metadata/test-1"
+    },
+    {
+        "key": "DataLocationReduced",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "DataLocations",
+        "description": "Reduced data location (do not input \"current\" in the path directory. Instead, specify the actual cycle, e.g. 2022-3)",
+        "placeholder": "/nfs/chess/aux/cycles/2022-2/id1a3/batterman-1111-c/reduced_data/test-1"
+    },
+    {
+        "key": "DataLocationScratch",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "DataLocations",
+        "description": "Scartch data location (do not input \"current\" in the path directory. Instead, specify the actual cycle, e.g. 2022-3)",
+        "placeholder": "/nfs/chess/aux/cycles/2022-2/id1a3/batterman-1111-c/scratch_data/test-1"
+    },
+    {
+        "key": "DataLocationBeamtimeNotes",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "DataLocations",
+        "description": "Beam time notes location (do not input \"current\" in the path directory. Instead, specify the actual cycle, e.g. 2022-3)",
+        "placeholder": "/nfs/chess/aux/cycles/2022-2/id1a3/batterman-1111-c/metadata/batterman-1111-c_notebook.txt"
+    },    
+    {
+        "key": "Alignment",
+        "type": "bool",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "Are scans related to alignment?",
+        "placeholder": "false",
+        "value": [
+            "",
+            "true",
+            "false"
+        ]
+    },
+    {
+        "key": "EnergyScan",
+        "type": "bool",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "Are scans related to energy scans?",
+        "placeholder": "false",
+        "value": [
+            "",
+            "true",
+            "false"
+        ]
+    },
+    {
+        "key": "EnergyScanDocument",
+        "type": "string",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "Energy scan document location",
+        "placeholder": "/"
+    },
+    {
+        "key": "PreSlitHorizontalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: horizontal pre-slit size"
+    },
+    {
+        "key": "PreSlitVerticalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: vertical pre-slit size"
+    },
+    {
+        "key": "PreSlitHorizontalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: horizontal pre-slit position"
+    },
+    {
+        "key": "PreSlitVerticalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: vertical pre-slit position"
+    },    
+    {
+        "key": "BeamSlitHorizontalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "horizontal beam-defining slit size"
+    },
+    {
+        "key": "BeamSlitVerticalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "vertical beam-defining slit size"
+    },
+    {
+        "key": "BeamSlitHorizontalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "horizontal beam-defining slit position"
+    },
+    {
+        "key": "BeamSlitVerticalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "vertical beam-defining slit position"
+    },
+    {
+        "key": "GuardSlitHorizontalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: horizontal guard slit size"
+    },
+    {
+        "key": "GuardSlitVerticalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: vertical guard slit size"
+    },
+    {
+        "key": "GuardSlitHorizontalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: horizontal guard slit position"
+    },
+    {
+        "key": "GuardSlitVerticalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if mono beam mode: verticall guard slit position"
+    },
+    {
+        "key": "UpstreamDetectorSlitHorizontalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: horizontal upstream detector slit size"
+    },
+    {
+        "key": "UpstreamDetectorSlitVerticalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: vertical upstream detector slit size"
+    },
+    {
+        "key": "UpstreamDetectorSlitHorizontalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: horizontal upstream detector slit position"
+    },
+    {
+        "key": "UpstreamDetectorSlitVerticalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: verticall upstream detector slit position"
+    },
+    {
+        "key": "DownstreamDetectorSlitHorizontalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: horizontal downstream detector slit size"
+    },
+    {
+        "key": "DownstreamDetectorSlitVerticalSize",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: vertical downstream detector slit size"
+    },
+    {
+        "key": "DownstreamDetectorSlitHorizontalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: horizontal downstream detector slit position"
+    },
+    {
+        "key": "DownstreamDetectorSlitVerticalPosition",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Alignment",
+        "description": "if white beam mode: verticall downstream detector slit position"
+    },    
+    {
+        "key": "CESRConditions",
+        "type": "list_str",
+        "optional": false,
+        "multiple": false,
+        "section": "Beam",
+        "description": "CESR bunch mode",
+        "value": [
+            "",
+            "9BunchMode",
+            "21BunchMode",
+            "9x5BunchMode"
+        ]
+    },
+    {
+        "key": "InsertionDevice",
+        "type": "list_str",
+        "optional": false,
+        "multiple": false,
+        "section": "Beam",
+        "description": "Insertion device",
+        "placeholder": "Wiggler",
+        "value": [
+            "",
+            "CCU",
+            "Wiggler"
+        ]
+    },
+    {
+        "key": "Monochromator",
+        "type": "list_str",
+        "optional": false,
+        "multiple": false,
+        "section": "Beam",
+        "description": "Specify monochromator",
+        "placeholder": "SiLaueMono",
+        "value": [
+            "",
+            "MultiLayer",
+            "DoubleCrystalMono",
+            "SiLaueMono",
+            "DiamondLaue",
+            "DiamondBragg"
+        ]
+    },
+    {
+        "key": "Focusing",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "Beam",
+        "description": "Sagittal",
+        "placeholder": "Sagittal",
+        "value": [
+            "",
+            "Collimator",
+            "CRL",
+            "KB",
+            "Capillary",
+            "Sagittal",
+            "None"
+        ]
+    },
+    {
+        "key": "BeamMode",
+        "type": "list_str",
+        "optional": false,
+        "multiple": false,
+        "section": "Beam",
+        "description": "Beam mode",
+        "placeholder": "White",
+        "value": [
+            "",
+            "White",
+            "Mono"
+        ]
+    },
+    {
+        "key": "BeamEnergy",
+        "type": "float64",
+        "optional": true,
+        "multiple": false,
+        "section": "Beam",
+        "description": "Beam energy",
+        "placeholder": "80.725"
+    },
+    {
+        "key": "AttenMaterial",
+        "type": "list_str",
+        "optional": true,
+        "multiple": true,
+        "section": "Beam",
+        "description": "List of attenuator materials used",
+        "placeholder": "Steel",
+        "value": [
+            "",
+            "Steel",
+            "Aluminum"
+        ]
+    },
+    {
+        "key": "AttenThickness",
+        "type": "float64",
+        "optional": true,
+        "multiple": true,
+        "section": "Beam",
+        "description": "Thickness [mm] of attenuator(s) - enter one value for each attenutor material",
+        "placeholder": "3.25"
+    },
+    {
+        "key": "EnergyFoil",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "Beam",
+        "description": "Energy foil used, if any",
+        "placeholder": "Pr",
+        "value": [
+            "",
+            "scrn",
+            "blank1",
+            "Au",
+            "Pt",
+            "Ir",
+            "W",
+            "Hf",
+            "Yb",
+            "Ho",
+            "Tb",
+            "Sm",
+            "Pr",
+            "Sn",            
+            "blank2",
+            "Other"
+        ]
+    },
+    {
+        "key": "BeamlineSetupDocument",
+        "type": "string",
+        "optional": true,
+        "multiple": false,
+        "section": "Beam",
+        "description": "Beamline setup document location",
+        "placeholder": "/"
+    },    
+    {
+        "key": "Detectors",
+        "type": "list_str",
+        "optional": false,
+        "multiple": true,
+        "section": "Experiment",
+        "description": "Indicate detector(s) being used",
+        "placeholder": "GE2",
+        "value": [
+            "",
+            "Eiger500",
+            "Vortex",
+            "Pilatus6M",
+            "DualDexelas",
+            "GE2",
+            "Manta",
+            "Retiga",
+            "Eiger16M",
+            "Eiger1M",
+            "Pilatus200K",
+            "Pilatus300K",
+            "CanberraSingleElement",
+            "CanberraMultielement",
+            "Other"
+        ]
+    },    
+    {
+        "key": "ExperimentType",
+        "type": "list_str",
+        "optional": false,
+        "multiple": true,
+        "section": "Experiment",
+        "description": "Specify experiment type",
+        "placeholder": "Scattering/Diffraction",
+        "value": [
+            "",
+            "Scattering/Diffraction",
+            "Imaging",
+            "Spectroscopy",
+            "Crystallography",
+            "Other"
+        ]
+    },
+    {
+        "key": "Technique",
+        "type": "list_str",
+        "optional": false,
+        "multiple": true,
+        "section": "Experiment",
+        "description": "Specify technique",
+        "placeholder": "EDD",
+        "value": [
+            "",
+            "SingleCrystalDiffraction",
+            "HighEnergyDiffractionMicroscopyNearField",
+            "HighEnergyDiffractionMicroscopyFarField",
+            "HighEnergyDiffractionMicroscopyMidField",
+            "PowderDiffraction",
+            "ResonantElasticX-rayScattering",
+            "3DPDF",
+            "DiffuseScattering",
+            "SAXS+WAXS",
+            "SAXS",
+            "XRayFluorescence",
+            "Tomography",
+            "EDD",
+            "Other"
+        ]
+    },
+    {
+        "key": "InSitu",
+        "type": "bool",
+        "optional": false,
+        "multiple": false,
+        "section": "Experiment",
+        "description": "In situ experiments?",
+        "placeholder": "false",
+        "value": [
+            "",
+            "true",
+            "false"
+        ]
+    },
+    {
+        "key": "MechanicalTest",
+        "type": "bool",
+        "optional": false,
+        "multiple": false,
+        "section": "Experiment",
+        "description": "Do scans contain mechanical tests?",
+        "placeholder": "false",
+        "value": [
+            "",
+            "true",
+            "false"
+        ]
+    },
+    {
+        "key": "MechanicalTestType",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "Experiment",
+        "description": "What kind of mechnical test?",
+        "placeholder": "Tension",
+        "value": [
+            "",
+            "Tension",
+            "Compression",
+            "Cyclic",
+            "Torsion",
+            "4PtBend",
+            "3PtBend",
+            "LinkamTensile"
+        ]
+    },
+    {
+        "key": "MechanicalLoadFrame",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "Experiment",
+        "description": "Specify load frame",
+        "placeholder": "RAMSIV",
+        "value": [
+            "",
+            "RAMSII",
+            "RAMSIV",
+            "Bose",
+            "CCLF",
+            "Other"
+        ]
+    },
+    {
+        "key": "MechanicalGrips",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "Experiment",
+        "description": "Specify grips",
+        "placeholder": "Wedge",
+        "value": [
+            "",
+            "Wedge",
+            "RAMS",
+            "PinGrips",
+            "Other"
+        ]
+    },
+    {
+        "key": "SupplementaryTechnique",
+        "type": "list_str",
+        "optional": true,
+        "multiple": true,
+        "section": "Experiment",
+        "description": "Specify supplimentary techniques, if applicable",
+        "placeholder": "DigitalImageCorrelation",
+        "value": [
+            "",
+            "DigitalImageCorrelation",
+            "Raman",
+            "OpticalImaging"
+        ]
+    },
+    {
+        "key": "Furnace",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "Experiment",
+        "description": "Specify furnace",
+        "value": [
+            "",
+            "RAMSII",
+            "RAMSIV",
+            "LinkamHFS600",
+            "Other"
+        ]
+    },
+    {
+        "key": "Calibration",
+        "type": "bool",
+        "optional": false,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Are scans related to calibration?",
+        "placeholder": "false",
+        "value": [
+            "",
+            "true",
+            "false"
+        ]
+    },    
+    {
+        "key": "CalibrationDocument",
+        "type": "string",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Calibration document location",
+        "placeholder": "/"
+    },        
+    {
+        "key": "SampleName",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Specify sample name",
+        "placeholder": "ti64-1"
+    },
+    {
+        "key": "SampleCommonName",
+        "type": "string",
+        "optional": false,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Common name of sample material",
+        "placeholder": "Ti64"
+    },
+    {
+        "key": "SampleChemicalFormula",
+        "type": "string",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Chemical formula of sample",
+        "placeholder": "Ti6Al4V",
+        "value": "freetext"
+    },
+    {
+        "key": "SampleSpaceGroup",
+        "type": "int64",
+        "optional": true,
+        "multiple": true,
+        "section": "Sample",
+        "description": "Specify sample space group"
+    },    
+    {
+        "key": "SampleUnitCell",
+        "type": "list_float",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Unit cell dimensions a, b, c, alha, beta, gamma; Angstroms and degrees",
+        "placeholder": "2.511, 2.9511, 4.6843, 90, 90, 120"
+    },    
+    {
+        "key": "SampleGeometry",
+        "type": "string",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Specify sample geometry"
+    },
+    {
+        "key": "SampleMatPedHeatTreatment",
+        "type": "string",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Specify sample material pedigree (heat treatment)"
+    },
+    {
+        "key": "SampleMatPedProcessingRoute",
+        "type": "string",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Specify sample material pedigree (processing)"
+    },
+    {
+        "key": "MaterialSafetyHazardousSamples",
+        "type": "bool",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Hazardous sample?",
+        "value": [
+            "",
+            "true",
+            "false"
+        ]
+    },
+    {
+        "key": "SampleState",
+        "type": "list_str",
+        "optional": true,
+        "multiple": false,
+        "section": "Sample",
+        "description": "Sample state",
+        "value": [
+            "",
+            "Powder",
+            "ThinFilm",
+            "SingleCrystal",
+            "Foil",
+            "Solution"
+        ]
+    }
+]
