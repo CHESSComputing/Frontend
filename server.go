@@ -81,10 +81,7 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "POST", Path: "/meta/file/upload", Handler: MetaFileUploadHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/populateform", Handler: UploadJsonHandler, Authorized: false},
 	}
-	r := server.Router(routes, StaticFs, "static",
-		srvConfig.Config.Frontend.WebServer.Base,
-		srvConfig.Config.Frontend.WebServer.Verbose,
-	)
+	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)
 	return r
 }
 

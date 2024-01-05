@@ -283,7 +283,7 @@ func SearchHandler(c *gin.Context) {
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
-	log.Println("### rec", rec.String())
+	log.Printf("service request record\n%s", rec.String())
 	data, err := json.Marshal(rec)
 	if err != nil {
 		msg := "unable to parse user query"
