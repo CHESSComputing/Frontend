@@ -1,5 +1,9 @@
 package main
 
+// handlers module
+//
+// Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
+//
 import (
 	"bytes"
 	"encoding/json"
@@ -16,7 +20,6 @@ import (
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
-	mongo "github.com/CHESSComputing/golib/mongo"
 	server "github.com/CHESSComputing/golib/server"
 	services "github.com/CHESSComputing/golib/services"
 	utils "github.com/CHESSComputing/golib/utils"
@@ -205,7 +208,7 @@ func DBSFilesHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Println("dbs data\n", string(data))
 	}
-	var records []mongo.Record
+	var records []map[string]any
 	err = json.Unmarshal(data, &records)
 	if err != nil {
 		content := errorTmpl(c, "unable to unmarshal dbs data, error", err)
@@ -390,7 +393,7 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	}
 	defer file.Close()
 	body, err := io.ReadAll(file)
-	var rec mongo.Record
+	var rec map[string]any
 	err = json.Unmarshal(body, &rec)
 	rec["User"] = user
 	mrec.Record = rec
@@ -417,7 +420,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	desc := ""
 	// r.PostForm provides url.Values which is map[string][]string type
 	// we convert it to Record
-	rec := make(mongo.Record)
+	rec := make(map[string]any)
 	for k, vals := range r.PostForm {
 		items := utils.UniqueFormValues(vals)
 		if Verbose > 0 {
@@ -587,7 +590,7 @@ func UploadJsonHandler(c *gin.Context) {
 
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(file)
-	var rec mongo.Record
+	var rec map[string]any
 	if err == nil {
 		err = json.Unmarshal(body, &rec)
 		if err != nil {

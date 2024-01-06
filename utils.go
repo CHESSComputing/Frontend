@@ -1,5 +1,9 @@
 package main
 
+// utils module
+//
+// Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
+//
 import (
 	"io"
 	"log"

@@ -1,5 +1,9 @@
 package main
 
+// server module
+//
+// Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
+//
 import (
 	"embed"
 	"fmt"
@@ -82,6 +86,7 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "POST", Path: "/populateform", Handler: UploadJsonHandler, Authorized: false},
 	}
 	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)
+	r.Use(server.CounterMiddleware())
 	return r
 }
 

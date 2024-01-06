@@ -1,5 +1,9 @@
 package main
 
+// helpers module
+//
+// Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
+//
 import (
 	"encoding/json"
 	"errors"
@@ -11,7 +15,6 @@ import (
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
-	mongo "github.com/CHESSComputing/golib/mongo"
 	server "github.com/CHESSComputing/golib/server"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
@@ -44,7 +47,7 @@ func successTmpl(c *gin.Context, msg string) string {
 }
 
 // helper funtion to get record value
-func recValue(rec mongo.Record, attr string) string {
+func recValue(rec map[string]any, attr string) string {
 	if val, ok := rec[attr]; ok {
 		switch v := val.(type) {
 		case float64:
@@ -59,8 +62,8 @@ func recValue(rec mongo.Record, attr string) string {
 	return "Not available"
 }
 
-// helper function to prepare HTML page for given mongo records
-func records2html(user string, records []mongo.Record) string {
+// helper function to prepare HTML page for given services records
+func records2html(user string, records []map[string]any) string {
 	var out []string
 	var srec string
 	for _, rec := range records {
@@ -145,7 +148,7 @@ func makeURL(url, urlType string, startIdx, limit, nres int) string {
 }
 
 // helper function to generate input form
-func genForm(c *gin.Context, fname string, record *mongo.Record) (string, error) {
+func genForm(c *gin.Context, fname string, record *map[string]any) (string, error) {
 	var out []string
 	val := fmt.Sprintf("<h3>Web form submission</h3><br/>")
 	out = append(out, val)
@@ -258,7 +261,7 @@ func genForm(c *gin.Context, fname string, record *mongo.Record) (string, error)
 }
 
 // helper function to create form entry
-func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, required string, record *mongo.Record) string {
+func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, required string, record *map[string]any) string {
 	// check if provided record has value
 	var defaultValue string
 	if record != nil {
