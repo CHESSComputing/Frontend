@@ -13,6 +13,7 @@ version: 1
 
 before:
   hooks:
+    - sed -i -e "s,replace ,// replace ,g" go.mod
     # You may remove this if you don't use go modules.
     - go mod tidy
     # you may remove this if you don't need go generate
@@ -34,6 +35,24 @@ builds:
       - amd64
       - arm64
 
+# use https://ko.build/ to build Go image
+# see https://github.com/goreleaser/goreleaser/blob/main/www/docs/customization/ko.md
+# and https://ko.build/
+kos:
+  - repository: ghcr.io/chesscomputing/frontend
+    tags:
+      - '{{.Tag}}'
+      - '{{ if not .Prerelease }}latest{{ end }}' 
+    bare: true
+    preserve_import_paths: false
+    sbom: none
+    platforms:
+      - all
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of `uname`.
@@ -53,9 +72,18 @@ archives:
       - README.md
       - LICENSE
 
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+
+# The lines beneath this are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
