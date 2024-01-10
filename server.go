@@ -15,12 +15,6 @@ import (
 	services "github.com/CHESSComputing/golib/services"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/go-oauth2/oauth2/v4/generates"
-	"github.com/go-oauth2/oauth2/v4/manage"
-	"github.com/go-oauth2/oauth2/v4/models"
-	oauthServer "github.com/go-oauth2/oauth2/v4/server"
-	"github.com/go-oauth2/oauth2/v4/store"
-	"github.com/golang-jwt/jwt"
 )
 
 // content is our static web server content.
@@ -31,7 +25,6 @@ var StaticFs embed.FS
 // global variables
 var _beamlines []string
 var _smgr beamlines.SchemaManager
-var _oauthServer *oauthServer.Server
 var _httpReadRequest, _httpWriteRequest *services.HttpRequest
 var _header, _footer string
 var Verbose int
@@ -94,30 +87,6 @@ func setupRouter() *gin.Engine {
 func Server() {
 	// set Verbose level
 	Verbose = srvConfig.Config.Frontend.Verbose
-
-	// setup oauth parts
-	manager := manage.NewDefaultManager()
-	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
-
-	// token store
-	manager.MustTokenStorage(store.NewMemoryTokenStore())
-
-	// generate jwt access token
-	manager.MapAccessGenerate(
-		generates.NewJWTAccessGenerate(
-			"", []byte(srvConfig.Config.Authz.ClientID), jwt.SigningMethodHS512))
-	//     manager.MapAccessGenerate(generates.NewAccessGenerate())
-
-	clientStore := store.NewClientStore()
-	clientStore.Set(srvConfig.Config.Authz.ClientID, &models.Client{
-		ID:     srvConfig.Config.Authz.ClientID,
-		Secret: srvConfig.Config.Authz.ClientSecret,
-		Domain: srvConfig.Config.Authz.Domain,
-	})
-	manager.MapClientStorage(clientStore)
-	_oauthServer = oauthServer.NewServer(oauthServer.NewConfig(), manager)
-	_oauthServer.SetAllowGetAccessRequest(true)
-	_oauthServer.SetClientInfoHandler(oauthServer.ClientFormHandler)
 
 	// initialize schema manager
 	_smgr = beamlines.SchemaManager{}
