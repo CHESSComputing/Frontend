@@ -38,20 +38,24 @@
                     Or, authenticate yourself with
                     <a href="https://www.wikiwand.com/en/OAuth">OAuth</a> providers:
                 </div>
+                {{if .GithubLogin}} 
                 <br/>
                 <a href="{{.GithubLogin}}">
                   <img src="{{.Base}}/images/github_login.png" alt="GitHub login" class="width-200">
                 </a>
+                {{end}}
+                {{if .GoogleLogin}} 
                 <br/>
-                <!--
                 <a href="{{.GoogleLogin}}">
                   <img src="{{.Base}}/images/google_login.png" alt="Google login" class="width-200">
                 </a>
+                {{end}}
+                {{if .FacebookLogin}} 
                 <br/>
                 <a href="{{.FacebookLogin}}">
                   <img src="{{.Base}}/images/facebook_login.png" alt="Facebook login" class="width-200">
                 </a>
-                -->
+                {{end}}
             </div>
 
           </div>
