@@ -4,6 +4,11 @@ package main
 //
 // Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
 //
+// The OAuth parts are based on
+// https://github.com/dghubble/gologin
+// package where we explid github authentication, see
+// https://github.com/dghubble/gologin/blob/main/examples/github
+
 import (
 	"embed"
 	"fmt"
@@ -79,6 +84,25 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "POST", Path: "/populateform", Handler: UploadJsonHandler, Authorized: false},
 	}
 	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)
+
+	// OAuth routes
+	for _, arec := range srvConfig.Config.Frontend.OAuth {
+		if arec.Provider == "github" {
+			r.GET("/github/login", GithubOauthLoginHandler)
+			r.GET("/github/callback", GithubCallBackHandler)
+			log.Println("github oauth is enabled")
+		} else if arec.Provider == "google" {
+			r.GET("/google/login", GoogleOauthLoginHandler)
+			r.GET("/google/callback", GoogleCallBackHandler)
+			log.Println("google oauth is enabled")
+		} else if arec.Provider == "facebook" {
+			r.GET("/facebook/login", FacebookOauthLoginHandler)
+			r.GET("/facebook/callback", FacebookCallBackHandler)
+			log.Println("facebook oauth is enabled")
+		}
+	}
+
+	// add middleware to use
 	r.Use(server.CounterMiddleware())
 	return r
 }

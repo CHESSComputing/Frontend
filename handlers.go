@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	authz "github.com/CHESSComputing/golib/authz"
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
 	server "github.com/CHESSComputing/golib/server"
@@ -37,6 +38,40 @@ import (
 // DocsParams represents URI storage params in /docs/:page end-point
 type DocsParams struct {
 	Page string `uri:"page" binding:"required"`
+}
+
+//
+// OAuth handlers
+//
+
+// GithubOauthLoginHandler provides kerberos authentication handler
+func GithubOauthLoginHandler(c *gin.Context) {
+	authz.GithubOauthLogin(c, Verbose)
+}
+
+// GithubCallBackHandler provides kerberos authentication handler
+func GithubCallBackHandler(c *gin.Context) {
+	authz.GithubCallBack(c, "/services", Verbose)
+}
+
+// GoogleOauthLoginHandler provides kerberos authentication handler
+func GoogleOauthLoginHandler(c *gin.Context) {
+	authz.GoogleOauthLogin(c, Verbose)
+}
+
+// GoogleCallBackHandler provides kerberos authentication handler
+func GoogleCallBackHandler(c *gin.Context) {
+	authz.GoogleCallBack(c, "/services", Verbose)
+}
+
+// FacebookOauthLoginHandler provides kerberos authentication handler
+func FacebookOauthLoginHandler(c *gin.Context) {
+	authz.FacebookOauthLogin(c, Verbose)
+}
+
+// FacebookCallBackHandler provides kerberos authentication handler
+func FacebookCallBackHandler(c *gin.Context) {
+	authz.FacebookCallBack(c, "/services", Verbose)
 }
 
 //
@@ -116,10 +151,34 @@ func MainHandler(c *gin.Context) {
 	}
 }
 
+// NotImplementedHandler provides access to GET /login endpoint
+func NotImplementedHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "Login")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	tmpl["Content"] = "Not implemented"
+	content := server.TmplPage(StaticFs, "error.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
 // LoginHandler provides access to GET /login endpoint
 func LoginHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Login")
-	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	// add oauth login buttons
+	tmpl["GithubLogin"] = ""
+	tmpl["GoogleLogin"] = ""
+	tmpl["FacebookLogin"] = ""
+	for _, arec := range srvConfig.Config.Frontend.OAuth {
+		if arec.Provider == "github" {
+			tmpl["GithubLogin"] = fmt.Sprintf("%s/github/login", base)
+		} else if arec.Provider == "google" {
+			tmpl["GoogleLogin"] = fmt.Sprintf("%s/google/login", base)
+		} else if arec.Provider == "facebook" {
+			tmpl["FacebookLogin"] = fmt.Sprintf("%s/facebook/login", base)
+		}
+	}
 	content := server.TmplPage(StaticFs, "login.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
