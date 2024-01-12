@@ -6,12 +6,7 @@ package main
 //
 
 import (
-	"errors"
-	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"os"
 
 	srvConfig "github.com/CHESSComputing/golib/config"
 	"gopkg.in/jcmturner/gokrb5.v7/client"
@@ -46,38 +41,4 @@ func kuser(user, password string) (*credentials.Credentials, error) {
 		return nil, err
 	}
 	return client.Credentials, nil
-}
-
-// helper function to check user credentials for POST requests
-func getUserCredentials(r *http.Request) (*credentials.Credentials, error) {
-	var msg string
-	// user didn't use web interface, we switch to POST form
-	name := r.FormValue("name")
-	ticket := r.FormValue("ticket")
-	tmpFile, err := ioutil.TempFile("/tmp", name)
-	if err != nil {
-		msg = fmt.Sprintf("Unable to create tempfile: %v", err)
-		log.Printf("ERROR: %s", msg)
-		return nil, errors.New(msg)
-	}
-	defer os.Remove(tmpFile.Name())
-	_, err = tmpFile.Write([]byte(ticket))
-	if err != nil {
-		msg = "unable to write kerberos ticket"
-		log.Printf("ERROR: %s", msg)
-		return nil, errors.New(msg)
-	}
-	err = tmpFile.Close()
-	creds, err := kuserFromCache(tmpFile.Name())
-	if err != nil {
-		msg = "wrong user credentials"
-		log.Printf("ERROR: %s", msg)
-		return nil, errors.New(msg)
-	}
-	if creds == nil {
-		msg = "unable to obtain user credentials"
-		log.Printf("ERROR: %s", msg)
-		return nil, errors.New(msg)
-	}
-	return creds, nil
 }
