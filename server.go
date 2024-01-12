@@ -101,9 +101,6 @@ func setupRouter() *gin.Engine {
 			log.Println("facebook oauth is enabled")
 		}
 	}
-
-	// add middleware to use
-	r.Use(server.CounterMiddleware())
 	return r
 }
 

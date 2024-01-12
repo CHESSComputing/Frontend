@@ -61,6 +61,7 @@ require (
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
+	github.com/ulule/limiter/v3 v3.11.2 // indirect
 	github.com/vkuznet/cryptoutils v0.0.2 // indirect
 	github.com/vkuznet/http-logging v0.0.0-20210729230351-fc50acd79868 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
@@ -68,7 +69,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/exp v0.0.0-20240110193028-0dcbfd608b1e // indirect
+	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
