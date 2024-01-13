@@ -11,7 +11,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"log"
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
@@ -124,9 +123,8 @@ func Server() {
 	_httpReadRequest = services.NewHttpRequest("read", Verbose)
 	_httpWriteRequest = services.NewHttpRequest("write", Verbose)
 
-	// initialize router
+	// setup web router and start the service
 	r := setupRouter()
-	sport := fmt.Sprintf(":%d", srvConfig.Config.Frontend.WebServer.Port)
-	log.Printf("Start HTTP server %s", sport)
-	r.Run(sport)
+	webServer := srvConfig.Config.Frontend.WebServer
+	server.StartServer(r, webServer)
 }
