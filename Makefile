@@ -91,6 +91,7 @@ clean:
 test : test_code
 
 test_code:
+	touch $HOME/.foxden.yaml
 	go test -test.v .
 
 # here is an example for execution of individual test
