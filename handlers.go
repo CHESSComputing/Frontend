@@ -218,7 +218,7 @@ func DocsHandler(c *gin.Context) {
 	if err := c.ShouldBindUri(&params); err == nil {
 		fname = fmt.Sprintf("static/markdown/%s", params.Page)
 	}
-	content, err := mdToHTML(fname)
+	content, err := server.MDToHTML(StaticFs, fname)
 	if err != nil {
 		content = fmt.Sprintf("unable to convert %s to HTML, error %v", fname, err)
 		log.Println("ERROR: ", content)
