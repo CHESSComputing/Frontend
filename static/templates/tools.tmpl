@@ -1,0 +1,283 @@
+<!-- tools.tmpl -->
+<section>
+    <article id="article">
+
+<br/>
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-8">
+        <h1>FOXDEN Command Line Tool</h1>
+        <a href="https://github.com/CHESSComputing/gotools/client/releases">foxden</a> command line tool provides access to all FOXDEN services
+        <br/>
+        <!------!>
+        <div class="grid">
+            <div class="column column-10">
+                Authentication commands:
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('auth')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="auth" class="hide">
+foxden auth token <scope: read|write|delete> <--kfile=keytab>
+foxden auth view <--token=token or file>
+
+defaults: token generated with read scope
+          kfile is /tmp/krb5cc_<UID>
+
+Examples:
+
+# generate read token
+foxden auth token read
+
+# generate read token from specific /path/keytab file
+foxden auth token read -kfile=/path/keytab
+
+# generate write token
+foxden auth token write
+
+# view provided token=abc...xyz
+foxden auth token view --token=abc...xyz
+
+# view existing token stored in /tmp/token file
+foxden auth token view --token=/tmp/token
+
+# view existing token stored in [CHESS_TOKEN CHESS_WRITE_TOKEN CHESS_DELETE_TOKEN]
+foxden auth token view
+                </pre>
+        <!------!>
+        <div class="grid">
+            <div class="column column-10">
+                search commands
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('search')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="search" class="hide">
+foxden search <spec>
+Examples:
+
+# search CHESS data:
+foxden search {}
+                </pre>
+        <!------!>
+        <div class="grid">
+            <div class="column column-10">
+                view commands
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('view')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="view" class="hide">
+foxden view <DID>
+                </pre>
+        <div class="grid">
+            <div class="column column-10">
+                Provenance commands:
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('dbs')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="dbs" class="hide">
+foxden dbs <ls|add|rm> [value]
+
+Examples:
+
+# list all dbs records:
+foxden dbs ls <dataset|site|file>
+
+# remove dbs-data record:
+foxden dbs rm <dataset|site|file>
+
+# add dbs-data record:
+foxden dbs add <dataset|site|file>
+                </pre>
+        <!------!>
+        <div class="grid">
+            <div class="column column-10">
+                Meta-data commands:
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('meta')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="meta" class="hide">
+foxden meta <ls|add|rm> [value]
+Examples:
+
+# list all meta data records:
+foxden meta ls
+
+# list specific meta-data record:
+foxden meta view <DID>
+
+# remove meta-data record:
+foxden meta rm 123xyz
+
+# add meta-data record:
+foxden meta add <schema> <file.json>
+                </pre>
+        <!------!>
+        <div class="grid">
+            <div class="column column-10">
+                s3 commands
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('s3')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="s3" class="hide">
+foxden s3 <ls|create|delete|upload> [value]
+
+Examples:
+
+# create new bucket:
+foxden s3 create Cornell/bucket
+
+# remove bucket or file:
+foxden s3 delete Cornell/bucket
+
+# upload new file to a bucket:
+foxden s3 upload Cornell/bucket file.txt
+
+# upload all files from given directory to a bucket:
+foxden s3 upload Cornell/bucket someDirectory
+
+# list content of s3 storage:
+foxden s3 ls Cornell
+
+# list specific bucket on s3 storage:
+foxden s3 ls Cornell/bucket
+                </pre>
+        <!------!>
+        <div class="grid">
+            <div class="column column-10">
+                ML commands
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('ml')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="ml" class="hide">
+foxden ml <models|upload|predict|delete> [values]
+
+Examples:
+
+# upload new ML model:
+foxden ml upload file=/path/file.tar.gz model=model type=TensorFlow backend=GoFake
+
+# delete model:
+foxden ml delete model=model type=TensorFlow <version=latest>
+
+# ML inference:
+foxden ml predict /path/input.json
+                </pre>
+        <!------!>
+        <div class="grid">
+            <div class="column column-10">
+                doi commands
+            </div>
+            <div class="column column-2">
+				<button class="button button-small" onclick="ToggleTag('doi')">Show</button>
+            </div>
+        </div>
+        <!------!>
+                <pre id="doi" class="hide">
+foxden doi <ls|create|update|publish|view> <DID> [options]
+
+Examples:
+# create new document:
+foxden doi create
+
+# create new document from given record:
+foxden doi create </path/record.json>
+
+# add file to document id:
+foxden doi add id </path/regular/file>
+
+# update document id with publish data record:
+foxden doi update <id> /path/record.json
+
+# publish document id:
+foxden doi publish <id>
+
+# list existing documents:
+foxden doi ls <id>
+
+# get details of document id:
+foxden doi view <id>
+
+Here is example of record.json
+
+{
+    "files": [
+        {"name": "file1.txt", "file": "/path/file1.txt"},
+        {"name": "file2.txt", "file": "/path/file2.txt"}
+    ],
+    "metadata": {
+        "publication_type": "article",
+        "upload_type": "publication",
+        "description": "Test FOXDEN publication",
+        "keywords": ["bla", "foo"],
+        "creators": [{"name": "First Last", "affiliation": "Zenodo"}],
+        "title": "Test experiment"
+    }
+}
+                </pre>
+        <!------!>
+
+        <h1>FOXDEN service</h1>
+        <ul>
+            <li>
+                <a href="https://github.com/CHESSComputing/MLHub/releases">MLHub</a>
+                data service specifically designed for managing AI/ML models (store ML models, and associated meta-data and provides inference API)
+            </li>
+            <li>
+                <a href="https://github.com/CHESSComputing/CHAPBook/releases">CHAPBook</a>
+                data service for novice programmers with Jupyter-like interface for writing code, it is integrated with CHAP framework
+            </li>
+            <li>
+                <a href="https://github.com/CHESSComputing/DataManagement/releases">DataManagement</a>
+                S3 complaint data management service for accessing raw and derived datasets.
+            </li>
+            <li>
+                <a href="https://github.com/CHESSComputing/MetaData/releases">MetaData</a>
+                data service provides APIs and web interface to manage your meta-data.
+            </li>
+            <li>
+                <a href="https://github.com/CHESSComputing/DataBookkeeping/releases">Provenance</a>
+                data service provides APIs to manage your provenance data.
+            </li>
+            <li>
+                <a href="https://github.com/CHESSComputing/Discovery/releases">Discovery</a>
+                service allows you to search for meta and provenance data.
+            </li>
+            <li>
+                <a href="https://github.com/CHESSComputing/SpecScansService/releases">SpecScans</a>
+                data service manages CHESS spec scans data
+            </li>
+            <li>
+                <a href="https://github.com/CHESSComputing/PublicationService/releases">Publication</a>
+                service manages CHESS dataset publication and DOIs.
+            </li>
+        </ul>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+<br/>
+
+    </article>
+</section>
+<!-- end of tools.tmpl -->

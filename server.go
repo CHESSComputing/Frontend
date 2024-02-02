@@ -69,6 +69,7 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "GET", Path: "/logout", Handler: LogoutHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/services", Handler: ServicesHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/search", Handler: SearchHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/tools", Handler: ToolsHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/meta", Handler: MetaDataHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/aiml", Handler: AIMLHandler, Authorized: false},

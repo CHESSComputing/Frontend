@@ -289,6 +289,15 @@ func DBSFilesHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
+// ToolsHandler provides access to GET /tools endpoint
+func ToolsHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "Tools")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	content := server.TmplPage(StaticFs, "tools.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	r := c.Request
