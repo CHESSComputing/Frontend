@@ -625,6 +625,11 @@ func SpecScansHandler(c *gin.Context) {
 
 // NotebookHandler provides access to GET /notebook endpoint
 func NotebookHandler(c *gin.Context) {
+	chapbookUrl := srvConfig.Config.Services.CHAPBookURL
+	if chapbookUrl != "" {
+		c.Redirect(http.StatusFound, chapbookUrl)
+		return
+	}
 	tmpl := server.MakeTmpl(StaticFs, "Notebook")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	content := server.TmplPage(StaticFs, "notebook.tmpl", tmpl)
