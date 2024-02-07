@@ -1,6 +1,56 @@
 <section>
   <article id="article">
-      <h1>Publication page</h1>
-      It should contain content about Publication service and its APIs
+<div class="center huge">
+     FOXDEN: Publication service
+</div>
+
+<br/>
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-8">
+        <h1>
+        Search for CHESS published datasets
+        </h1>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+<br/>
+<form action="{{.Base}}/doi" method="post" name="web_search" id="web_search" class="form">
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-8">
+        <div class="form-item">
+            <div class="">
+                <input class="input" type="text" name="query" placeholder="10.5281/zenodo.8132184">
+            </div>
+        </div>
+    </div>
+    <div class="column column-1">
+        <div class="form-item">
+            <button class="button button-primary">Search</button>
+        </div>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+</form>
+
+<hr/>
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-8">
+        <h1>
+        Create new DOI document
+        </h1>
+    </div>
+    <div class="column column-1">
+        <button class="button button-primary">Create</button>
+    </div>
+</div>
+
   </article>
 </section>

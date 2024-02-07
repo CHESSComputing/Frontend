@@ -638,9 +638,9 @@ func NotebookHandler(c *gin.Context) {
 
 // PublishHandler provides access to GET /piublish endpoint
 func PublishHandler(c *gin.Context) {
-	tmpl := server.MakeTmpl(StaticFs, "Provenance")
+	tmpl := server.MakeTmpl(StaticFs, "Publication Service")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	content := server.TmplPage(StaticFs, "provenance.tmpl", tmpl)
+	content := server.TmplPage(StaticFs, "publish.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
