@@ -2,6 +2,51 @@
   <article id="article">
       <h1>Provenance page</h1>
       It should contain content about provenance service
+      <h3>Provenance GET APIs</h3>
+      This set of APIs is designed to get specific content in provenance database
+      <ul>
+          <li>
+              <span class="api">/datasets</span> get list of all datasets
+          </li>
+          <li>
+              <span class="api">/dataset/*name</span> get information about specific dataset name
+          </li>
+          <li>
+              <span class="api">/files</span> get list of all files
+          </li>
+          <li>
+              <span class="api">/file/*name</span> get information about specific file name
+          </li>
+      </ul>
+      <h3>Provenance POST APIs</h3>
+      This set of APIs is designed to create specific content in provenance database
+      <ul>
+          <li>
+              <span class="api">/dataset</span> creates new dataset
+          </li>
+          <li>
+              <span class="api">/file</span> creates new file
+          </li>
+      </ul>
+      <h3>Provenance PUT APIs</h3>
+      This set of APIs is designed to update specific content in provenance database
+      <ul>
+          <li>
+              <span class="api">/dataset/*name</span> updates information about given dataset name
+          </li>
+          <li>
+              <span class="api">/file/*name</span> updates  information about given file name
+          </li>
+      </ul>
+      <h3>Provenance DELETE APIs</h3>
+      This set of APIs is designed to delete specific content in provenance database
+      <ul>
+          <li>
+              <span class="api">/dataset/*name</span> deletes given dataset name
+          </li>
+          <li>
+              <span class="api">/file/*name</span> deletes given file name
+          </li>
+      </ul>
   </article>
 </section>
-
