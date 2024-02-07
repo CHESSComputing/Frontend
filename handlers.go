@@ -609,27 +609,66 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 
 // ProvenanceHandler provides access to GET /provenance endpoint
 func ProvenanceHandler(c *gin.Context) {
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+	tmpl := server.MakeTmpl(StaticFs, "Provenance")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "provenance.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// SpecScansHandler provides access to GET /scanspecs endpoint
+func SpecScansHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "SpecScans")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "specscans.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// NotebookHandler provides access to GET /notebook endpoint
+func NotebookHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "Notebook")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "notebook.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// PublishHandler provides access to GET /piublish endpoint
+func PublishHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "Provenance")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "provenance.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // AIMLHandler provides access to GET /aiml endpoint
 func AIMLHandler(c *gin.Context) {
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+	tmpl := server.MakeTmpl(StaticFs, "AI/ML")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "ai_ml.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // AnalysisHandler provides access to GET /analysis endpoint
 func AnalysisHandler(c *gin.Context) {
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+	tmpl := server.MakeTmpl(StaticFs, "Data Analysis")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "data_analysis.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // VisualizationHandler provides access to GET /visualization endpoint
 func VisualizationHandler(c *gin.Context) {
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+	tmpl := server.MakeTmpl(StaticFs, "Vizualization")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "visualization.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // DataHandler provides access to GET /data endpoint
 func DataHandler(c *gin.Context) {
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+"Not Implemented"+footer()))
+	tmpl := server.MakeTmpl(StaticFs, "Data Management")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "data_management.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // POST handlers
