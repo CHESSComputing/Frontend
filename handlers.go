@@ -625,8 +625,18 @@ func SpecScansHandler(c *gin.Context) {
 
 // NotebookHandler provides access to GET /notebook endpoint
 func NotebookHandler(c *gin.Context) {
-	chapbookUrl := srvConfig.Config.Services.CHAPBookURL
+	chapbookUrl := fmt.Sprintf("%s/notebook", srvConfig.Config.Services.CHAPBookURL)
 	if chapbookUrl != "" {
+		if c.Request.Header.Get("Authorization") == "" {
+			user, _ := c.Cookie("user")
+			token, err := newToken(user, "read")
+			if err == nil {
+				// pass token as paramter to CHAPBook /notebook end-point
+				// since HTTP standard does not pass through HTTP headers on redirect
+				// see discussion: https://stackoverflow.com/questions/36345696/http-redirect-with-headers
+				chapbookUrl = fmt.Sprintf("%s?token=%s", chapbookUrl, token)
+			}
+		}
 		c.Redirect(http.StatusFound, chapbookUrl)
 		return
 	}
