@@ -18,6 +18,8 @@ before:
     - go mod tidy
     # you may remove this if you don't need go generate
     - go generate ./...
+    # get recent golib
+    - ./get_golib.sh
 
 builds:
   - env:
