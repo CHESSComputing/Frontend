@@ -42,7 +42,7 @@ builds:
 # see https://github.com/goreleaser/goreleaser/blob/main/www/docs/customization/ko.md
 # and https://ko.build/
 kos:
-  - repository: ghcr.io/chesscomputing/{{ .ProjectName }}
+  - repository: ghcr.io/chesscomputing/frontend
     tags:
       - '{{.Tag}}'
       - '{{ if not .Prerelease }}latest{{ end }}' 
