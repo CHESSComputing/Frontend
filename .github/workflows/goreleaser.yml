@@ -71,13 +71,6 @@ jobs:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true # upload to a new release
 
-  image-build:
-    run: |
-      pwd
-      ls
-      ls ../
-      docker build --build-arg srv=Frontend -t ghcr.io/chesscomputing/frontend ../golib/k8s
-
   image-provenance:
     needs: [goreleaser]
     permissions:
