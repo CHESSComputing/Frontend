@@ -10,6 +10,7 @@
 # https://github.com/goreleaser/goreleaser/issues/986
 
 version: 1
+project_name: frontend
 
 before:
   hooks:
@@ -41,7 +42,7 @@ builds:
 # see https://github.com/goreleaser/goreleaser/blob/main/www/docs/customization/ko.md
 # and https://ko.build/
 kos:
-  - repository: ghcr.io/chesscomputing/frontend
+  - repository: ghcr.io/chesscomputing/{{ .ProjectName }}
     tags:
       - '{{.Tag}}'
       - '{{ if not .Prerelease }}latest{{ end }}' 
@@ -73,6 +74,18 @@ archives:
       - Makefile
       - README.md
       - LICENSE
+
+dockers:
+  - image_templates:
+    - "chesscomputing/{{ .ProjectName }}/{{ .ProjectName }}:{{ .Version }}"
+    - "chesscomputing/{{ .ProjectName }}/{{ .ProjectName }}:latest"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
 
 checksum:
   name_template: 'checksums.txt'
