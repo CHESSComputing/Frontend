@@ -20,13 +20,21 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
     - name: Build image
       run: |
         make golib
-        pwd
-        ls
-        ls ../
-        docker build --build-arg srv=Frontend -t ghcr.io/chesscomputing/frontend ../golib/k8s
+        docker build --build-arg srv=Frontend --build-arg tag=${{steps.get-ref.outputs.tag}} -t ghcr.io/chesscomputing/frontend ../golib/k8s
 
 #     - name: Login to docker github registry
 #       uses: docker/login-action@v1.6.0
