@@ -89,6 +89,7 @@ dockers:
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Tag}}"
+      - "--label=org.opencontainers.image.description=\"FOXDEN frontend\""
 
 checksum:
   name_template: 'checksums.txt'
