@@ -20,22 +20,10 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Extract tag name
-      id: tag
-      uses: actions/github-script@0.2.0
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          return context.payload.ref.replace(/\/refs\/tags\//, '');
-    - name: tag name
-      run: |
-        echo ${{ steps.tag.outputs.result }}
-        echo ${GITHUB_REF##*/}
-
     - name: Build image
       run: |
         make golib
-        docker build --build-arg srv=Frontend --build-arg tag=${{steps.tag.outputs.result}} -t ghcr.io/chesscomputing/frontend ../golib/k8s
+        docker build --build-arg srv=Frontend --build-arg tag= ${GITHUB_REF##*/}-t ghcr.io/chesscomputing/frontend ../golib/k8s
 
 #     - name: Login to docker github registry
 #       uses: docker/login-action@v1.6.0
