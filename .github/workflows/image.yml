@@ -23,7 +23,7 @@ jobs:
     - name: Build image
       run: |
         make golib
-        docker build --build-arg srv=Frontend --build-arg tag= ${GITHUB_REF##*/}-t ghcr.io/chesscomputing/frontend ../golib/k8s
+        docker build --build-arg srv=Frontend --build-arg tag=${GITHUB_REF##*/} -t ghcr.io/chesscomputing/frontend ../golib/k8s
 
 #     - name: Login to docker github registry
 #       uses: docker/login-action@v1.6.0
