@@ -80,6 +80,9 @@ dockers:
     - "chesscomputing/{{ .ProjectName }}/{{ .ProjectName }}:{{ .Tag }}"
     - "chesscomputing/{{ .ProjectName }}/{{ .ProjectName }}:latest"
     dockerfile: Dockerfile
+    # do not push yet to repo as it requires login first
+    # this will be done in CI/CD, see .github/workflows/goreleaser.yml
+    skip_push: true
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.created={{.Date}}"
