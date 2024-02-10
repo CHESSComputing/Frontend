@@ -57,6 +57,9 @@ jobs:
           image_and_digest=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Docker Manifest") | .path')
           image=$(echo "${image_and_digest}" | cut -d'@' -f1 | cut -d':' -f1)
           digest=$(echo "${image_and_digest}" | cut -d'@' -f2)
+          echo "artifacts=$ARTIFACTS"
+          echo "image=$image"
+          echo "digest=$digest"
           echo "name=$image" >> "$GITHUB_OUTPUT"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
 
