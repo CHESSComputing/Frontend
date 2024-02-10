@@ -1,9 +1,9 @@
 module github.com/CHESSComputing/Frontend
 
-go 1.21.6
+go 1.22.0
 
 require (
-	github.com/CHESSComputing/golib v0.1.3
+	github.com/CHESSComputing/golib v0.1.4
 	github.com/gin-gonic/gin v1.9.1
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0
 )
