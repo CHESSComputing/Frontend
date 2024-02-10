@@ -77,7 +77,7 @@ archives:
 
 dockers:
   - image_templates:
-    - "chesscomputing/{{ .ProjectName }}/{{ .ProjectName }}:{{ .Version }}"
+    - "chesscomputing/{{ .ProjectName }}/{{ .ProjectName }}:{{ .Tag }}"
     - "chesscomputing/{{ .ProjectName }}/{{ .ProjectName }}:latest"
     dockerfile: Dockerfile
     build_flag_templates:
@@ -85,7 +85,7 @@ dockers:
       - "--label=org.opencontainers.image.created={{.Date}}"
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.version={{.Tag}}"
 
 checksum:
   name_template: 'checksums.txt'
