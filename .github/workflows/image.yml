@@ -27,7 +27,10 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           return context.payload.ref.replace(/\/refs\/tags\//, '');
-
+    - name: tag name
+      run: |
+        echo ${{ steps.tag.outputs.result }}
+        echo ${GITHUB_REF##*/}
 
     - name: Build image
       run: |
