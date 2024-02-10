@@ -89,6 +89,11 @@ dockers:
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Tag}}"
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.licenses=MIT
+      - --label=org.opencontainers.image.url=https://github.com/chesscomputing/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/chesscomputing/{{ .ProjectName }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
 
 checksum:
   name_template: 'checksums.txt'
