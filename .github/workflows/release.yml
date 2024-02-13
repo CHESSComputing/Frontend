@@ -36,39 +36,12 @@ jobs:
 #         echo ${{ steps.branch_name.outputs.SOURCE_BRANCH }}
 #         echo ${{ steps.branch_name.outputs.SOURCE_TAG }}
 
-    - name: "✏️ Generate release changelog"
-      uses: heinrichreimer/action-github-changelog-generator@v2.3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Build
       env:
         GOPATH: /home/runner/go
       run: |
         make build_all
         tar cvfz frontend.tar.gz srv*
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-
-    - name: Upload binaries
-      id: upload_binaries
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./frontend.tar.gz
-        asset_name: frontend.tar.gz
-        asset_content_type: application/octet-stream
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -100,3 +73,31 @@ jobs:
         tags: |
           ghcr.io/chesscomputing/frontend:latest
           ghcr.io/chesscomputing/frontend:${{ steps.branch_name.outputs.SOURCE_TAG }}
+
+    - name: "✏️ Generate release changelog"
+      uses: heinrichreimer/action-github-changelog-generator@v2.3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload binaries
+      id: upload_binaries
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./frontend.tar.gz
+        asset_name: frontend.tar.gz
+        asset_content_type: application/octet-stream
+
