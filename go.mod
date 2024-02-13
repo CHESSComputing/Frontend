@@ -3,7 +3,7 @@ module github.com/CHESSComputing/Frontend
 go 1.22.0
 
 require (
-	github.com/CHESSComputing/golib v0.1.4
+	github.com/CHESSComputing/golib v0.1.5
 	github.com/gin-gonic/gin v1.9.1
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0
 )
@@ -84,4 +84,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// replace github.com/CHESSComputing/golib => ../golib
+replace github.com/CHESSComputing/golib => ../golib
