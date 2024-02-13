@@ -56,7 +56,12 @@ jobs:
         # https://stackoverflow.com/questions/71000707/docker-get-started-warning-the-requested-images-platform-linux-arm64-v8-doe
         # https://github.com/docker/for-mac/issues/6356
         # https://docs.docker.com/build/ci/github-actions/multi-platform/
-        docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/chesscomputing/frontend:${{ steps.branch_name.outputs.SOURCE_TAG }} .
+        docker buildx build --platform linux/amd64,linux/arm64 \
+        -t ghcr.io/chesscomputing/frontend:${{ steps.branch_name.outputs.SOURCE_TAG }} \
+        --label "org.opencontainers.image.description=FOXDEN Frontend service"
+        --label "org.opencontainers.image.source=https://github.com/chesscomputing/frontend"
+        --label "org.opencontainers.image.licenses=MIT"
+        .
 
     - name: Login to ghcr.io registry
       uses: docker/login-action@v1.6.0
