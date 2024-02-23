@@ -14,8 +14,7 @@ CHESS Data Management architecture is based on loosely coupled set of MicroServi
 - the authentication and authorization service
 - the command line client
 All of them are glued together by HTTP protocol and represent whole
-infrustructure. For details of data flow please refer to
-[data-flow](docs/dataflow.md) documentation.
+[infrustructure](docs/infrastructure.md).
 For further details please refer to [implementation](docs/implementation.md)
 and [apis](docs/apis.md) details.
 
