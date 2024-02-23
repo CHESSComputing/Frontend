@@ -521,6 +521,12 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 		}
 		rec[k] = val
 	}
+	// create did from the form upload
+	attrs := srvConfig.Config.CHESSMetaData.DID.Attributes
+	sep := srvConfig.Config.CHESSMetaData.DID.Separator
+	div := srvConfig.Config.CHESSMetaData.DID.Divider
+	did := utils.CreateDID(rec, attrs, sep, div)
+	rec["did"] = did
 	rec["User"] = user
 	rec["Description"] = desc
 	if Verbose > 0 {
