@@ -91,8 +91,34 @@ then a derived dataset can be identified using the following DID:
 /aaa=value/bbb=value/datatier=derived
 ```
 
-The derived dataset may or may not have its own metadata record. In either
-case, the Data Discovery service can look up the relationship between two
-dataset DIDs and find out the original metadata record.
+The derived dataset may or may not have its own metadata record. But it will
+allow to setup parent child relationship in Provenance service between the two,
+e.g.
+
+```
+# the dataset
+/aaa=value/bbb=value/datatier=derived
+# will have parent dataset
+/aaa=value/bbb=value
+```
+
+This will allow to setup (complex) finite graph relationships, e.g.
+```
+DatasetA -> DatasetB -> DatasetC
+         \              ^
+          \            /
+           \-> DatasetX
+
+# here
+# DatasetA is a parent of DatasetB and DatasetX
+# DatasetC is a child of DatasetB and DatasetX
+```
+
+
+In either case, the Data Discovery service can look up the relationship between
+two dataset DIDs and find out the original metadata record.
+
+### Usage of DID in search queries
+Here is how we envision the system will work.
 
 ![foxdendidsearch](/images/foxden_did_search.png)
