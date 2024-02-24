@@ -71,4 +71,9 @@ foxden search {}
 
 ### Add new data
 ```
+# add new meta-data record (defined in meta.json file) for ID3A schame
+foxden meta add ID3A /path/meta.json
+
+# add new provenance record defined in dbs.json file
+foxden prov add /path/dbs.json
 ```
