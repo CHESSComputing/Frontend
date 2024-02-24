@@ -19,7 +19,7 @@ dataset. It may be represented in two different forms:
 /key1=value1/key2=value2/...
 ```
 
-Additional constraints:
+### Additional constraints:
 - Choice of characters in key-value pairs: We suggest choosing one common
   notation, for instance, lowercase keys and values, with no empty spaces. If
   an empty space is required by a value, it should be replaced by an underscore
@@ -36,14 +36,17 @@ Additional constraints:
   "/key=value"}`, while parsing `did:/key:value` becomes difficult to implement
   due to multiple meanings of a separator.
 
+<br/>
 
-### DID Placement in CHESS/FOXDEN Workflows and Services
+## DID Placement in CHESS/FOXDEN Workflows and Services
 
 The CHESS/FOXDEN dataset becomes live once a new metadata record is recorded in
 the MetaData service. At this point, users or user workflows may specify a DID
 value, provide a list of attributes to construct it from, or rely on underlying
 tools, libraries, or services to use default attributes (e.g., `beamline`,
 `btr`, `cycle`, `sample`).
+
+<br/>
 
 Each metadata record describes the conditions of a specific experiment and the
 data collected at CHESS beamlines. These records adhere to a predefined schema
@@ -53,11 +56,20 @@ record. Therefore, users or user workflows have three possibilities:
 
 1. Specify the DID value within the metadata record itself (the corresponding key is `did`).
 2. Provide a comma-separated list of attributes to define a DID, e.g., `key1,key2,...`.
-3. Allow the underlying service/tool to use defaults, e.g., `beamline`, `btr`, `cycle`, `sample`.
+3. Allow the underlying service/tool to use defaults, e.g., `beamline,btr,cycle,sample`.
+
+<br/>
+Here is an example of metadata insertion using **foxden** command line tool:
+<br/>
+![foxdendid](/images/foxden_did.png)
+
+<br/>
 
 Please note that CHESS metadata records follow the CamelCase keys convention,
 while we suggest using lowercase keys and values in the DID string
 representation or construction (which will be done by underlying software).
+
+<br/>
 
 Once the DID is defined and recorded within the metadata record, it will be
 used in other services such as Provenance, Data Management, SpecScans, and Data
@@ -68,11 +80,12 @@ files or blob chunks into a dataset, while the SpecScans service will provide a
 mapping between the DID and specific motor positions used during the
 experiment.
 
+<br/>
+
 During a lookup via Data Discovery, users can specify the DID to find details
 about a specific dataset.
 
-![foxdendid](/images/foxden_did.png)
-
+<br/>
 
 ### Dataset Relationships
 
@@ -118,7 +131,18 @@ DatasetA -> DatasetB -> DatasetC
 In either case, the Data Discovery service can look up the relationship between
 two dataset DIDs and find out the original metadata record.
 
-### Usage of DID in search queries
-Here is how we envision the system will work.
+<br/>
 
+### Usage of DID in search queries
+Here is how we envision the system will work:
+- a user place a query to FOXDEN frontend
+- the query is sent to Data Discovery service
+- the Data Discovery service convert query into spec and send request to FOXDEN
+  services, like MetaData, Provenance, Spec Scan, etc.
+- it retrieves results and present them to end-user
+- optionally we may add aggregation to final result set and merge them together
+
+<br/>
+
+Here is pictorial representation of this workflow:
 ![foxdendidsearch](/images/foxden_did_search.png)

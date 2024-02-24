@@ -18,6 +18,13 @@ All of them are glued together by HTTP protocol and represent whole
 For further details please refer to [implementation](docs/implementation.md)
 and [apis](docs/apis.md) details.
 
+<br/>
+
+### CHESS/FOXDEN Dataset IDendifier
+Please see [DID proposal](/docs/did.md)
+
+<br/>
+
 ### Usage
 Users may user CHESS Data Management system in many ways
 - web UI, please visi [serivces](services) page
