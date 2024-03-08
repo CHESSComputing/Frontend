@@ -82,23 +82,23 @@ foxden view <DID>
                 Provenance commands:
             </div>
             <div class="column column-2">
-				<button class="button button-small" onclick="ToggleTag('dbs')">Show</button>
+				<button class="button button-small" onclick="ToggleTag('prov')">Show</button>
             </div>
         </div>
         <!------!>
-                <pre id="dbs" class="hide">
-foxden dbs <ls|add|rm> [value]
+                <pre id="prov" class="hide">
+foxden prov <ls|add|rm> [value]
 
 Examples:
 
-# list all dbs records:
-foxden dbs ls <dataset|site|file>
+# list all provenance records:
+foxden prov ls <dataset|site|file>
 
-# remove dbs-data record:
-foxden dbs rm <dataset|site|file>
+# remove provenance data record:
+foxden prov rm <dataset|site|file>
 
-# add dbs-data record:
-foxden dbs add <dataset|site|file>
+# add provenance data record:
+foxden prov add <dataset|site|file>
                 </pre>
         <!------!>
         <div class="grid">
@@ -182,6 +182,9 @@ foxden ml delete model=model type=TensorFlow <version=latest>
 
 # ML inference:
 foxden ml predict /path/input.json
+
+# ML inference for input via submission, e.g. image prediction
+foxden ml predict --file=/path/img.png --model=model --type=TensorFlow --backend=TFaaS
                 </pre>
         <!------!>
         <div class="grid">
