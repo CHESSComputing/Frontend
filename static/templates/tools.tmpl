@@ -13,7 +13,7 @@
         <!------!>
         <div class="grid">
             <div class="column column-10">
-                Authentication commands:
+                token commands
             </div>
             <div class="column column-2">
 				<button class="button button-small" onclick="ToggleTag('auth')">Show</button>
@@ -21,31 +21,31 @@
         </div>
         <!------!>
                 <pre id="auth" class="hide">
-foxden auth token <scope: read|write|delete> <--kfile=keytab>
-foxden auth view <--token=token or file>
+foxden token create [scope: read|write|delete] [options]
+foxden token view [options]
 
+options: --kfile=keytab, --token=[token or file]
 defaults: token generated with read scope
           kfile is /tmp/krb5cc_<UID>
 
 Examples:
-
 # generate read token
-foxden auth token read
+foxden token create read
 
 # generate read token from specific /path/keytab file
-foxden auth token read -kfile=/path/keytab
+foxden token create read -kfile=/path/keytab
 
 # generate write token
-foxden auth token write
+foxden token create write
 
 # view provided token=abc...xyz
-foxden auth token view --token=abc...xyz
+foxden token view --token=abc...xyz
 
 # view existing token stored in /tmp/token file
-foxden auth token view --token=/tmp/token
+foxden token view --token=/tmp/token
 
 # view existing token stored in [CHESS_TOKEN CHESS_WRITE_TOKEN CHESS_DELETE_TOKEN]
-foxden auth token view
+foxden token view
                 </pre>
         <!------!>
         <div class="grid">
@@ -59,10 +59,19 @@ foxden auth token view
         <!------!>
                 <pre id="search" class="hide">
 foxden search <spec>
+
 Examples:
 
-# search CHESS data:
+# search CHESS data using query language, e.g. empty query match all records
 foxden search {}
+
+# search using query language,
+# provide valid JSON use single quotes around it and double quotes for key:value pairs
+foxden search '{"PI":"name"}'
+
+# search using key:value pairs, e.g. pi:name where 'pi' is record key and 'name' would be PI user name
+# keys can be in lower case, e.g. pi instead of PI used in meta-data record
+foxden search pi:name
                 </pre>
         <!------!>
         <div class="grid">
@@ -75,11 +84,11 @@ foxden search {}
         </div>
         <!------!>
                 <pre id="view" class="hide">
-foxden view <DID>
+foxden view [DID]
                 </pre>
         <div class="grid">
             <div class="column column-10">
-                Provenance commands:
+                Provenance commands
             </div>
             <div class="column column-2">
 				<button class="button button-small" onclick="ToggleTag('prov')">Show</button>
@@ -87,23 +96,27 @@ foxden view <DID>
         </div>
         <!------!>
                 <pre id="prov" class="hide">
-foxden prov <ls|add|rm> [value]
+foxden prov [ls|add] [options]
+options: provenance attributes like dataset(s), file(s) or
 
 Examples:
 
 # list all provenance records:
-foxden prov ls <dataset|site|file>
+foxden prov ls [datasets|files]
 
-# remove provenance data record:
-foxden prov rm <dataset|site|file>
+# list all dataset records for specific dataset:
+foxden prov ls datasets --dataset=/x/y/z
+
+# list all file records for specific dataset:
+foxden prov ls files --dataset=/x/y/z
 
 # add provenance data record:
-foxden prov add <dataset|site|file>
+foxden prov add <provenance.json>
                 </pre>
         <!------!>
         <div class="grid">
             <div class="column column-10">
-                Meta-data commands:
+                Meta-data commands
             </div>
             <div class="column column-2">
 				<button class="button button-small" onclick="ToggleTag('meta')">Show</button>
@@ -111,25 +124,25 @@ foxden prov add <dataset|site|file>
         </div>
         <!------!>
                 <pre id="meta" class="hide">
-foxden meta <ls|add|rm> [value]
+foxden meta [ls|add|rm] [value]
 Examples:
 
 # list all meta data records:
 foxden meta ls
 
 # list specific meta-data record:
-foxden meta view <DID>
+foxden meta view [DID]
 
 # remove meta-data record:
 foxden meta rm 123xyz
 
 # add meta-data record:
-foxden meta add <schema> <file.json>
+foxden meta add [schema] [file.json]
                 </pre>
         <!------!>
         <div class="grid">
             <div class="column column-10">
-                s3 commands
+                S3 commands
             </div>
             <div class="column column-2">
 				<button class="button button-small" onclick="ToggleTag('s3')">Show</button>
@@ -137,7 +150,7 @@ foxden meta add <schema> <file.json>
         </div>
         <!------!>
                 <pre id="s3" class="hide">
-foxden s3 <ls|create|delete|upload> [value]
+foxden s3 [ls|create|delete|upload] [value]
 
 Examples:
 
@@ -170,7 +183,7 @@ foxden s3 ls Cornell/bucket
         </div>
         <!------!>
                 <pre id="ml" class="hide">
-foxden ml <models|upload|predict|delete> [values]
+foxden ml [models|upload|predict|delete] [values]
 
 Examples:
 
@@ -178,7 +191,7 @@ Examples:
 foxden ml upload file=/path/file.tar.gz model=model type=TensorFlow backend=GoFake
 
 # delete model:
-foxden ml delete model=model type=TensorFlow <version=latest>
+foxden ml delete model=model type=TensorFlow [version=latest]
 
 # ML inference:
 foxden ml predict /path/input.json
@@ -197,29 +210,29 @@ foxden ml predict --file=/path/img.png --model=model --type=TensorFlow --backend
         </div>
         <!------!>
                 <pre id="doi" class="hide">
-foxden doi <ls|create|update|publish|view> <DID> [options]
+foxden doi [ls|create|update|publish|view] [DID] [options]
 
 Examples:
 # create new document:
 foxden doi create
 
 # create new document from given record:
-foxden doi create </path/record.json>
+foxden doi create /path/record.json
 
 # add file to document id:
-foxden doi add id </path/regular/file>
+foxden doi add id /path/regular/file
 
 # update document id with publish data record:
-foxden doi update <id> /path/record.json
+foxden doi update [id] /path/record.json
 
 # publish document id:
-foxden doi publish <id>
+foxden doi publish [id]
 
 # list existing documents:
-foxden doi ls <id>
+foxden doi ls [id]
 
 # get details of document id:
-foxden doi view <id>
+foxden doi view [id]
 
 Here is example of record.json
 
@@ -240,7 +253,8 @@ Here is example of record.json
                 </pre>
         <!------!>
 
-        <h1>FOXDEN service</h1>
+        <br/>
+        <h1>FOXDEN services</h1>
         <ul>
             <li>
                 <a href="https://github.com/CHESSComputing/MLHub/releases/latest">MLHub</a>
