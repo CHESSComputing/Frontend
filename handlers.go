@@ -185,7 +185,7 @@ func LoginHandler(c *gin.Context) {
 
 // LogoutHandler provides access to GET /logout endpoint
 func LogoutHandler(c *gin.Context) {
-	c.SetCookie("user", "", -1, "/", domain(), false, true)
+	c.SetCookie("user", "", -1, "/", utils.Domain(), false, true)
 	c.Redirect(http.StatusFound, "/")
 }
 
