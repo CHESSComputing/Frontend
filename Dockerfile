@@ -15,7 +15,7 @@ FROM alpine as final
 # FROM gcr.io/distroless/static as final
 RUN mkdir -p /data
 COPY --from=go-builder /build/srv /data
-COPY --from=go-builder /build/static /data
+COPY --from=go-builder /build/static /data/static
 LABEL org.opencontainers.image.description="FOXDEN Frontend service"
 LABEL org.opencontainers.image.source=https://github.com/chesscomputing/frontend
 LABEL org.opencontainers.image.licenses=MIT
