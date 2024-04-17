@@ -19,3 +19,4 @@ COPY --from=go-builder /build/static /data/static
 LABEL org.opencontainers.image.description="FOXDEN Frontend service"
 LABEL org.opencontainers.image.source=https://github.com/chesscomputing/frontend
 LABEL org.opencontainers.image.licenses=MIT
+WORKDIR /data
