@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"sort"
 	"strconv"
@@ -87,8 +88,49 @@ func records2html(user string, records []map[string]any) string {
 	return strings.Join(out, "\n")
 }
 
+// SchemaUnits represents individual FOXDEN schema units dictionary
+type SchemaUnits struct {
+	Schema string            `json:"schema"`
+	Units  map[string]string `json:"units"`
+}
+
+// SchemaUnitsManager holds SchemaUnits list for all FOXDEN schemas
+type SchemaUnitsManager struct {
+	Records []SchemaUnits
+}
+
+// helper function to find schema units map for given schema name
+func (s *SchemaUnitsManager) findUnits(sname string) map[string]string {
+	var records []SchemaUnits
+	if s == nil {
+		s = &SchemaUnitsManager{}
+		// fetch all schema units from upstream MetaData server
+		rurl := fmt.Sprintf("%s/units", srvConfig.Config.Services.MetaDataURL)
+		if resp, err := _httpReadRequest.Get(rurl); err == nil {
+			defer resp.Body.Close()
+			if data, err := io.ReadAll(resp.Body); err == nil {
+				if err := json.Unmarshal(data, &records); err == nil {
+					s.Records = records
+				}
+			}
+		}
+	}
+	for _, rec := range s.Records {
+		if rec.Schema != sname {
+			continue
+		}
+		return rec.Units
+	}
+	empty := make(map[string]string)
+	return empty
+}
+
+var _schemaUnitsManager *SchemaUnitsManager
+
 // helper function to represent record
 func reprRecord(rec map[string]any, format string) string {
+	sname := recValue(rec, "Schema")
+	smap := _schemaUnitsManager.findUnits(sname)
 	if format == "json" {
 		var srec string
 		data, err := json.MarshalIndent(rec, "", "  ")
@@ -110,7 +152,15 @@ func reprRecord(rec map[string]any, format string) string {
 	}
 	var out string
 	for key, val := range rec {
-		out = fmt.Sprintf("%s\n%s: %v", out, utils.PaddedKey(key, maxLen), val)
+		if unit, ok := smap[key]; ok {
+			if unit != "" {
+				out = fmt.Sprintf("%s\n%s: %v (%s)", out, utils.PaddedKey(key, maxLen), val, unit)
+			} else {
+				out = fmt.Sprintf("%s\n%s: %v", out, utils.PaddedKey(key, maxLen), val)
+			}
+		} else {
+			out = fmt.Sprintf("%s\n%s: %v", out, utils.PaddedKey(key, maxLen), val)
+		}
 	}
 	return out
 }
