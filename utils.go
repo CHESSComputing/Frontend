@@ -18,3 +18,9 @@ func newToken(user, scope string) (string, error) {
 	}
 	return authz.JWTAccessToken(srvConfig.Config.Authz.ClientID, duration, customClaims)
 }
+
+// helper function to get all FOXDEN QL keys
+func qlKeys() []string {
+	keys := []string{"did", "pi", "beamline", "btr", "cycle", "sample", "motor", "position", "version"}
+	return keys
+}

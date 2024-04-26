@@ -321,6 +321,11 @@ func SearchHandler(c *gin.Context) {
 	tmpl["Query"] = ""
 	tmpl["User"] = user
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	if qlkeys, err := json.Marshal(qlKeys()); err == nil {
+		tmpl["QLKeys"] = string(qlkeys)
+	} else {
+		tmpl["QLKeys"] = []string{}
+	}
 
 	// if we got GET request it is /search web form without query request
 	if r.Method == "GET" && r.FormValue("query") == "" {
