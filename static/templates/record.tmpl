@@ -4,7 +4,10 @@
 Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, Sample: {{.Sample}}
 <div class="grid">
     <div class="column column-1">
-        <a href="javascript:FlipTag('record-{{.Id}}')" class="button button-small">Record</a>
+        <a href="javascript:HideRecTags('{{.Id}}');FlipTag('table-record-{{.Id}}')" class="button button-small">Record</a>
+    </div>
+    <div class="column column-1">
+        <a href="javascript:HideRecTags('{{.Id}}');FlipTag('json-record-{{.Id}}')" class="button button-small">JSON</a>
     </div>
     <div class="column column-1">
         <form class="form-content" method="post" action="{{.Base}}/dbs/files">
@@ -26,9 +29,19 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
         </form>
         -->
     </div>
-    <div class="column column-9">
+    <div class="column column-8">
     </div>
 </div>
-<div id="record-{{.Id}}" class="hide">
-    <pre id="json-record-{{.Id}}">{{.RecordString}}</pre>
+<div id="table-record-{{.Id}}" class="hide">
+    <pre id="table-record-{{.Id}}-content">{{.RecordTable}}</pre>
 </div>
+<div id="json-record-{{.Id}}" class="hide">
+    <pre id="json-record-{{.Id}}-content">{{.RecordJSON}}</pre>
+</div>
+
+<script>
+function HideRecTags(id) {
+    HideTag('table-record-'+id);
+    HideTag('json-record-'+id);
+}
+</script>

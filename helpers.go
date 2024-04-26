@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -65,7 +66,6 @@ func recValue(rec map[string]any, attr string) string {
 // helper function to prepare HTML page for given services records
 func records2html(user string, records []map[string]any) string {
 	var out []string
-	var srec string
 	for _, rec := range records {
 		tmpl := server.MakeTmpl(StaticFs, "Record")
 		tmpl["User"] = user
@@ -76,6 +76,21 @@ func records2html(user string, records []map[string]any) string {
 		tmpl["Btr"] = recValue(rec, "BTR")
 		tmpl["Sample"] = recValue(rec, "SampleName")
 		tmpl["Schema"] = recValue(rec, "Schema")
+		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+		tmpl["Record"] = rec
+		tmpl["RecordTable"] = reprRecord(rec, "table")
+		tmpl["RecordJSON"] = reprRecord(rec, "json")
+		tmpl["Description"] = recValue(rec, "Description")
+		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
+		out = append(out, content)
+	}
+	return strings.Join(out, "\n")
+}
+
+// helper function to represent record
+func reprRecord(rec map[string]any, format string) string {
+	if format == "json" {
+		var srec string
 		data, err := json.MarshalIndent(rec, "", "  ")
 		if err != nil {
 			log.Println("ERROR: unable to marshal record", rec, err)
@@ -83,14 +98,21 @@ func records2html(user string, records []map[string]any) string {
 		} else {
 			srec = string(data)
 		}
-		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-		tmpl["Record"] = rec
-		tmpl["RecordString"] = srec
-		tmpl["Description"] = recValue(rec, "Description")
-		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
-		out = append(out, content)
+		return srec
 	}
-	return strings.Join(out, "\n")
+	keys := utils.MapKeys(rec)
+	sort.Strings(keys)
+	var maxLen int
+	for _, k := range keys {
+		if len(k) > maxLen {
+			maxLen = len(k)
+		}
+	}
+	var out string
+	for key, val := range rec {
+		out = fmt.Sprintf("%s\n%s: %v", out, utils.PaddedKey(key, maxLen), val)
+	}
+	return out
 }
 
 // helper function to make pagination
