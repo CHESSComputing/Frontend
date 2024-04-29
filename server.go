@@ -53,6 +53,16 @@ func footer() string {
 	return _footer
 }
 
+// helper function to define our footer
+func footerEmpty() string {
+	if _footer == "" {
+		tmpl := server.MakeTmpl(StaticFs, "Footer")
+		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+		_footer = server.TmplPage(StaticFs, "footer_empty.tmpl", tmpl)
+	}
+	return _footer
+}
+
 // helper function to handle base path of URL requests
 func base(api string) string {
 	b := srvConfig.Config.Frontend.WebServer.Base

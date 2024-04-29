@@ -410,7 +410,10 @@ func SearchHandler(c *gin.Context) {
 	tmpl["Pagination"] = template.HTML(pages)
 
 	page := server.TmplPage(StaticFs, "records.tmpl", tmpl)
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+	// we will not use footer() on handlers since user may expand records
+	// instead we'll use footerEmpty() function
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
+	// c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // MetaDataHandler provides access to GET /meta endpoint
