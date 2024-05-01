@@ -30,7 +30,7 @@ var StaticFs embed.FS
 var _beamlines []string
 var _smgr beamlines.SchemaManager
 var _httpReadRequest, _httpWriteRequest *services.HttpRequest
-var _header, _footer string
+var _header, _footer, _footerEmpty string
 var Verbose int
 
 // helper function to define our header
@@ -55,12 +55,12 @@ func footer() string {
 
 // helper function to define our footer
 func footerEmpty() string {
-	if _footer == "" {
+	if _footerEmpty == "" {
 		tmpl := server.MakeTmpl(StaticFs, "Footer")
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-		_footer = server.TmplPage(StaticFs, "footer_empty.tmpl", tmpl)
+		_footerEmpty = server.TmplPage(StaticFs, "footer_empty.tmpl", tmpl)
 	}
-	return _footer
+	return _footerEmpty
 }
 
 // helper function to handle base path of URL requests
