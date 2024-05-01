@@ -23,10 +23,10 @@
         <div class="form-item">
             <div class="autocomplete" style="width:100%">
                 {{if .Query}}
-                <input class="input" type="text" name="query" id="query" value="{{.Query}}">
+                <input class="input" type="submit" name="query" id="query" value="{{.Query}}">
                 {{else}}
                 <input class="input"
-                       type="text"
+                       type="submit"
                        name="query"
                        id="query"
                        oninput="CallAutocomplete()"
