@@ -407,6 +407,12 @@ func SearchHandler(c *gin.Context) {
 	if Verbose > 1 {
 		log.Printf("meta-data response\n%+v", response)
 	}
+	if response.Results == nil {
+		tmpl["Content"] = fmt.Sprintf("No record found for your query '%s'", query)
+		page := server.TmplPage(StaticFs, "noresults.tmpl", tmpl)
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
+		return
+	}
 	records := response.Results.Records
 	nrecords := response.Results.NRecords
 	content := records2html(user, records)
