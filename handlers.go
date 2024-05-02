@@ -237,22 +237,6 @@ func DocsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// VideosHandler provides access to GET /docs end-point
-func VideosHandler(c *gin.Context) {
-	// check if user cookie is set, this is necessary as we do not
-	// use authorization handler for /docs end-point
-	tmpl := server.MakeTmpl(StaticFs, "Documentation")
-	tmpl["Title"] = "Tutorials"
-	var fname string
-	var params DocsParams
-	if err := c.ShouldBindUri(&params); err == nil {
-		fname = fmt.Sprintf("static/videos/%s", params.Page)
-	}
-	tmpl["FileName"] = fname
-	content := server.TmplPage(StaticFs, "video.tmpl", tmpl)
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
-}
-
 // DBSFilesHandler provides access to GET /meta/files endpoint
 func DBSFilesHandler(c *gin.Context) {
 	r := c.Request

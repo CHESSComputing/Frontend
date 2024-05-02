@@ -74,7 +74,6 @@ func setupRouter() *gin.Engine {
 	routes := []server.Route{
 		server.Route{Method: "GET", Path: "/", Handler: MainHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/docs", Handler: DocsHandler, Authorized: false},
-		server.Route{Method: "GET", Path: "/videos/:page", Handler: VideosHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/docs/:page", Handler: DocsHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/login", Handler: LoginHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/logout", Handler: LogoutHandler, Authorized: false},

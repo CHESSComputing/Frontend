@@ -1,2 +1,2 @@
 # FOXDEN tutorials
-- [autocompletion](videos/autocompletion.mp4)
+- [Search autocomplete feature](/media/autocomplete.mp4)
