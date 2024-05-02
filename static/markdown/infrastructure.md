@@ -1,4 +1,4 @@
-# CHESS/FOXDEN infrastructure
+# FOXDEN infrastructure
 ![infrastructure](/images/ChessDataManagementSoftware.png)
 
 FAIR Open-Science Extensible Data Exchange Network (FOXDEN) consists of the following components:

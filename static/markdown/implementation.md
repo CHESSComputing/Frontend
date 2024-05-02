@@ -1,4 +1,4 @@
-# CHESS Data Management implementation 
+# FOXDEN Data Management implementation 
 ![Implementation](/images/Implementation.png)
 
 ---
