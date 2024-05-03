@@ -7,6 +7,9 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
         <a href="javascript:FlipRecTable('{{.Id}}')" class="button button-small">Record</a>
     </div>
     <div class="column column-1">
+        <a href="javascript:FlipRecDesc('{{.Id}}')" class="button button-small">Description</a>
+    </div>
+    <div class="column column-1">
         <a href="javascript:FlipRecJson('{{.Id}}')" class="button button-small">JSON</a>
     </div>
     <div class="column column-1">
@@ -29,11 +32,14 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
         </form>
         -->
     </div>
-    <div class="column column-8">
+    <div class="column column-7">
     </div>
 </div>
 <div id="table-record-{{.Id}}" class="hide">
     <pre>{{.RecordTable}}</pre>
+</div>
+<div id="desc-record-{{.Id}}" class="hide">
+    <pre>{{.RecordDescription}}</pre>
 </div>
 <div id="json-record-{{.Id}}" class="hide">
     <pre>{{.RecordJSON}}</pre>
@@ -42,10 +48,17 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
 <script>
 function FlipRecTable(id) {
     HideTag('json-record-'+id);
+    HideTag('desc-record-'+id);
     FlipTag('table-record-'+id);
 }
 function FlipRecJson(id) {
     HideTag('table-record-'+id);
+    HideTag('desc-record-'+id);
     FlipTag('json-record-'+id);
+}
+function FlipRecDesc(id) {
+    HideTag('json-record-'+id);
+    HideTag('table-record-'+id);
+    FlipTag('desc-record-'+id);
 }
 </script>

@@ -80,6 +80,7 @@ func records2html(user string, records []map[string]any) string {
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 		tmpl["Record"] = rec
 		tmpl["RecordTable"] = reprRecord(rec, "table")
+		tmpl["RecordDescription"] = reprRecord(rec, "description")
 		tmpl["RecordJSON"] = reprRecord(rec, "json")
 		tmpl["Description"] = recValue(rec, "Description")
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
@@ -88,24 +89,24 @@ func records2html(user string, records []map[string]any) string {
 	return strings.Join(out, "\n")
 }
 
-// SchemaUnits represents individual FOXDEN schema units dictionary
-type SchemaUnits struct {
-	Schema string            `json:"schema"`
-	Units  map[string]string `json:"units"`
+// SchemaDetails represents individual FOXDEN schema details dictionary
+type SchemaDetails struct {
+	Schema       string            `json:"schema"`
+	Units        map[string]string `json:"units"`
+	Descriptions map[string]string `json:"descriptions"`
 }
 
-// SchemaUnitsManager holds SchemaUnits list for all FOXDEN schemas
-type SchemaUnitsManager struct {
-	Records []SchemaUnits
+// SchemaManager holds SchemaDetails list for all FOXDEN schemas
+type SchemaManager struct {
+	Records []SchemaDetails
 }
 
-// helper function to find schema units map for given schema name
-func (s *SchemaUnitsManager) findUnits(sname string) map[string]string {
-	var records []SchemaUnits
+func (s *SchemaManager) initManager() []SchemaDetails {
+	var records []SchemaDetails
 	if s == nil {
-		s = &SchemaUnitsManager{}
-		// fetch all schema units from upstream MetaData server
-		rurl := fmt.Sprintf("%s/units", srvConfig.Config.Services.MetaDataURL)
+		s = &SchemaManager{}
+		// fetch all schema details from upstream MetaData server
+		rurl := fmt.Sprintf("%s/meta", srvConfig.Config.Services.MetaDataURL)
 		if resp, err := _httpReadRequest.Get(rurl); err == nil {
 			defer resp.Body.Close()
 			if data, err := io.ReadAll(resp.Body); err == nil {
@@ -114,8 +115,16 @@ func (s *SchemaUnitsManager) findUnits(sname string) map[string]string {
 				}
 			}
 		}
+	} else {
+		records = s.Records
 	}
-	for _, rec := range s.Records {
+	return records
+}
+
+// helper function to find schema units map for given schema name
+func (s *SchemaManager) findUnits(sname string) map[string]string {
+	records := s.initManager()
+	for _, rec := range records {
 		if rec.Schema != sname {
 			continue
 		}
@@ -125,12 +134,26 @@ func (s *SchemaUnitsManager) findUnits(sname string) map[string]string {
 	return empty
 }
 
-var _schemaUnitsManager *SchemaUnitsManager
+// helper function to find schema units map for given schema name
+func (s *SchemaManager) findDescriptions(sname string) map[string]string {
+	records := s.initManager()
+	for _, rec := range records {
+		if rec.Schema != sname {
+			continue
+		}
+		return rec.Descriptions
+	}
+	empty := make(map[string]string)
+	return empty
+}
+
+var _schemaManager *SchemaManager
 
 // helper function to represent record
 func reprRecord(rec map[string]any, format string) string {
 	sname := recValue(rec, "Schema")
-	smap := _schemaUnitsManager.findUnits(sname)
+	smap := _schemaManager.findUnits(sname)
+	dmap := _schemaManager.findDescriptions(sname)
 	if format == "json" {
 		var srec string
 		data, err := json.MarshalIndent(rec, "", "  ")
@@ -151,6 +174,16 @@ func reprRecord(rec map[string]any, format string) string {
 		}
 	}
 	var out string
+	if format == "description" {
+		for key, _ := range rec {
+			if desc, ok := dmap[key]; ok {
+				out = fmt.Sprintf("%s\n%s: %v", out, utils.PaddedKey(key, maxLen), desc)
+			} else {
+				out = fmt.Sprintf("%s\n%s: Not Available", out, utils.PaddedKey(key, maxLen))
+			}
+		}
+		return out
+	}
 	for key, val := range rec {
 		if unit, ok := smap[key]; ok {
 			if unit != "" {
