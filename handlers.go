@@ -373,62 +373,9 @@ func SearchHandler(c *gin.Context) {
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
-	// TODO: based on query keys propagate request to specific service
-	//     processResults(c, rec, user, idx, limit)
+	// based on user query process request from all FOXDEN services
+	processResults(c, rec, user, idx, limit)
 
-	log.Printf("service request record\n%s", rec.String())
-	data, err := json.Marshal(rec)
-	if err != nil {
-		msg := "unable to parse user query"
-		handleError(c, http.StatusInternalServerError, msg, err)
-		return
-	}
-
-	// search request to DataDiscovery service
-	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
-	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		msg := "unable to get meta-data from upstream server"
-		handleError(c, http.StatusInternalServerError, msg, err)
-		return
-	}
-	// parse data records from meta-data service
-	var response services.ServiceResponse
-	defer resp.Body.Close()
-	data, err = io.ReadAll(resp.Body)
-	if err != nil {
-		content := errorTmpl(c, "unable to read response body, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		content := errorTmpl(c, "unable to unmarshal response, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-	if Verbose > 1 {
-		log.Printf("meta-data response\n%+v", response)
-	}
-	if response.Results == nil {
-		tmpl["Content"] = fmt.Sprintf("No record found for your query '%s'", query)
-		page := server.TmplPage(StaticFs, "noresults.tmpl", tmpl)
-		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
-		return
-	}
-	records := response.Results.Records
-	nrecords := response.Results.NRecords
-	content := records2html(user, records)
-	tmpl["Records"] = template.HTML(content)
-
-	pages := pagination(c, query, nrecords, idx, limit)
-	tmpl["Pagination"] = template.HTML(pages)
-
-	page := server.TmplPage(StaticFs, "records.tmpl", tmpl)
-	// we will not use footer() on handlers since user may expand records
-	// instead we'll use footerEmpty() function
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
-	// c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // MetaDataHandler provides access to GET /meta endpoint
