@@ -44,6 +44,7 @@
         "optional": false,
         "multiple": false,
         "section": "Alignment",
+        "units": "keV",
         "description": "horizontal beam-defining slit size - skip if this metadata record is for multiple scans with different slit sizes"
     },
     {

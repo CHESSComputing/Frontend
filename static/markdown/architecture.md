@@ -1,5 +1,5 @@
 # FOXDEN Architecture
-![Architecture](images/Architecture.png)
+![Architecture](/images/Architecture.png)
 
 CHESS Data Management architecture is based on loosely coupled set of MicroServices:
 - the frontend service to provide web UI interface to end-users
@@ -14,6 +14,6 @@ CHESS Data Management architecture is based on loosely coupled set of MicroServi
 - the authentication and authorization service
 - the command line client
 All of them are glued together by HTTP protocol and represent whole
-[infrustructure](docs/infrastructure.md).
-For further details please refer to [implementation](docs/implementation.md)
-and [apis](docs/apis.md) details.
+[infrustructure](/docs/infrastructure.md).
+For further details please refer to [implementation](/docs/implementation.md)
+and [apis](/docs/apis.md) details.

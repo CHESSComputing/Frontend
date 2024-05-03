@@ -373,6 +373,9 @@ func SearchHandler(c *gin.Context) {
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
+	// TODO: based on query keys propagate request to specific service
+	//     processResults(c, rec, user, idx, limit)
+
 	log.Printf("service request record\n%s", rec.String())
 	data, err := json.Marshal(rec)
 	if err != nil {
