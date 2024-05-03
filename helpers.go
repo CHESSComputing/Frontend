@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"io"
 	"log"
 	"sort"
 	"strconv"
@@ -17,6 +16,7 @@ import (
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
+	schema "github.com/CHESSComputing/golib/schema"
 	server "github.com/CHESSComputing/golib/server"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
@@ -89,71 +89,13 @@ func records2html(user string, records []map[string]any) string {
 	return strings.Join(out, "\n")
 }
 
-// SchemaDetails represents individual FOXDEN schema details dictionary
-type SchemaDetails struct {
-	Schema       string            `json:"schema"`
-	Units        map[string]string `json:"units"`
-	Descriptions map[string]string `json:"descriptions"`
-}
-
-// SchemaManager holds SchemaDetails list for all FOXDEN schemas
-type SchemaManager struct {
-	Records []SchemaDetails
-}
-
-func (s *SchemaManager) initManager() []SchemaDetails {
-	var records []SchemaDetails
-	if s == nil {
-		s = &SchemaManager{}
-		// fetch all schema details from upstream MetaData server
-		rurl := fmt.Sprintf("%s/meta", srvConfig.Config.Services.MetaDataURL)
-		if resp, err := _httpReadRequest.Get(rurl); err == nil {
-			defer resp.Body.Close()
-			if data, err := io.ReadAll(resp.Body); err == nil {
-				if err := json.Unmarshal(data, &records); err == nil {
-					s.Records = records
-				}
-			}
-		}
-	} else {
-		records = s.Records
-	}
-	return records
-}
-
-// helper function to find schema units map for given schema name
-func (s *SchemaManager) findUnits(sname string) map[string]string {
-	records := s.initManager()
-	for _, rec := range records {
-		if rec.Schema != sname {
-			continue
-		}
-		return rec.Units
-	}
-	empty := make(map[string]string)
-	return empty
-}
-
-// helper function to find schema units map for given schema name
-func (s *SchemaManager) findDescriptions(sname string) map[string]string {
-	records := s.initManager()
-	for _, rec := range records {
-		if rec.Schema != sname {
-			continue
-		}
-		return rec.Descriptions
-	}
-	empty := make(map[string]string)
-	return empty
-}
-
-var _schemaManager *SchemaManager
+var _metaManager *schema.MetaDataManager
 
 // helper function to represent record
 func reprRecord(rec map[string]any, format string) string {
 	sname := recValue(rec, "Schema")
-	smap := _schemaManager.findUnits(sname)
-	dmap := _schemaManager.findDescriptions(sname)
+	umap := _metaManager.Units(sname)
+	dmap := _metaManager.Descriptions(sname)
 	if format == "json" {
 		var srec string
 		data, err := json.MarshalIndent(rec, "", "  ")
@@ -185,7 +127,7 @@ func reprRecord(rec map[string]any, format string) string {
 		return out
 	}
 	for key, val := range rec {
-		if unit, ok := smap[key]; ok {
+		if unit, ok := umap[key]; ok {
 			if unit != "" {
 				out = fmt.Sprintf("%s\n%s: %v (%s)", out, utils.PaddedKey(key, maxLen), val, unit)
 			} else {
