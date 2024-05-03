@@ -5,6 +5,8 @@ function getLastWord(str) {
   return words[words.length - 1];
 }
 
+// helper function to remove empty spaces around the input value and double
+// spaces within it
 function adjustInputValue(inputValue) {
     if (inputValue.length > 0) {
         words = inputValue.split(' ');
@@ -13,6 +15,13 @@ function adjustInputValue(inputValue) {
         inputValue = inputValue.replace('  ', ' ');
     }
     return inputValue;
+}
+
+// leper function to check if given word exist in input string
+function wordExists(str, word) {
+  str = str.toUpperCase();
+  word = word.toUpperCase();
+  return str.includes(word);
 }
 
 /* 
@@ -42,8 +51,10 @@ function autocomplete(inp, arr) {
       this.parentNode.appendChild(a);
       /*for each item in the array...*/
       for (i = 0; i < arr.length; i++) {
-        /*check if the item starts with the same letters as the text field value:*/
-        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+        // check if our list element contains substring of input value
+        elem = arr[i].toUpperCase();
+        vvv = val.toUpperCase();
+        if(wordExists(elem, vvv)) {
           /*create a DIV element for each matching element:*/
           b = document.createElement("DIV");
           /*make the matching letters bold:*/
