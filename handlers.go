@@ -367,7 +367,7 @@ func SearchHandler(c *gin.Context) {
 		log.Println("limit", limit, err)
 	}
 	if limit == 0 {
-		limit = -1
+		limit = 10
 	}
 	rec := services.ServiceRequest{
 		Client:       "frontend",
