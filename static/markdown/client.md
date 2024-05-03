@@ -9,9 +9,9 @@ Usage:
   foxden [command]
 
 Available Commands:
-  auth        foxden authentication/authorization commands
   completion  Generate the autocompletion script for the specified shell
   config      foxden config commamd
+  describe    foxden describe command
   doi         foxden doi command
   help        Help about any command
   meta        foxden MetaData commands
@@ -20,6 +20,7 @@ Available Commands:
   s3          foxden s3 commands
   search      foxden search commands
   sync        foxden sync command
+  token       foxden token commands
   version     foxden version commamd
   view        foxden view commands
 
