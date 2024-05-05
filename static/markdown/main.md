@@ -1,12 +1,12 @@
 # FOXDEN Documentation
+- [Dataset IDentifier (DID)](/docs/did.md)
 - [Web interfance](/docs/web.md)
 - [Command line tools](/docs/tools.md)
   - [foxden cli tutorial](/docs/FOXDEN_CLI.pdf)
   - [foxden commands demo](https://gist.github.com/vkuznet/d8788b89d9073340369bb2b079f1e7e1)
   - [foxden doi demo](https://gist.github.com/vkuznet/66793033b8d384d0bb8487fb07a4e42d)
+- [Apis](/docs/apis.md)
 - [Architecture](/docs/architecture.md)
-- [Dataset IDentifier (DID) proposal](/docs/did.md)
 - [Infrustructure](/docs/infrastructure.md).
 - [Implementation](/docs/implementation.md)
-- [Apis](/docs/apis.md)
 - [References](/docs/references.md)
