@@ -224,15 +224,28 @@ func DocsHandler(c *gin.Context) {
 	fname := "static/markdown/main.md"
 	var params DocsParams
 	if err := c.ShouldBindUri(&params); err == nil {
-		fname = fmt.Sprintf("static/markdown/%s", params.Page)
+		if strings.HasSuffix(params.Page, "md") {
+			fname = fmt.Sprintf("static/markdown/%s", params.Page)
+		} else if strings.HasSuffix(params.Page, "pdf") {
+			fname = fmt.Sprintf("/media/%s", params.Page)
+			c.Redirect(http.StatusFound, fname)
+			return
+		} else {
+			content := fmt.Sprintf("no suitable file found for %s", fname)
+			tmpl["Content"] = content
+			content = server.TmplPage(StaticFs, "content.tmpl", tmpl)
+			c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+			return
+		}
 	}
 	content, err := server.MDToHTML(StaticFs, fname)
 	if err != nil {
 		content = fmt.Sprintf("unable to convert %s to HTML, error %v", fname, err)
 		log.Println("ERROR: ", content)
 		tmpl["Content"] = content
+	} else {
+		tmpl["Content"] = template.HTML(content)
 	}
-	tmpl["Content"] = template.HTML(content)
 	content = server.TmplPage(StaticFs, "content.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
