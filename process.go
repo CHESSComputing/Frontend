@@ -52,7 +52,7 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	if Verbose > 1 {
 		log.Printf("meta-data response\n%+v", response)
 	}
-	if response.Results == nil {
+	if response.Results.NRecords == 0 {
 		tmpl["Content"] = fmt.Sprintf("No record found for your query '%s'", query)
 		page := server.TmplPage(StaticFs, "noresults.tmpl", tmpl)
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
