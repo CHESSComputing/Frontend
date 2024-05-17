@@ -72,17 +72,17 @@ func records2html(user string, records []map[string]any) string {
 		tmpl["User"] = user
 		tmpl["Id"] = recValue(rec, "_id")
 		tmpl["Did"] = recValue(rec, "did")
-		tmpl["Cycle"] = recValue(rec, "Cycle")
-		tmpl["Beamline"] = recValue(rec, "Beamline")
-		tmpl["Btr"] = recValue(rec, "BTR")
-		tmpl["Sample"] = recValue(rec, "SampleName")
-		tmpl["Schema"] = recValue(rec, "Schema")
+		tmpl["Cycle"] = recValue(rec, "cycle")
+		tmpl["Beamline"] = recValue(rec, "beamline")
+		tmpl["Btr"] = recValue(rec, "btr")
+		tmpl["Sample"] = recValue(rec, "sample_name")
+		tmpl["Schema"] = recValue(rec, "schema")
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 		tmpl["Record"] = rec
 		tmpl["RecordTable"] = reprRecord(rec, "table")
 		tmpl["RecordDescription"] = reprRecord(rec, "description")
 		tmpl["RecordJSON"] = reprRecord(rec, "json")
-		tmpl["Description"] = recValue(rec, "Description")
+		tmpl["Description"] = recValue(rec, "description")
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
 	}
@@ -93,7 +93,7 @@ var _metaManager *schema.MetaDataManager
 
 // helper function to represent record
 func reprRecord(rec map[string]any, format string) string {
-	sname := recValue(rec, "Schema")
+	sname := recValue(rec, "schema")
 	umap := _metaManager.Units(sname)
 	dmap := _metaManager.Descriptions(sname)
 	if format == "json" {
@@ -117,7 +117,7 @@ func reprRecord(rec map[string]any, format string) string {
 	}
 	var out string
 	if format == "description" {
-		for key, _ := range rec {
+		for _, key := range keys {
 			if desc, ok := dmap[key]; ok {
 				out = fmt.Sprintf("%s\n%s: %v", out, utils.PaddedKey(key, maxLen), desc)
 			} else {
@@ -126,7 +126,8 @@ func reprRecord(rec map[string]any, format string) string {
 		}
 		return out
 	}
-	for key, val := range rec {
+	for _, key := range keys {
+		val, _ := rec[key]
 		if unit, ok := umap[key]; ok {
 			if unit != "" {
 				out = fmt.Sprintf("%s\n%s: %v (%s)", out, utils.PaddedKey(key, maxLen), val, unit)
