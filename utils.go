@@ -31,6 +31,7 @@ type QLKey struct {
 	Description string `json:"description,omitempty"`
 	Service     string `json:"service"`
 	Units       string `json:"units,omitempty"`
+	Schema      string `json:"schema,omitempty"`
 }
 
 // helper function to get all FOXDEN QL keys
@@ -58,7 +59,11 @@ func qlKeys() ([]string, error) {
 		if desc == "" {
 			desc = "description not available"
 		}
-		key := fmt.Sprintf("%s: (%s) %s", elem.Key, elem.Service, desc)
+		srv := fmt.Sprintf("%s:%s", elem.Service, elem.Schema)
+		if elem.Schema == "" {
+			srv = elem.Service
+		}
+		key := fmt.Sprintf("%s: (%s) %s", elem.Key, srv, desc)
 		if elem.Units != "" {
 			key += fmt.Sprintf(", units %s", elem.Units)
 		}
