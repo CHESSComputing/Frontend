@@ -6,7 +6,7 @@
 <div class="grid">
     <div class="column column-1">
     </div>
-    <div class="column column-8">
+    <div class="column column-10">
         <h2>
         Search for data across FOXDEN services
         </h2>
@@ -19,21 +19,53 @@
 <div class="grid">
     <div class="column column-1">
     </div>
-    <div class="column column-8">
+    <div class="column column-10">
+    <br/>
+    <textarea class="input"
+              id="query"
+              name="query"
+              placeholder='FOXDEN query editor'
+              rows=5></textarea>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-10">
         <div class="form-item">
             <div class="autocomplete" style="width:100%">
                 {{if .Query}}
-                <input class="input" type="text" name="query" id="query" value="{{.Query}}">
+                <input class="input"
+                       type="text"
+                       id="query_input"
+                       value="{{.Query}}">
+                       onchange="AddQuery()">
                 {{else}}
                 <input class="input"
                        type="text"
-                       name="query"
-                       id="query"
-                       oninput="CallAutocomplete()"
-                       placeholder="Use tag:value or free-text search keywords, e.g. proposal:123 test data">
+                       id="query_input"
+                       oninput="CallAutocomplete();"
+                       placeholder="FOXDEN search keywords autocompletion">
                 {{end}}
             </div>
         </div>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-9">
+        Please provide your query in query editor, you may use auto-complete input
+        to search for your favorite attributes. Make sure to replace
+        <span style="color:gray;font-weight:bold;">VALUE</span>
+        placeholders with actual values.
+        When ready click <span style="color:blue;font-weight:bold">Search</span> button.
     </div>
     <div class="column column-1">
         <div class="form-item">
@@ -43,56 +75,89 @@
     <div class="column column-1">
     </div>
 </div>
+
 </form>
 
 <div class="grid">
     <div class="column column-1">
     </div>
     <div class="column column-10">
-Need more help on Query Language?
-<button class="button button-small" onclick="ToggleTag('help')">Show Me</button>
-<div id="help" class="hide" style>
-    You may either use free-text search queries or choose explicit keyword search attributes.
-    For later please use <code>key:value</code> syntax, e.g.
-    <code>Email:user@gmail.com</code>.
-    <br/>
-    You may combine keyword search together along with free text. For example,
-    if you are looking for data sample with known user, proposal number and some description
-    you may use the query as following:
+        Need more help on Query Language?
+        <button class="button button-small" onclick="ToggleTag('help');ToggleFooter()">Show Me</button>
+        <div id="help" class="hide" style>
+            FOXDEN query relies
+            <a href="https://www.mongodb.com/docs/manual/tutorial/query-documents/">MongoDB query language</a>.
 <pre>
-Email:user@gmail.com Proposal:12345 mydescription
-</pre>
-    <br/>
-    You may also search for records using
-    <a href="https://www.mongodb.com/docs/manual/tutorial/query-documents/">MongoDB queries</a>:
-<pre>
-# fetch all queries
+# fetch all records
 {}
 
 # search for specific key:value pair where "key" is your record key
-# and "value" is your record value. The keys are always strings, while
-# values can be any data-type or mongo query expression, see next example:
-{"key":"value"}
+# and "123" is your record value (can be any data-type):
+{"btr":"3731-b"}
+or use multiple conditions
+{"beam_energy": 41.1, "btr": "3731-b"}
 
-# search for specific condition, e.g. "key" value is greater than one
-{"key": {"$gt": 1}}
+# search for specific condition using operators:
+{"atten_thickness": {"$gt": 3}}
 
-# search using regex patterns, e.g.
-{"dataset":{"$regex":".*sample-tlyhrzpbwc01zbpi"}}
+# search using regex patterns:
+{"did":{"$regex":"/beamline=3a/btr=3731-b.*"}}
+
+# make complex queries
+{
+   "did":{"$regex":"/beamline=3a/btr=3731-b.*"},
+   "beam_energy": 41.1,
+   "atten_thickness": {"$gt": 3}
+}
+
+# please consult MongoDB query language syntax for more examples
 </pre>
-</div>
-<br/>
-
+        </div>
     </div>
     <div class="column column-1">
     </div>
 </div>
 
-<!-- start of autocomplete part -->
+<!-- start of auto-complete part -->
 <script>
 function CallAutocomplete() {
     var skeys = {{.QLKeys}};
-    autocomplete(document.getElementById("query"), skeys);
+    autocomplete(document.getElementById("query_input"), skeys);
+}
+function AddQuery() {
+    var query = document.getElementById("query");
+    // first strip off white spaces and opening and closed brackets
+    query.value = stripWhiteSpacesAndChars(query.value, '{', '}');
+    var input = document.getElementById("query_input");
+    query.value = query.value.trim() + '\n' + '"' + input.value + '": VALUE,';
+    query.value = '{\n' + query.value.trim() + '\n}';
+    ClearInput();
+}
+function ClearInput() {
+    var input = document.getElementById("query_input");
+    input.value = "";
+}
+function stripWhiteSpacesAndChars(str, firstChar, lastChar) {
+    // First, trim the whitespace from the beginning and end of the string
+    str = str.trim();
+
+    // Check if the string starts with the provided first character and ends with the provided last character
+    if (str.startsWith(firstChar) && str.endsWith(lastChar)) {
+        // Remove the first and last characters
+        str = str.slice(1, -1);
+    }
+    return str;
+}
+var footerHTML = "";
+function ToggleFooter() {
+    var footer = document.getElementById("footer");
+    if (footerHTML == "") {
+        footerHTML = footer.innerHTML;
+        footer.innerHTML = "";
+    } else {
+        footer.innerHTML = footerHTML;
+        footerHTML = "";
+    }
 }
 </script>
 

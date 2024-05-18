@@ -71,6 +71,8 @@ function autocomplete(inp, arr) {
               inputValue = adjustInputValue(inputValue);
               // append to original input new suggestion
               inp.value = inputValue + this.getElementsByTagName("input")[0].value;
+              // VK changes: add entry to textarea
+              AddQuery();
 
               /*close the list of autocompleted values,
               (or any other open lists of autocompleted values:*/
