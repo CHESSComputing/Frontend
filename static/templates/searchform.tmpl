@@ -130,9 +130,15 @@ function AddQuery() {
     var query = document.getElementById("query");
     // first strip off white spaces and opening and closed brackets
     query.value = stripWhiteSpacesAndChars(query.value, '{', '}');
+    // now process query_input
     var input = document.getElementById("query_input");
+    // remove description from the input
+    input.value = input.value.split(":")[0];
+    // combine previous and new query inputs
     query.value = query.value.trim() + '\n' + '"' + input.value + '": VALUE,';
+    // wrap them up into JSON brackets
     query.value = '{\n' + query.value.trim() + '\n}';
+    // and clear query input field
     ClearInput();
 }
 function ClearInput() {

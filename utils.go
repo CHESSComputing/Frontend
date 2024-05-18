@@ -6,6 +6,7 @@ package main
 //
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 
@@ -24,6 +25,14 @@ func newToken(user, scope string) (string, error) {
 	return authz.JWTAccessToken(srvConfig.Config.Authz.ClientID, duration, customClaims)
 }
 
+// QLKey defines structure of QL key
+type QLKey struct {
+	Key         string `json:"key"`
+	Description string `json:"description,omitempty"`
+	Service     string `json:"service"`
+	Units       string `json:"units,omitempty"`
+}
+
 // helper function to get all FOXDEN QL keys
 func qlKeys() ([]string, error) {
 	var keys []string
@@ -37,16 +46,23 @@ func qlKeys() ([]string, error) {
 	if err != nil {
 		return keys, err
 	}
-	var smap map[string][]string
-	err = json.Unmarshal(data, &smap)
+	var arr []QLKey
+	err = json.Unmarshal(data, &arr)
 	if err != nil {
 		return keys, err
 	}
 	var allKeys []string
-	for _, keys := range smap {
-		for _, key := range keys {
-			allKeys = append(allKeys, key)
+	for _, elem := range arr {
+		// each qmap here is QLKey structure
+		desc := elem.Description
+		if desc == "" {
+			desc = "description not available"
 		}
+		key := fmt.Sprintf("%s: (%s) %s", elem.Key, elem.Service, desc)
+		if elem.Units != "" {
+			key += fmt.Sprintf(", units %s", elem.Units)
+		}
+		allKeys = append(allKeys, key)
 	}
 	keys = utils.List2Set[string](allKeys)
 	return keys, nil
