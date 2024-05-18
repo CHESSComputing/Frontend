@@ -82,11 +82,13 @@
     <div class="column column-1">
     </div>
     <div class="column column-10">
-        Need more help on Query Language?
-        <button class="button button-small" onclick="ToggleTag('help');ToggleFooter()">Show Me</button>
+        <b>FOXDEN Query Language (QL) &nbsp; &#8658; &nbsp;</b>
+        <button class="button button-small" onclick="ToggleTag('help');ToggleFooter()">HELP</button>
         <div id="help" class="hide" style>
-            FOXDEN query relies
+            FOXDEN queries use
             <a href="https://www.mongodb.com/docs/manual/tutorial/query-documents/">MongoDB query language</a>.
+            A query is composed in JSON data-format which contains QL keys and associated value or
+            more complex conditions, e.g.
 <pre>
 # fetch all records
 {}
@@ -149,14 +151,19 @@ function stripWhiteSpacesAndChars(str, firstChar, lastChar) {
     return str;
 }
 var footerHTML = "";
+var footerBkgColor = "";
 function ToggleFooter() {
     var footer = document.getElementById("footer");
     if (footerHTML == "") {
         footerHTML = footer.innerHTML;
+        footerBkgColor = footer.style.backgroundColor;
         footer.innerHTML = "";
+        footer.style.backgroundColor = "white";
     } else {
         footer.innerHTML = footerHTML;
+        footer.style.backgroundColor = footerBkgColor;
         footerHTML = "";
+        footerBkgColor = "";
     }
 }
 </script>
