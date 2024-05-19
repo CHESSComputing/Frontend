@@ -135,7 +135,12 @@ function AddQuery() {
     // remove description from the input
     input.value = input.value.split(":")[0];
     // combine previous and new query inputs
-    query.value = query.value.trim() + '\n' + '"' + input.value + '": VALUE,';
+    origQuery = query.value.trim()
+    if (origQuery == "") {
+        query.value = '"' + input.value + '": VALUE';
+    } else {
+        query.value = origQuery + ',\n' + '"' + input.value + '": VALUE';
+    }
     // wrap them up into JSON brackets
     query.value = '{\n' + query.value.trim() + '\n}';
     // and clear query input field
