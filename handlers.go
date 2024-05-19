@@ -358,8 +358,13 @@ func SearchHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Printf("search query='%s' user=%v", query, user)
 	}
-	if err != nil {
-		msg := "unable to parse user query"
+	if query == "" {
+		msg := "Empty query"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	} else if strings.Contains(query, "VALUE") {
+		msg := "Query did not resolve VALUE(s) for its attributes:"
+		msg = fmt.Sprintf("%s\n<pre>%s<pre>", msg, query)
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
