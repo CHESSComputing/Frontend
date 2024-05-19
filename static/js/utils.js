@@ -242,6 +242,10 @@ function ChangeHeight(tag) {
         // offset is height of header + top css elements
         header = document.getElementById('header');
         footer = document.getElementById('footer');
+        if (!footer) {
+            // we use empty footer
+            return
+        }
         const headerStyle = getComputedStyle(header);
         const footerStyle = getComputedStyle(footer);
         var headerHeight = headerStyle.height.replace('px', '');
