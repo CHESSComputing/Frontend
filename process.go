@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	srvConfig "github.com/CHESSComputing/golib/config"
 	server "github.com/CHESSComputing/golib/server"
@@ -15,11 +16,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// helper function to clean query
+func cleanQuery(query string) string {
+	q := strings.Replace(query, "\r", "", -1)
+	q = strings.Replace(query, "\n", "", -1)
+	return q
+}
+
+// check if query is valid JSON
+func validJSON(query string) error {
+	if !strings.Contains(query, "{") {
+		return nil
+	}
+	var data map[string]any
+	err := json.Unmarshal([]byte(query), &data)
+	return err
+}
+
+// helper function to process service request
 func processResults(c *gin.Context, rec services.ServiceRequest, user string, idx, limit int) {
 	tmpl := server.MakeTmpl(StaticFs, "Search")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	log.Printf("service request record\n%s", rec.String())
-	query := rec.ServiceQuery.Query
+	query := cleanQuery(rec.ServiceQuery.Query)
+	if err := validJSON(query); err != nil {
+		msg := "Given query is not valid JSON"
+		msg = fmt.Sprintf("%s\n<pre>%s</pre>\nError: %s", msg, query, err.Error())
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
 	data, err := json.Marshal(rec)
 	if err != nil {
 		msg := "unable to parse user query"
@@ -53,7 +78,7 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 		log.Printf("meta-data response\n%+v", response)
 	}
 	if response.Results.NRecords == 0 {
-		tmpl["Content"] = fmt.Sprintf("No record found for your query '%s'", query)
+		tmpl["Content"] = fmt.Sprintf("No records found for your query:\n<pre>%s</pre>", query)
 		page := server.TmplPage(StaticFs, "noresults.tmpl", tmpl)
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
 		return
