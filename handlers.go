@@ -21,6 +21,7 @@ import (
 	authz "github.com/CHESSComputing/golib/authz"
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
+	"github.com/CHESSComputing/golib/ql"
 	server "github.com/CHESSComputing/golib/server"
 	services "github.com/CHESSComputing/golib/services"
 	utils "github.com/CHESSComputing/golib/utils"
@@ -334,7 +335,7 @@ func SearchHandler(c *gin.Context) {
 	tmpl["Query"] = ""
 	tmpl["User"] = user
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	qlkeys, err := qlKeys()
+	qlkeys, err := ql.QLKeys("")
 	if err != nil {
 		log.Println("ERROR", err)
 		tmpl["QLKeys"] = []string{}
