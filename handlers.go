@@ -362,11 +362,15 @@ func SearchHandler(c *gin.Context) {
 		msg := "Empty query"
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
-	} else if strings.Contains(query, "VALUE") {
-		msg := "Query did not resolve VALUE(s) for its attributes:"
-		msg = fmt.Sprintf("%s\n<pre>%s<pre>", msg, query)
-		handleError(c, http.StatusBadRequest, msg, err)
-		return
+	}
+	dataTypes := []string{"STRING", "INT", "INTEGER", "FLOAT", "LIST", "BOOL"}
+	for _, key := range dataTypes {
+		if strings.Contains(query, key) {
+			msg := fmt.Sprintf("Query did not resolve '%s' placeholder for its attributes:", key)
+			msg = fmt.Sprintf("%s\n<pre>%s<pre>", msg, query)
+			handleError(c, http.StatusBadRequest, msg, err)
+			return
+		}
 	}
 
 	// obtain valid token
