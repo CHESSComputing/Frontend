@@ -63,9 +63,13 @@
     <div class="column column-9">
         Please provide your query in query editor, you may use auto-complete input
         to search for your favorite attributes. Make sure to replace
-        <span style="color:gray;font-weight:bold;">VALUE</span>
-        placeholders with actual values.
-        When ready click <span style="color:blue;font-weight:bold">Search</span> button.
+        <span style="color:gray;font-weight:bold;">INT, STRING, LIST, FLOAT, BOOL</span>
+        placeholders with actual values of corresponding data-type.
+        <br/>
+        Use <span style="color:blue;font-weight:bold;padding:2px;border:1px solid black;">Search</span>
+        button to place the query,
+        and <span style="color:gray;font-weight:bold;padding:2px;border:1px solid black;">Clear</span>
+        to clear query area.
     </div>
     <div class="column column-1">
         <div class="form-item">
@@ -73,6 +77,7 @@
         </div>
     </div>
     <div class="column column-1">
+        <a href="javascript:ClearTextarea();" class="button">Clear</a>
     </div>
 </div>
 
@@ -132,14 +137,20 @@ function AddQuery() {
     query.value = stripWhiteSpacesAndChars(query.value, '{', '}');
     // now process query_input
     var input = document.getElementById("query_input");
-    // remove description from the input
-    input.value = input.value.split(":")[0];
+    // split input value using separator, the code is implemented in utils.go (qlKeys function), e.g.
+    // btr: description, units:, data-type:STRING
+    parts = input.value.split(":")
+    // first value in split array is key:description
+    input.value = parts[0];
+    // last value should be a data-type
+    const len = parts.length;
+    dataType = parts[len-1].toUpperCase().trim();
     // combine previous and new query inputs
     origQuery = query.value.trim()
     if (origQuery == "") {
-        query.value = '"' + input.value + '": VALUE';
+        query.value = '"' + input.value + '": ' + dataType;
     } else {
-        query.value = origQuery + ',\n' + '"' + input.value + '": VALUE';
+        query.value = origQuery + ',\n' + '"' + input.value + '": ' + dataType;
     }
     // wrap them up into JSON brackets
     query.value = '{\n' + query.value.trim() + '\n}';
@@ -176,6 +187,10 @@ function ToggleFooter() {
         footerHTML = "";
         footerBkgColor = "";
     }
+}
+function ClearTextarea() {
+    var area = document.getElementById("query");
+    area.value = "";
 }
 </script>
 
