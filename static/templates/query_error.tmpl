@@ -1,7 +1,7 @@
 Query did not resolve '{{.Key}}' placeholder for its attributes values:
 <form action="{{.Base}}/search" method="post" name="web_search" id="web_search" class="form" autocomplete="off">
     <div class="form-item flex">
-        <textarea class="input" name="query" rows="5">{{.Query}}</textarea>
+        <textarea class="input" name="query" rows="5" readonly>{{.Query}}</textarea>
     </div>
     <div class="form-item flex">
         <input class="input" type="hidden" id="fix" name="fix" value="true">
