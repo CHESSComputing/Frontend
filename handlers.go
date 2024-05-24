@@ -335,7 +335,17 @@ func SearchHandler(c *gin.Context) {
 	tmpl["Query"] = ""
 	tmpl["User"] = user
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	qlkeys, err := ql.QLKeys("")
+	qlRecords, err := ql.QLRecords("")
+	qlkeys := []string{}
+	for _, qrec := range qlRecords {
+		srv := fmt.Sprintf("%s:%s", qrec.Service, qrec.Schema)
+		if qrec.Schema == "" {
+			srv = qrec.Service
+		}
+		out := fmt.Sprintf("%s: (%s) %s, units:%s, data-type:%s",
+			qrec.Key, srv, qrec.Description, qrec.Units, qrec.DataType)
+		qlkeys = append(qlkeys, out)
+	}
 	if err != nil {
 		log.Println("ERROR", err)
 		tmpl["QLKeys"] = []string{}
@@ -359,6 +369,15 @@ func SearchHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Printf("search query='%s' user=%v", query, user)
 	}
+	// first check if web form provides fix query input
+	fix := r.FormValue("fix")
+	if fix == "true" {
+		tmpl["FixQuery"] = query
+		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+		return
+	}
+	// proceed with processing the user query from web form
 	if query == "" {
 		msg := "Empty query"
 		handleError(c, http.StatusBadRequest, msg, err)
@@ -367,8 +386,12 @@ func SearchHandler(c *gin.Context) {
 	dataTypes := []string{"STRING", "INT", "INTEGER", "FLOAT", "LIST", "BOOL"}
 	for _, key := range dataTypes {
 		if strings.Contains(query, key) {
-			msg := fmt.Sprintf("Query did not resolve '%s' placeholder for its attributes:", key)
-			msg = fmt.Sprintf("%s\n<pre>%s<pre>", msg, query)
+			tmpl := server.MakeTmpl(StaticFs, "Data")
+			tmpl["Base"] = srvConfig.Config.CHESSMetaData.WebServer.Base
+			tmpl["Query"] = query
+			tmpl["Key"] = key
+			page := server.TmplPage(StaticFs, "query_error.tmpl", tmpl)
+			msg := string(template.HTML(page))
 			handleError(c, http.StatusBadRequest, msg, err)
 			return
 		}

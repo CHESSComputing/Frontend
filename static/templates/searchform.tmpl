@@ -21,11 +21,18 @@
     </div>
     <div class="column column-10">
     <br/>
+    {{if .FixQuery}}
+    <textarea class="input"
+              id="query"
+              name="query"
+              rows=5>{{.FixQuery}}</textarea>
+    {{else}}
     <textarea class="input"
               id="query"
               name="query"
               placeholder='FOXDEN query editor'
               rows=5></textarea>
+    {{end}}
     </div>
     <div class="column column-1">
     </div>
