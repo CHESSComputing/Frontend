@@ -56,6 +56,7 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 		page := server.TmplPage(StaticFs, "query_error.tmpl", tmpl)
 		msg = string(template.HTML(page))
 		handleError(c, http.StatusBadRequest, msg, err)
+		return
 	}
 	// search request to DataDiscovery service
 	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
