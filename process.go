@@ -39,17 +39,23 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	log.Printf("service request record\n%s", rec.String())
 	query := cleanQuery(rec.ServiceQuery.Query)
-	if err := validJSON(query); err != nil {
-		msg := "Given query is not valid JSON"
-		msg = fmt.Sprintf("%s\n<pre>%s</pre>\nError: %s", msg, query, err.Error())
+	tmpl["Query"] = query
+	err1 := validJSON(query)
+	data, err2 := json.Marshal(rec)
+	if err1 != nil || err2 != nil {
+		tmpl["FixQuery"] = query
+		msg := "Given query is not valid JSON, error: "
+		err := err1
+		if err1 != nil {
+			msg += err1.Error()
+		} else if err2 != nil {
+			msg += err2.Error()
+			err = err2
+		}
+		tmpl["Content"] = msg
+		page := server.TmplPage(StaticFs, "query_error.tmpl", tmpl)
+		msg = string(template.HTML(page))
 		handleError(c, http.StatusBadRequest, msg, err)
-		return
-	}
-	data, err := json.Marshal(rec)
-	if err != nil {
-		msg := "unable to parse user query"
-		handleError(c, http.StatusInternalServerError, msg, err)
-		return
 	}
 	// search request to DataDiscovery service
 	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
