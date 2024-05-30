@@ -374,7 +374,7 @@ func SearchHandler(c *gin.Context) {
 	if fix == "true" {
 		tmpl["FixQuery"] = query
 		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
-		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+page+footer()))
 		return
 	}
 	// proceed with processing the user query from web form
