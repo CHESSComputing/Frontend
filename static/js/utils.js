@@ -215,6 +215,9 @@ function ClearFilters() {
 function SaveRecord(tag) {
   type = "text/plain";
   rec = document.getElementById(tag).innerHTML;
+  rec = rec.replace("<pre>", "");
+  rec = rec.replace("</pre>", "");
+  rec = rec.trim();
   var a = document.createElement("a");
   var file = new Blob([rec], {type: type});
   a.href = URL.createObjectURL(file);
