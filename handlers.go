@@ -251,8 +251,8 @@ func DocsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// DBSFilesHandler provides access to GET /meta/files endpoint
-func DBSFilesHandler(c *gin.Context) {
+// ProvInfoHandler provides access to GET /meta/files endpoint
+func ProvInfoHandler(c *gin.Context) {
 	r := c.Request
 	did := r.FormValue("did")
 
@@ -270,44 +270,65 @@ func DBSFilesHandler(c *gin.Context) {
 		return
 	}
 
-	// search request to DataDiscovery service
-	rurl := fmt.Sprintf("%s/files?did=%s", srvConfig.Config.Services.DataBookkeepingURL, did)
-	resp, err := _httpReadRequest.Get(rurl)
+	// get files from provenance service
+	records, err := getData("files", did)
 	if err != nil {
-		msg := "unable to get meta-data from upstream server"
-		handleError(c, http.StatusInternalServerError, msg, err)
-		return
-	}
-	// parse data records from meta-data service
-	defer resp.Body.Close()
-	data, err = io.ReadAll(resp.Body)
-	if err != nil {
-		content := errorTmpl(c, "unable to read response body, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-	if Verbose > 0 {
-		log.Println("dbs data\n", string(data))
-	}
-	var records []map[string]any
-	err = json.Unmarshal(data, &records)
-	if err != nil {
-		content := errorTmpl(c, "unable to unmarshal dbs data, error", err)
+		content := errorTmpl(c, "unable to get files data from provenance service, error", err)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
 	var files []string
 	for _, r := range records {
 		if f, ok := r["file"]; ok {
-			fname := f.(string)
-			files = append(files, fname)
+			v := f.(string)
+			files = append(files, v)
 		}
 	}
-	tmpl := server.MakeTmpl(StaticFs, "DBS Files")
+	// get files from provenance service
+	var parents []string
+	records, err = getData("parents", did)
+	if err != nil {
+		content := errorTmpl(c, "unable to get parents data from provenance service, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	for _, r := range records {
+		if f, ok := r["parent_did"]; ok {
+			v := f.(string)
+			parents = append(parents, v)
+		}
+	}
+	// get children from provenance service
+	var children []string
+	records, err = getData("child", did)
+	if err != nil {
+		content := errorTmpl(c, "unable to get child data from provenance service, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	for _, r := range records {
+		if f, ok := r["child_did"]; ok {
+			v := f.(string)
+			parents = append(parents, v)
+		}
+	}
+
+	// construct output record
+	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
 	tmpl["Files"] = strings.Join(files, "\n")
+	if len(parents) > 0 {
+		tmpl["Parents"] = strings.Join(parents, "\n")
+	} else {
+		tmpl["Parents"] = "Not available"
+	}
+	if len(children) > 0 {
+		tmpl["Children"] = strings.Join(children, "\n")
+	} else {
+		tmpl["Children"] = "Not available"
+	}
 	tmpl["Data"] = string(data)
 	tmpl["Did"] = did
-	page := server.TmplPage(StaticFs, "dbs_files.tmpl", tmpl)
+	page := server.TmplPage(StaticFs, "prov_info.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 

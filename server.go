@@ -91,7 +91,7 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "GET", Path: "/data", Handler: DataHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/login", Handler: KAuthHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/search", Handler: SearchHandler, Authorized: false},
-		server.Route{Method: "POST", Path: "/dbs/files", Handler: DBSFilesHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/prov", Handler: ProvInfoHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/meta/form/upload", Handler: MetaFormUploadHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/meta/file/upload", Handler: MetaFileUploadHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/populateform", Handler: UploadJsonHandler, Authorized: false},

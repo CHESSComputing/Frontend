@@ -13,24 +13,15 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
         <a href="javascript:FlipRecJson('{{.Id}}')" class="button button-small">JSON</a>
     </div>
     <div class="column column-1">
-        <form class="form-content" method="post" action="{{.Base}}/dbs/files">
+        <form class="form-content" method="post" action="{{.Base}}/prov">
             <input type="hidden" name="_id" value="{{.Id}}">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="User" value="{{.User}}"/>
-            <button class="button button-small">Files</button>
+            <button class="button button-small">Provenance</button>
         </form>
     </div>
     <div class="column column-1">
         <a href="javascript:SaveRecord('json-record-{{.Id}}')" class="button button-small">Save</a>
-        <!--
-        <form class="form-content" method="post" action="{{.Base}}/update" enctype="multipart/form-data">
-            <input type="hidden" name="_id" value="{{.Id}}">
-            <input type="hidden" name="User" value="{{.User}}"/>
-            <input type="hidden" name="Description" value="{{.Description}}"/>
-            <input type="hidden" name="record" value="{{.Record}}">
-            <button class="button button-small">Update</button>
-        </form>
-        -->
     </div>
     <div class="column column-7">
     </div>

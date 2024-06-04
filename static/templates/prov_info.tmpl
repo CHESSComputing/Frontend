@@ -1,0 +1,29 @@
+<section>
+    <article id="article">
+<h2>{{.Did}}</h2>
+<br/>
+<h3>Parents</h3>
+<br/>
+<pre id="parents-{{.Did}}">
+{{.Parents}}
+</pre>
+
+<h3>Children</h3>
+<br/>
+<pre id="child-{{.Did}}">
+{{.Children}}
+</pre>
+
+<h3>Files</h3>
+<a href="javascript:SaveRecord('data-{{.Did}}')" class="button button-small">Files JSON</a>
+<a href="javascript:SaveRecord('files-{{.Did}}')" class="button button-small">Save</a>
+<br/>
+<br/>
+<pre id="files-{{.Did}}">
+{{.Files}}
+</pre>
+<pre id='data-{{.Did}}' class="hide">
+{{.Data}}
+</pre>
+    </article>
+</section>
