@@ -294,8 +294,10 @@ func ProvInfoHandler(c *gin.Context) {
 	}
 	for _, r := range records {
 		if f, ok := r["parent_did"]; ok {
-			v := f.(string)
-			parents = append(parents, v)
+			if f != nil {
+				v := f.(string)
+				parents = append(parents, v)
+			}
 		}
 	}
 	// get children from provenance service
@@ -308,8 +310,10 @@ func ProvInfoHandler(c *gin.Context) {
 	}
 	for _, r := range records {
 		if f, ok := r["child_did"]; ok {
-			v := f.(string)
-			parents = append(parents, v)
+			if f != nil {
+				v := f.(string)
+				children = append(children, v)
+			}
 		}
 	}
 
