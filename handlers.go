@@ -512,7 +512,7 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	body, err := io.ReadAll(file)
 	var rec map[string]any
 	err = json.Unmarshal(body, &rec)
-	rec["User"] = user
+	rec["user"] = user
 	mrec.Record = rec
 	return mrec, err
 }
@@ -550,6 +550,9 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 			desc = strings.Join(items, " ")
 			continue
 		}
+		if k == "User" {
+			continue
+		}
 		val, err := parseValue(schema, k, items)
 		if err != nil {
 			// check if given key is mandatory or optional
@@ -576,8 +579,8 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	div := srvConfig.Config.DID.Divider
 	did := utils.CreateDID(rec, attrs, sep, div)
 	rec["did"] = did
-	rec["User"] = user
-	rec["Description"] = desc
+	rec["user"] = user
+	rec["description"] = desc
 	if Verbose > 0 {
 		log.Printf("process form, record %v\n", rec)
 	}
