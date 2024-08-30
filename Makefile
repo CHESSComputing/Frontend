@@ -73,7 +73,7 @@ ifdef TAG
 endif
 	mv srv srv_arm64
 
-build_windows:
+build_windows_amd64:
 ifdef TAG
 	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
 endif
@@ -81,6 +81,17 @@ endif
 ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
+	mv srv.exe srv_amd64.exe
+
+build_windows_arm64:
+ifdef TAG
+	sed -i -e "s,{{VERSION}},$(TAG),g" main.go
+endif
+	go clean; rm -rf pkg srv.exe; GOARCH=arm64 GOOS=windows go build -o srv.exe ${flags}
+ifdef TAG
+	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
+endif
+	mv srv.exe srv_arm64.exe
 
 install:
 	go install
