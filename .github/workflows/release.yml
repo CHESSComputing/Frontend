@@ -79,10 +79,10 @@ jobs:
           ghcr.io/chesscomputing/frontend:latest
           ghcr.io/chesscomputing/frontend:${{ steps.branch_name.outputs.SOURCE_TAG }}
 
-    - name: "✏️ Generate release changelog"
-      uses: heinrichreimer/action-github-changelog-generator@v2.3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+#     - name: "✏️ Generate release changelog"
+#       uses: heinrichreimer/action-github-changelog-generator@v2.3
+#       with:
+#         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Release
       id: create_release
