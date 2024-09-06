@@ -84,6 +84,10 @@ jobs:
 #       with:
 #         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Generate CHANGES.md and LAST_CHANGES.md
+      run: |
+        make changes
+
     - name: Create Release
       id: create_release
       uses: ncipollo/release-action@v1
