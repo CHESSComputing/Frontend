@@ -577,8 +577,10 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	attrs := srvConfig.Config.DID.Attributes
 	sep := srvConfig.Config.DID.Separator
 	div := srvConfig.Config.DID.Divider
-	did := utils.CreateDID(rec, attrs, sep, div)
-	rec["did"] = did
+	if _, ok := rec["did"]; !ok {
+		did := utils.CreateDID(rec, attrs, sep, div)
+		rec["did"] = did
+	}
 	rec["user"] = user
 	rec["description"] = desc
 	if Verbose > 0 {
