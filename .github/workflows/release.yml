@@ -20,7 +20,9 @@ jobs:
         go-version: ^1.21
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
     # https://github.com/orgs/community/discussions/26686
     - name: Branch name
@@ -83,10 +85,6 @@ jobs:
 #       uses: heinrichreimer/action-github-changelog-generator@v2.3
 #       with:
 #         token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Generate CHANGES.md and LAST_CHANGES.md
-      run: |
-        make changes
 
     - name: Create Release
       id: create_release
