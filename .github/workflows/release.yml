@@ -21,8 +21,8 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      with:
+        fetch-depth: 0
 
     # https://github.com/orgs/community/discussions/26686
     - name: Branch name
