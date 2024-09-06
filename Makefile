@@ -21,7 +21,7 @@ ifdef TAG
 	sed -i -e "s,$(TAG),{{VERSION}},g" main.go
 endif
 
-build_all: golib build_darwin_amd64 build_darwin_arm64 build_amd64 build_arm64 build_power8 build_windows_amd64 build_windows_arm64
+build_all: golib build_darwin_amd64 build_darwin_arm64 build_amd64 build_arm64 build_power8 build_windows_amd64 build_windows_arm64 changes
 
 build_darwin_amd64:
 ifdef TAG
@@ -98,6 +98,10 @@ install:
 
 clean:
 	go clean; rm -rf pkg
+
+changes:
+	./changes.sh
+	./last_changes.sh
 
 test : test_code
 
