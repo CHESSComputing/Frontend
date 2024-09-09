@@ -2,8 +2,8 @@ cloud.google.com/go/compute v1.23.3 h1:6sVlXXBmbd7jNX0Ipq0trII3e4n1/MsADLK6a+aiV
 cloud.google.com/go/compute v1.23.3/go.mod h1:VCgBUoMnIVIR0CscqQiPJLAG25E3ZRZMzcFZeQ+h8CI=
 cloud.google.com/go/compute/metadata v0.2.3 h1:mg4jlk7mCAj6xXp9UJ4fjI9VUI5rubuGBW5aJ7UnBMY=
 cloud.google.com/go/compute/metadata v0.2.3/go.mod h1:VAV5nSsACxMJvgaAuX6Pk2AawlZn8kiOGuCv6gTkwuA=
-github.com/CHESSComputing/golib v0.3.3 h1:m2bPeAUHPmUX3BqaAEiPUhkuMvjYlwHGvIL9pRdv0T0=
-github.com/CHESSComputing/golib v0.3.3/go.mod h1:wzh5PDgODmQBhkUqQcgDqZyWI+h/GEhXoh5ez6UyP54=
+github.com/CHESSComputing/golib v0.3.5 h1:i2jDH96lLhmJLc4Ie5qcSbPg3rz9wBgw8GX7Mtoz4LY=
+github.com/CHESSComputing/golib v0.3.5/go.mod h1:wzh5PDgODmQBhkUqQcgDqZyWI+h/GEhXoh5ez6UyP54=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
 github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=
@@ -161,6 +161,8 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/ulule/limiter/v3 v3.11.2 h1:P4yOrxoEMJbOTfRJR2OzjL90oflzYPPmWg+dvwN2tHA=
 github.com/ulule/limiter/v3 v3.11.2/go.mod h1:QG5GnFOCV+k7lrL5Y8kgEeeflPH3+Cviqlqa8SVSQxI=
+github.com/vkuznet/cryptoutils v0.0.2 h1:stKCNV6t6I+JzcD+KUZeJmJeETfEva3do3cuKmcM5ZA=
+github.com/vkuznet/cryptoutils v0.0.2/go.mod h1:2qGFdia1GcAwcVI39tHobOA+GkeAoYNRwGIkGYGB5bg=
 github.com/vkuznet/http-logging v0.0.0-20210729230351-fc50acd79868 h1:kOyoL9dkgDzi/5qVBsTlzCEOmCGnJYYl+u7aBzMR6c4=
 github.com/vkuznet/http-logging v0.0.0-20210729230351-fc50acd79868/go.mod h1:wy8w8lLvz/ZauEqQh0fjv/vkZZlLbdDfSDewsy5jWvA=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=

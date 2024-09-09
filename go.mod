@@ -1,9 +1,9 @@
 module github.com/CHESSComputing/Frontend
 
-go 1.22.5
+go 1.23.1
 
 require (
-	github.com/CHESSComputing/golib v0.3.3
+	github.com/CHESSComputing/golib v0.3.5
 	github.com/gin-gonic/gin v1.10.0
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0
 )
@@ -65,6 +65,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/ulule/limiter/v3 v3.11.2 // indirect
+	github.com/vkuznet/cryptoutils v0.0.2 // indirect
 	github.com/vkuznet/http-logging v0.0.0-20210729230351-fc50acd79868 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.mongodb.org/mongo-driver v1.13.1 // indirect
