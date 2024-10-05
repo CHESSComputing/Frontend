@@ -10,7 +10,7 @@ your CHESS Kerberos credentials. Please note FOXDEN does not store them
 anywhere and only obtain a valid kerberos ticket using your credentials and
 create associated [token](/docs/tokens.md).
 
-![](/images/foxden_login.pnd)
+![](/images/foxden_login.png)
 
 <br/>
 
@@ -35,8 +35,18 @@ materials to get you started.
 ### FOXDEN search
 FOXDEN search interface page allows user to search for the favorite FOXDEN
 (meta|provenance) data records using either key-value pairs, or fully featured
-FOXDEN Query Language (QL). Please use **Show me** button to get more examples.
-![](/images/foxden_records.png)
+FOXDEN Query Language (QL):
+![](/images/foxden_search.png)
+
+Please use **HELP** button to get more examples.
+![](/images/foxden_help.png)
+
+The FOXDEN search interface consists of two pars:
+- FOXDEN query editor
+- FOXDEN search keywords autocompletion
+
+In former one you may place your JSON query, the later allows you to
+search for FOXDEN keys and compose your query.
 
 Once you found what you want you will be redirected to FOXDEN records page.
 This page may contain one or more records reflected to your search query.
