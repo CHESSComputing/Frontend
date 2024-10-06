@@ -2,6 +2,8 @@
 This document provides integration guidelines to include new
 beamline (or any other experiment or data set) into FOXDEN.
 
+<br/>
+
 **Step 1:** prepare new FOXDEN schema for your beamline or data set.
 The schema represents series of JSON records which key, its data-type,
 descriptions, units, etc. For example here is an example of did
@@ -22,15 +24,21 @@ key:
 ]
 ```
 
+<br/>
+
 **Step 2:** request inclusion of your schema into FOXDEN by providing
 git pull request to [FOXDEN](https://github.com/CHESSComputing/FOXDEN)
 repository or contacting FOXDEN developers team
+
+<br/>
 
 **Step 3:** prepare your meta-data record(s) which satisfies your schema,
 e.g.
 ```
 {"did": "/beamline=XXX/...", ...}
 ```
+
+<br/>
 
 **Step 4:** once your schema is present in FOXDEN you may inject your
 meta-data record(s) using `foxden` CLI to FOXDEN dev instance, e.g.
@@ -47,6 +55,8 @@ foxden meta add <file.json> --schema=<schema> --did-attrs=beamline,btr,cycle,sam
 # the same as above if your did attributes are beamline,btr,cycle,sample_name
 foxden meta add <file.json> --schema=<schema>
 ```
+
+<br/>
 
 **Step 5:** once your data is in FOXDEN you may look it up via the following
 commands:
