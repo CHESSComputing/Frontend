@@ -1,8 +1,8 @@
 # FOXDEN Documentation
-- Quick start:
+- Quick start guides:
   - [Web interfance](/docs/web.md)
   - [CLI tool](/docs/cli.md)
-- [Command line tool tutorial](/docs/tools.md)
+- Tutorials:
   - [foxden cli tutorial](/docs/FOXDEN_CLI.pdf)
   - [foxden commands demo](https://gist.github.com/vkuznet/d8788b89d9073340369bb2b079f1e7e1)
   - [foxden doi demo](https://gist.github.com/vkuznet/66793033b8d384d0bb8487fb07a4e42d)
