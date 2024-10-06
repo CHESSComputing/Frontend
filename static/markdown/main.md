@@ -6,6 +6,7 @@
   - [foxden cli tutorial](/docs/FOXDEN_CLI.pdf)
   - [foxden commands demo](https://gist.github.com/vkuznet/d8788b89d9073340369bb2b079f1e7e1)
   - [foxden doi demo](https://gist.github.com/vkuznet/66793033b8d384d0bb8487fb07a4e42d)
+- [Integration guidelines](/docs/integration.md)
 - [Dataset IDentifier (DID)](/docs/did.md)
 - [Apis](/docs/apis.md)
 - [Architecture](/docs/architecture.md)
