@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -144,7 +145,7 @@ func reprRecord(rec map[string]any, format string) string {
 // helper function to make pagination
 func pagination(c *gin.Context, query string, nres, startIdx, limit int) string {
 	tmpl := server.MakeTmpl(StaticFs, "Search")
-	url := fmt.Sprintf("/search?query=%s", query)
+	url := fmt.Sprintf("/search?query=%s", url.QueryEscape(query))
 	if nres > 0 {
 		tmpl["StartIndex"] = fmt.Sprintf("%d", startIdx+1)
 	} else {
