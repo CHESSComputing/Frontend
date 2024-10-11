@@ -440,9 +440,27 @@ func SearchHandler(c *gin.Context) {
 	if limit == 0 {
 		limit = 10
 	}
+	// parse sort keys which are provided as comma separated list
+	sortKeys := r.FormValue("sort_keys")
+	var skeys []string
+	if sortKeys != "" {
+		for _, k := range strings.Split(sortKeys, ",") {
+			skeys = append(skeys, k)
+		}
+	}
+	// use date as default sort key
+	if len(skeys) == 0 {
+		skeys = append(skeys, "date")
+	}
+	sortOrder := r.FormValue("sort_order")
+	order := -1 // descending order for MongoDB (default)
+	if sortOrder != "" {
+		order, err := strconv.Atoi(sortOrder)
+		log.Println("sort order", order, err)
+	}
 	rec := services.ServiceRequest{
 		Client:       "frontend",
-		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
+		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit, SortKeys: skeys, SortOrder: order},
 	}
 	// based on user query process request from all FOXDEN services
 	processResults(c, rec, user, idx, limit)
