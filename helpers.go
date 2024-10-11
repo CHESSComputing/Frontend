@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
@@ -84,6 +85,12 @@ func records2html(user string, records []map[string]any) string {
 		tmpl["RecordDescription"] = reprRecord(rec, "description")
 		tmpl["RecordJSON"] = reprRecord(rec, "json")
 		tmpl["Description"] = recValue(rec, "description")
+		if val, ok := rec["date"]; ok {
+			secondsSinceEpoch := int64(val.(float64))
+			tmpl["TimeStamp"] = time.Unix(secondsSinceEpoch, 0).Format(time.RFC3339)
+		} else {
+			tmpl["TimeStamp"] = "Not Available"
+		}
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
 	}
