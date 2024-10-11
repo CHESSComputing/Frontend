@@ -214,3 +214,20 @@ footer {
 .srv-fair {
     background-color: #F4E1D0;
 }
+/*.sort-container {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*}*/
+
+.sort-container {
+    position: relative; /* Ensures the child element is positioned relative to this container */
+    height: 30px; /* Example height */
+}
+
+.dropdown {
+    position: absolute;
+    height: 30px;
+    background-color: grey;
+    color: white;
+    bottom: 0; /* Aligns the drop-down menu to the bottom of the container */
+}

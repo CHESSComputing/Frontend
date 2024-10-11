@@ -150,9 +150,10 @@ func reprRecord(rec map[string]any, format string) string {
 }
 
 // helper function to make pagination
-func pagination(c *gin.Context, query string, nres, startIdx, limit int) string {
+func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey string) string {
 	tmpl := server.MakeTmpl(StaticFs, "Search")
-	url := fmt.Sprintf("/search?query=%s", url.QueryEscape(query))
+	eQuery := url.QueryEscape(query)
+	url := fmt.Sprintf("/search?query=%s", eQuery)
 	if nres > 0 {
 		tmpl["StartIndex"] = fmt.Sprintf("%d", startIdx+1)
 	} else {
@@ -168,6 +169,8 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int) string 
 	tmpl["PrevUrl"] = makeURL(url, "prev", startIdx, limit, nres)
 	tmpl["NextUrl"] = makeURL(url, "next", startIdx, limit, nres)
 	tmpl["LastUrl"] = makeURL(url, "last", startIdx, limit, nres)
+	tmpl["Query"] = query
+	tmpl["SortKey"] = sortKey
 	page := server.TmplPage(StaticFs, "pagination.tmpl", tmpl)
 	return fmt.Sprintf("%s<br>", page)
 }

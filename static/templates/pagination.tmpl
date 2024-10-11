@@ -1,8 +1,27 @@
 <div class="grid">
-    <div class="column column-7">
+    <div class="column column-4">
 		<b class="is-logo">
 		Showing {{.StartIndex}}&#8212;{{.EndIndex}} records out of {{.Total}}
 		</b>
+    </div>
+    <div class="column column-1">
+        <button class="button button-small disabled">Sort by:</button>
+    </div>
+    <div class="column column-2">
+        <form id="searchSortForm" action="/search" method="POST">
+            <input type="hidden" name="query" value="{{.Query}}">
+            <input type="hidden" name="idx" value="0">
+            <input type="hidden" name="limit" value="10">
+            <div class="sort-container">
+            <select id="sortkey" name="sort_keys" onchange="submitSearchForm()" class="dropdown">
+                <option value="date">Date</option>
+                <option value="beamline">Beamline</option>
+                <option value="btr">Btr</option>
+                <option value="cycle">Cycle</option>
+                <option value="sample">Sample</option>
+            </select>
+            </div>
+        </form>
     </div>
     <div class="column column-5">
         <a href="{{.FirstUrl}}" class="button button-small">first</a>
@@ -11,3 +30,26 @@
         <a href="{{.LastUrl}}"  class="button button-small">last</a>
     </div>
 </div>
+
+<script>
+function submitSearchForm() {
+    document.getElementById('searchSortForm').submit();
+}
+function changeSort(defaultOption) {
+    var select = document.getElementById('sortkey');
+    var options = Array.from(select.options);
+
+    options.sort((a, b) => (a.value === defaultOption) ? -1 : (b.value === defaultOption) ? 1 : 0);
+
+    // Clear existing options and re-add in new order
+    select.innerHTML = '';
+    options.forEach(option => {
+        select.appendChild(option);
+    });
+
+    // Set the first option as selected
+    select.selectedIndex = 0;
+}
+
+changeSort('{{.SortKey}}');
+</script>

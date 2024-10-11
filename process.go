@@ -95,7 +95,11 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	content := records2html(user, records)
 	tmpl["Records"] = template.HTML(content)
 
-	pages := pagination(c, query, nrecords, idx, limit)
+	sortKey := "date"
+	if len(rec.ServiceQuery.SortKeys) > 0 {
+		sortKey = rec.ServiceQuery.SortKeys[0]
+	}
+	pages := pagination(c, query, nrecords, idx, limit, sortKey)
 	tmpl["Pagination"] = template.HTML(pages)
 
 	page := server.TmplPage(StaticFs, "records.tmpl", tmpl)
