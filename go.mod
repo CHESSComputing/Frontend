@@ -1,6 +1,6 @@
 module github.com/CHESSComputing/Frontend
 
-go 1.23.1
+go 1.23.2
 
 require (
 	github.com/CHESSComputing/golib v0.3.9
