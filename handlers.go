@@ -453,7 +453,7 @@ func SearchHandler(c *gin.Context) {
 		skeys = append(skeys, "date")
 	}
 	sortOrder := r.FormValue("sort_order")
-	order := -1 // descending order for MongoDB (default)
+	order := 1 // ascending order for MongoDB (default value)
 	if sortOrder != "" {
 		order, err := strconv.Atoi(sortOrder)
 		log.Println("sort order", order, err)
