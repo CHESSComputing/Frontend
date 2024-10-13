@@ -12,14 +12,21 @@
             <input type="hidden" name="query" value="{{.Query}}">
             <input type="hidden" name="idx" value="0">
             <input type="hidden" name="limit" value="10">
+            <input type="hidden" id="sort_order" name="sort_order" value="descending">
             <div class="sort-container">
-            <select id="sortkey" name="sort_keys" onchange="submitSearchForm()" class="dropdown">
-                <option value="date">Date</option>
-                <option value="did">DID</option>
-                <option value="beamline">Beamline</option>
-                <option value="btr">Btr</option>
-                <option value="cycle">Cycle</option>
-                <option value="sample">Sample</option>
+            <select id="sort_keys" name="sort_keys" onchange="submitSearchForm()" class="dropdown">
+                <option value="date-ascending">Date ▲</option>
+                <option value="date-descending">Date ▼</option>
+                <option value="did-ascending">DID ▲</option>
+                <option value="did-descending">DID ▼</option>
+                <option value="beamline-ascending">Beamline ▲</option>
+                <option value="beamline-descending">Beamline ▼</option>
+                <option value="btr-ascending">Btr ▲</option>
+                <option value="btr-descending">Btr ▼</option>
+                <option value="cycle-ascending">Cycle ▲</option>
+                <option value="cycle-descending">Cycle ▼</option>
+                <option value="sample-ascending">Sample ▲</option>
+                <option value="sample-descending">Sample ▼</option>
             </select>
             </div>
         </form>
@@ -34,8 +41,20 @@
 
 <script>
 function submitSearchForm() {
-    document.getElementById('searchSortForm').submit();
+    // Get the selected option from the dropdown
+    var sortElement = document.getElementById("sort_keys");
+    var selectedValue = sortElement.value;
+
+    // Extract the sort key and sort order from the selected option
+    var [sortKey, sortOrder] = selectedValue.split('-');
+
+    // Update the hidden fields in the form
+    document.getElementById("sort_order").value = sortOrder;
+
+    // Submit the form with the updated values
+    document.getElementById("searchSortForm").submit();
 }
+
 function changeSort(defaultOption) {
     var select = document.getElementById('sortkey');
     var options = Array.from(select.options);
@@ -51,6 +70,63 @@ function changeSort(defaultOption) {
     // Set the first option as selected
     select.selectedIndex = 0;
 }
+// changeSort('{{.SortKey}}');
 
-changeSort('{{.SortKey}}');
+function reorderSortOptions(sortKey, sortOrder) {
+    // Get the select element
+    var sortSelect = document.getElementById("sort_keys");
+
+    // Get all options from the select element
+    var options = Array.from(sortSelect.options);
+
+    // Create a new array to hold reordered options
+    var reorderedOptions = [];
+
+    // First, find the selected option and its opposite sort order option
+    var selectedOption = null;
+    var oppositeOption = null;
+    options.forEach(function(option) {
+        var [key, order] = option.value.split('-');
+        if (key === sortKey) {
+            if (order === sortOrder) {
+                selectedOption = option;
+            } else {
+                oppositeOption = option;
+            }
+        }
+    });
+
+    // Add the selected option to the beginning of the reordered array
+    if (selectedOption) {
+        reorderedOptions.push(selectedOption);
+    }
+
+    // Add the opposite sort order option right after the selected one
+    if (oppositeOption) {
+        reorderedOptions.push(oppositeOption);
+    }
+
+    // Now group the rest of the options by sortKey (excluding the selected sortKey options)
+    options.forEach(function(option) {
+        var [key, order] = option.value.split('-');
+        if (key !== sortKey) {
+            reorderedOptions.push(option);
+        }
+    });
+
+    // Empty the current select dropdown
+    sortSelect.innerHTML = '';
+
+    // Append reordered options
+    reorderedOptions.forEach(function(option) {
+        sortSelect.appendChild(option);
+    });
+
+    // Set the selected option as selected
+    if (selectedOption) {
+        sortSelect.selectedIndex = 0;
+    }
+}
+
+reorderSortOptions('{{.SortKey}}', '{{.SortOrder}}');
 </script>

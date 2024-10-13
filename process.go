@@ -99,7 +99,11 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	if len(rec.ServiceQuery.SortKeys) > 0 {
 		sortKey = rec.ServiceQuery.SortKeys[0]
 	}
-	pages := pagination(c, query, nrecords, idx, limit, sortKey)
+	sortOrder := "descending"
+	if rec.ServiceQuery.SortOrder == 1 {
+		sortOrder = "ascending"
+	}
+	pages := pagination(c, query, nrecords, idx, limit, sortKey, sortOrder)
 	tmpl["Pagination"] = template.HTML(pages)
 
 	page := server.TmplPage(StaticFs, "records.tmpl", tmpl)

@@ -445,6 +445,11 @@ func SearchHandler(c *gin.Context) {
 	var skeys []string
 	if sortKeys != "" {
 		for _, k := range strings.Split(sortKeys, ",") {
+			if strings.Contains(k, "-ascending") {
+				k = strings.Replace(k, "-ascending", "", -1)
+			} else if strings.Contains(k, "-descending") {
+				k = strings.Replace(k, "-descending", "", -1)
+			}
 			skeys = append(skeys, k)
 		}
 	}
@@ -455,8 +460,18 @@ func SearchHandler(c *gin.Context) {
 	sortOrder := r.FormValue("sort_order")
 	order := -1 // descending order for MongoDB (default value)
 	if sortOrder != "" {
-		order, err := strconv.Atoi(sortOrder)
-		log.Println("sort order", order, err)
+		// in pagination.tmpl we use ascending/descending which we translates to 1/-1 for MongoDB
+		if sortOrder == "ascending" || sortOrder == "asc" {
+			order = 1
+		} else if sortOrder == "descending" || sortOrder == "des" || sortOrder == "desc" {
+			order = -1
+		} else {
+			order, err = strconv.Atoi(sortOrder)
+			if err != nil {
+				log.Println("ERROR: unable to decode sort order, error:", err)
+				order = -1 // default value
+			}
+		}
 	}
 	rec := services.ServiceRequest{
 		Client:       "frontend",
