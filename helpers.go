@@ -94,6 +94,8 @@ func records2html(user string, records []map[string]any) string {
 		if val, ok := rec["globus_link"]; ok {
 			tmpl["GlobusLink"] = fmt.Sprintf("%v", val)
 		}
+		rurl := fmt.Sprintf("%s/spec/%s", srvConfig.Config.Services.SpecScansURL, recValue(rec, "did"))
+		tmpl["SpecScanLink"] = rurl
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
 	}

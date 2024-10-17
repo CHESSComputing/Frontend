@@ -6,6 +6,9 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
 {{if .GlobusLink}}
 <a href="{{.GlobusLink}}">Globus link</a>,
 {{end}}
+{{if .SpecScanLink}}
+<a href="{{.SpecScanLink}}">SpecScan record</a>,
+{{end}}
 Date: {{.TimeStamp}}
 
 <div class="grid">
