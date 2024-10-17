@@ -41,6 +41,11 @@ type DocsParams struct {
 	Page string `uri:"page" binding:"required"`
 }
 
+// MetaParams represents /record?did=bla end-point
+type MetaParams struct {
+	DID string `form:"did"`
+}
+
 //
 // OAuth handlers
 //
@@ -482,6 +487,48 @@ func SearchHandler(c *gin.Context) {
 
 }
 
+// SpecScansHandler provides information about spec scan records
+func SpecScansHandler(c *gin.Context) {
+	_, err := c.Cookie("user")
+	if err != nil {
+		LoginHandler(c)
+	}
+
+	var params MetaParams
+	err = c.Bind(&params)
+	if err != nil {
+		rec := services.Response("MetaData", http.StatusBadRequest, services.BindError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	did := params.DID
+	query := fmt.Sprintf("{\"did\": \"%s\"}", did)
+	rec := services.ServiceRequest{
+		Client:       "foxden",
+		ServiceQuery: services.ServiceQuery{Query: query, Idx: 0, Limit: -1},
+	}
+
+	// parse response from SpecScan service to show its records
+	data, err := json.Marshal(rec)
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.SpecScansURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		rec := services.Response("Frontend", http.StatusBadRequest, services.BindError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		rec := services.Response("Frontend", http.StatusBadRequest, services.BindError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	//         var response services.ServiceResponse
+	//         err = json.Unmarshal(data, &response)
+	c.Data(http.StatusOK, "application/json", data)
+}
+
 // MetaDataHandler provides access to GET /meta endpoint
 func MetaDataHandler(c *gin.Context) {
 	user, err := c.Cookie("user")
@@ -709,12 +756,12 @@ func ProvenanceHandler(c *gin.Context) {
 }
 
 // SpecScansHandler provides access to GET /scanspecs endpoint
-func SpecScansHandler(c *gin.Context) {
-	tmpl := server.MakeTmpl(StaticFs, "SpecScans")
-	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	content := server.TmplPage(StaticFs, "specscans.tmpl", tmpl)
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
-}
+// func SpecScansHandler(c *gin.Context) {
+//     tmpl := server.MakeTmpl(StaticFs, "SpecScans")
+//     tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+//     content := server.TmplPage(StaticFs, "specscans.tmpl", tmpl)
+//     c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+// }
 
 // NotebookHandler provides access to GET /notebook endpoint
 func NotebookHandler(c *gin.Context) {
