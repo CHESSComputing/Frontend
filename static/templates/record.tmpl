@@ -3,10 +3,10 @@
 <h3>DatasetID (DID): {{.Did}}</h3>
 Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, Sample: {{.Sample}}
 <br/>
-Date: {{.TimeStamp}}
 {{if .GlobusLink}}
-, <a href="{{.GlobusLink}}">Globus link</a>
+<a href="{{.GlobusLink}}">Globus link</a>,
 {{end}}
+Date: {{.TimeStamp}}
 
 <div class="grid">
     <div class="column column-1">

@@ -91,9 +91,8 @@ func records2html(user string, records []map[string]any) string {
 		} else {
 			tmpl["TimeStamp"] = "Not Available"
 		}
-		gurl := recValue(rec, "globus_link")
-		if gurl != "" {
-			tmpl["GlobusLink"] = gurl
+		if val, ok := rec["globus_link"]; ok {
+			tmpl["GlobusLink"] = fmt.Sprintf("%v", val)
 		}
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
