@@ -502,10 +502,10 @@ func SpecScansHandler(c *gin.Context) {
 		return
 	}
 	did := params.DID
-	query := fmt.Sprintf("{\"did\": \"%s\"}", did)
+	//     query := fmt.Sprintf("{\"did\": \"%s\"}", did)
 	rec := services.ServiceRequest{
 		Client:       "foxden",
-		ServiceQuery: services.ServiceQuery{Query: query, Idx: 0, Limit: -1},
+		ServiceQuery: services.ServiceQuery{Query: did, Idx: 0, Limit: -1},
 	}
 
 	// parse response from SpecScan service to show its records
