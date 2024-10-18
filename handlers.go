@@ -492,6 +492,7 @@ func SpecScansHandler(c *gin.Context) {
 	_, err := c.Cookie("user")
 	if err != nil {
 		LoginHandler(c)
+		return
 	}
 
 	var params MetaParams
