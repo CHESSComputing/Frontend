@@ -3,11 +3,11 @@
 <h3>DatasetID (DID): {{.Did}}</h3>
 Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, Sample: {{.Sample}}
 <br/>
+{{if .SpecScanLink}}
+<a href="{{.SpecScanLink}}">SpecScan record(s)</a>,
+{{end}}
 {{if .GlobusLink}}
 <a href="{{.GlobusLink}}">Globus link</a>,
-{{end}}
-{{if .SpecScanLink}}
-<a href="{{.SpecScanLink}}">SpecScan record</a>,
 {{end}}
 Date: {{.TimeStamp}}
 
