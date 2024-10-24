@@ -4,8 +4,6 @@
      FOXDEN: datasets
 </div>
 
-<br/>
-<h1>CHESS datasets</h1>
 <table id="jsonTable" class="display">
     <thead>
             <tr>
@@ -32,7 +30,7 @@
                                             '<td>' + item.beamline + '</td>' +
                                             '<td>' + item.btr + '</td>' +
                                             '<td>' + item.cycle + '</td>' +
-                                            '<td>' + item.sample + '</td>' +
+                                            '<td>' + item.sample_name + '</td>' +
                                      '</tr>';
                 });
                 document.querySelector('#jsonTable tbody').innerHTML = tableBody;
