@@ -827,6 +827,68 @@ func DataHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// DatasetsHandler provides access to GET /datasets endpoint
+func DatasetsHandler(c *gin.Context) {
+	var records []map[string]any
+	user, err := c.Cookie("user")
+	log.Println("DatasetsHandler", user, err, c.Request.Method)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	// obtain valid token
+	_httpReadRequest.GetToken()
+
+	// prepare our query
+	idx := 0
+	limit := -1
+	query := "{}"
+	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
+	}
+	// based on user query process request from all FOXDEN services
+	data, err := json.Marshal(rec)
+	if err != nil {
+		log.Println("ERROR: marshall error", err)
+		c.JSON(http.StatusBadRequest, records)
+		return
+	}
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		log.Println("ERROR: HTTP POST error", err)
+		c.JSON(http.StatusBadRequest, records)
+		return
+	}
+	// parse data records from meta-data service
+	var response services.ServiceResponse
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("ERROR: IO error", err)
+		c.JSON(http.StatusBadRequest, records)
+		return
+	}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		log.Println("ERROR: unmarshall error", err)
+		c.JSON(http.StatusBadRequest, records)
+		return
+	}
+	records = response.Results.Records
+	c.JSON(http.StatusOK, records)
+
+}
+
+// DatasetsTableHandler provides access to GET /dstable endpoint
+func DatasetsTableHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "CHESS datasets")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "dstable.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
 // POST handlers
 
 // UploadJsonHandler handles upload of JSON record

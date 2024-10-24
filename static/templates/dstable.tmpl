@@ -1,0 +1,43 @@
+<section>
+  <article id="article">
+<div class="center huge">
+     FOXDEN: datasets
+</div>
+
+<br/>
+<h1>CHESS datasets</h1>
+<table id="jsonTable" class="display">
+    <thead>
+            <tr>
+                <th>Beamline</th>
+                <th>BTR</th>
+                <th>Cycle</th>
+                <th>Sample</th>
+            </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+  </article>
+</section>
+
+<script>
+        // Fetch JSON data from the server and render it into the table
+        fetch('/datasets')
+        .then(response => response.json())
+        .then(data => {
+                let tableBody = '';
+                data.forEach(item => {
+                        tableBody += '<tr>' +
+                                            '<td>' + item.beamline + '</td>' +
+                                            '<td>' + item.btr + '</td>' +
+                                            '<td>' + item.cycle + '</td>' +
+                                            '<td>' + item.sample + '</td>' +
+                                     '</tr>';
+                });
+                document.querySelector('#jsonTable tbody').innerHTML = tableBody;
+                // Initialize DataTables to make the table sortable
+                $('#jsonTable').DataTable();
+        })
+        .catch(error => console.error('Error fetching JSON:', error));
+</script>
