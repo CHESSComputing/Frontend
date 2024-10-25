@@ -216,7 +216,14 @@ func ServicesHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Home")
 	tmpl["MapClass"] = "hide"
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	content := server.TmplPage(StaticFs, "services.tmpl", tmpl)
+	//     content := server.TmplPage(StaticFs, "services.tmpl", tmpl)
+
+	// default page will be /dstable
+	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
+	tmpl["Columns"] = columns
+	tmpl["DisplayNames"] = columnNames(columns)
+	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
+
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
