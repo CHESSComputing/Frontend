@@ -65,7 +65,17 @@
         });
         document.querySelector('#jsonTable tbody').innerHTML = tableBody;
         // Initialize DataTables to make the table sortable
-        $('#jsonTable').DataTable();
+        $('#jsonTable').DataTable({
+                language: {
+                    search: "Filter:",  // Customize the search label
+                    searchPlaceholder: "Type to filter...", // Optional: Customize the placeholder text
+                    infoEmpty: "No entries available",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    emptyTable: "No data available in table",
+                    loadingRecords: "Loading...",
+                    processing: "Processing..."
+                }
+            });
     })
     .catch(error => console.error('Error fetching JSON:', error));
 </script>
