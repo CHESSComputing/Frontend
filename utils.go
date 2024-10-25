@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 
 	authz "github.com/CHESSComputing/golib/authz"
 	srvConfig "github.com/CHESSComputing/golib/config"
@@ -44,4 +45,18 @@ func getData(api, did string) ([]map[string]any, error) {
 	}
 	err = json.Unmarshal(data, &records)
 	return records, err
+}
+
+// columnNames converts JSON attributes to column names
+func columnNames(attrs []string) []string {
+	var out []string
+	for _, attr := range attrs {
+		var camel string
+		words := strings.Split(attr, "_")
+		for _, word := range words {
+			camel += strings.Title(word)
+		}
+		out = append(out, camel)
+	}
+	return out
 }

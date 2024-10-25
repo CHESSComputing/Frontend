@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -885,7 +884,10 @@ func DatasetsHandler(c *gin.Context) {
 func DatasetsTableHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "CHESS datasets")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	content := server.TmplPage(StaticFs, "dstable.tmpl", tmpl)
+	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
+	tmpl["Columns"] = columns
+	tmpl["DisplayNames"] = columnNames(columns)
+	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
@@ -914,7 +916,7 @@ func UploadJsonHandler(c *gin.Context) {
 	defer file.Close()
 
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(file)
+	body, err := io.ReadAll(file)
 	var rec map[string]any
 	if err == nil {
 		err = json.Unmarshal(body, &rec)
