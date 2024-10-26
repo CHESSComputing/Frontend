@@ -1,81 +1,93 @@
 <section>
   <article id="article">
 <div class="center huge">
-     FOXDEN: datasets
+    FOXDEN: datasets
 </div>
-    <table id="jsonTable" class="display">
+<div>
+    User {{.User}}{{if .Btrs}}, BTRs: {{.Btrs}}{{end}}
+</div>
+<hr/>
+
+
+<div>
+    <table id="dataTable" class="display" style="width:100%">
         <thead>
-            <tr>
-                {{range $index, $displayName := .DisplayNames}}
-                    <th>{{$displayName}}</th>
-                {{end}}
-                <th>Record</th> <!-- New column for actions -->
+            <tr id="tableHeader">
+                <!-- Headers will be populated dynamically -->
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+        </tbody>
     </table>
+</div>
+
   </article>
 </section>
 
 <script>
-    // Helper function to POST JSON data
-    function postData(url = '', data = {}) {
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => console.log('Success:', data))
-        .catch((error) => console.error('Error:', error));
+$(document).ready(function() {
+    let totalRecords = 0;
+    let pageSize = 10;
+    let columns = [];
+
+    // Fetch initial data to determine columns and populate the first page
+    fetchData(0, pageSize).then(response => {
+        columns = response.columns;
+
+        // Create table headers dynamically
+        columns.forEach(function(col) {
+            $("#tableHeader").append(`<th>${toCamelCase(col)}</th>`);
+        });
+
+        totalRecords = response.total;
+        initializeDataTable(response.records);
+    });
+
+    // Convert underscore notation to CamelCase
+    function toCamelCase(str) {
+        return str.replace(/_./g, match => match.charAt(1).toUpperCase()).replace(/^./, match => match.toUpperCase());
     }
 
-    // Fetch JSON data from the server and dynamically build the table
-    fetch('/datasets')
-    .then(response => response.json())
-    .then(data => {
-        let tableBody = '';
-        data.forEach(item => {
-            tableBody += '<tr>';
-            {{- range $index, $column := .Columns }}
-                tableBody += '<td>' + item["{{$column}}"] + '</td>';
-            {{- end }}
-
-            // Construct a form for each row to POST selected columns (e.g., sample_name and age) to /search
-            const payload = {
-                {{- range $index, $column := .Columns }}
-                    "{{ $column }}": item["{{$column}}"],
-                {{- end }}
-            };
-            const payloadStr = JSON.stringify(payload);
-
-            tableBody += `
-                    <td>
-                        <form action="/search" method="POST" style="display:inline;">
-                            <input type="hidden" name="query" value='${payloadStr}'>
-                            <button type="submit">Record</button>
-                        </form>
-                    </td>`;
-
-            // Add a link that sends a POST request to /search with the row's JSON data
-            // tableBody += `<td><a href="#" onclick='postData("/search", ${JSON.stringify(item)}); return false;'>Record</a></td>`;
-            tableBody += '</tr>';
+    // Function to fetch data from the server
+    function fetchData(startIndex, limit) {
+        return $.ajax({
+            url: "/datasets",
+            type: "GET",
+            data: {
+                idx: startIndex,
+                limit: limit
+            },
+            dataType: "json"
         });
-        document.querySelector('#jsonTable tbody').innerHTML = tableBody;
-        // Initialize DataTables to make the table sortable
-        $('#jsonTable').DataTable({
-                language: {
-                    search: "Filter:",  // Customize the search label
-                    searchPlaceholder: "Type to filter...", // Optional: Customize the placeholder text
-                    infoEmpty: "No entries available",
-                    infoFiltered: "(filtered from _MAX_ total entries)",
-                    emptyTable: "No data available in table",
-                    loadingRecords: "Loading...",
-                    processing: "Processing..."
+    }
+
+    // Initialize DataTable with server-side pagination
+    function initializeDataTable(initialData) {
+        $('#dataTable').DataTable({
+            data: initialData,
+            columns: columns.map(col => ({ data: col, title: toCamelCase(col) })),
+            pageLength: pageSize,
+            serverSide: true,
+            processing: true,
+            ajax: function(data, callback, settings) {
+                let pageIndex = Math.floor(data.start / pageSize);
+                fetchData(pageIndex * pageSize, pageSize).then(response => {
+                    callback({
+                        recordsTotal: totalRecords,
+                        recordsFiltered: totalRecords,
+                        data: response.records
+                    });
+                });
+            },
+            language: {
+                paginate: {
+                    first: 'First',
+                    last: 'Last',
+                    next: 'Next',
+                    previous: 'Prev'
                 }
-            });
-    })
-    .catch(error => console.error('Error fetching JSON:', error));
+            }
+        });
+    }
+});
 </script>
