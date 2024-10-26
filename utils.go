@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"strings"
 
 	authz "github.com/CHESSComputing/golib/authz"
@@ -100,7 +101,7 @@ func numberOfRecords(rec services.ServiceRequest) (int, error) {
 		log.Println("ERROR: marshall error", err)
 		return total, err
 	}
-	rurl := fmt.Sprintf("%s/total", srvConfig.Config.Services.DiscoveryURL)
+	rurl := fmt.Sprintf("%s/nrecords", srvConfig.Config.Services.DiscoveryURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		log.Println("ERROR: HTTP POST error", err)
@@ -113,8 +114,17 @@ func numberOfRecords(rec services.ServiceRequest) (int, error) {
 		log.Println("ERROR: IO error", err)
 		return total, err
 	}
-	err = json.Unmarshal(data, &total)
-	return total, err
+	var response services.ServiceResponse
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		log.Println("ERROR: unable to unmarshal response", err)
+		return total, err
+	}
+	if response.HttpCode != http.StatusOK {
+		log.Println("ERROR", response.Error)
+		return 0, err
+	}
+	return response.Results.NRecords, nil
 }
 
 // helper function to obtain chunk of records for given service request
