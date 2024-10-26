@@ -222,6 +222,10 @@ func ServicesHandler(c *gin.Context) {
 	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
 	tmpl["Columns"] = columns
 	tmpl["DisplayNames"] = columnNames(columns)
+	tmpl["User"] = user
+	if attrs, err := chessAttributes(user); err == nil {
+		tmpl["Btrs"] = attrs.Btrs
+	}
 	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
 
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
@@ -835,55 +839,107 @@ func DataHandler(c *gin.Context) {
 
 // DatasetsHandler provides access to GET /datasets endpoint
 func DatasetsHandler(c *gin.Context) {
-	var records []map[string]any
 	user, err := c.Cookie("user")
 	log.Println("DatasetsHandler", user, err, c.Request.Method)
 	if err != nil {
 		LoginHandler(c)
 		return
 	}
-	// obtain valid token
-	_httpReadRequest.GetToken()
+	// Parse query parameters
+	idx, _ := strconv.Atoi(c.DefaultQuery("idx", "0"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	// TODO: we should pass it to here via GET HTTP request
+	inputAttributes := c.DefaultQuery("attrs", "")
+	var attrs []string
+	if len(inputAttributes) != 0 {
+		for _, a := range strings.Split(inputAttributes, ",") {
+			attrs = append(attrs, a)
+		}
+	} else {
+		attrs = []string{"beamline", "btr", "cycle", "sample_name", "user"}
+	}
+	query := c.DefaultQuery("query", "{}")
 
-	// prepare our query
-	idx := 0
-	limit := -1
-	query := "{}"
+	// obtain total number of records from BE DB for our request
 	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{Query: query},
+	}
+	total, err := numberOfRecords(rec)
+	if err != nil {
+		log.Println("ERROR: unable to get total number of records for %s, error %v", query, err)
+		c.JSON(http.StatusBadRequest, gin.H{})
+	}
+
+	// Determine the slice based on idx and limit
+	start := idx
+	end := idx + limit
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+
+	rec = services.ServiceRequest{
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
-	// based on user query process request from all FOXDEN services
-	data, err := json.Marshal(rec)
-	if err != nil {
-		log.Println("ERROR: marshall error", err)
-		c.JSON(http.StatusBadRequest, records)
-		return
+	if attrs, err := chessAttributes(user); err == nil {
+		log.Printf("### user attributes %+v", attrs)
+		spec := make(map[string]any)
+		if len(attrs.Foxdens) == 0 {
+			if len(attrs.Btrs) == 1 {
+				spec = map[string]any{
+					"btr": map[string]any{"$in": attrs.Btrs},
+				}
+			} else if len(attrs.Btrs) > 1 {
+				var filters []map[string]any
+				for _, btr := range attrs.Btrs {
+					filters = append(filters, map[string]any{
+						"key": map[string]any{"$regex": btr},
+					})
+				}
+				spec = map[string]any{
+					"$or": filters,
+				}
+			}
+			if data, err := json.Marshal(spec); err == nil {
+				query = string(data)
+			}
+			rec = services.ServiceRequest{
+				Client:       "frontend",
+				ServiceQuery: services.ServiceQuery{Query: query, Spec: spec, Idx: idx, Limit: limit},
+			}
+		}
 	}
-	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
-	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		log.Println("ERROR: HTTP POST error", err)
-		c.JSON(http.StatusBadRequest, records)
-		return
+	resp, err := chunkOfRecords(rec)
+	if resp.HttpCode != http.StatusOK {
+		log.Printf("ERROR: failed request to discovery service, query %+v, response %+v", rec, resp)
+		c.JSON(http.StatusBadRequest, gin.H{})
 	}
-	// parse data records from meta-data service
-	var response services.ServiceResponse
-	defer resp.Body.Close()
-	data, err = io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("ERROR: IO error", err)
-		c.JSON(http.StatusBadRequest, records)
-		return
+		log.Println("ERROR: failed to get chunk of data, query %+v, error %v", rec, err)
+		c.JSON(http.StatusBadRequest, gin.H{})
 	}
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		log.Println("ERROR: unmarshall error", err)
-		c.JSON(http.StatusBadRequest, records)
-		return
+
+	// filter outgoing records based on our attributes
+	var records []map[string]any
+	for _, rec := range resp.Results.Records {
+		frec := make(map[string]any)
+		for _, attr := range attrs {
+			frec[attr] = rec[attr]
+		}
+		records = append(records, frec)
 	}
-	records = response.Results.Records
-	c.JSON(http.StatusOK, records)
+
+	// Send JSON response
+	c.JSON(http.StatusOK, gin.H{
+		"total":    total,
+		"records":  records,
+		"columns":  attrs,
+		"pageSize": limit,
+	})
 
 }
 
