@@ -867,7 +867,7 @@ func DatasetsHandler(c *gin.Context) {
 	}
 	total, err := numberOfRecords(rec)
 	if err != nil {
-		log.Println("ERROR: unable to get total number of records for %s, error %v", query, err)
+		log.Printf("ERROR: unable to get total number of records for %s, error %v", query, err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	}
 
@@ -919,7 +919,7 @@ func DatasetsHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{})
 	}
 	if err != nil {
-		log.Println("ERROR: failed to get chunk of data, query %+v, error %v", rec, err)
+		log.Printf("ERROR: failed to get chunk of data, query %+v, error %v", rec, err)
 		c.JSON(http.StatusBadRequest, gin.H{})
 	}
 
