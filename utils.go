@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 
 	authz "github.com/CHESSComputing/golib/authz"
@@ -155,4 +156,24 @@ func chunkOfRecords(rec services.ServiceRequest) (services.ServiceResponse, erro
 	}
 	err = json.Unmarshal(data, &response)
 	return response, err
+}
+
+// helper function to make new query out of search filter and list of attributes
+func makeQuery(searchFilter string, attrs []string) string {
+	var filters []map[string]any
+	for _, attr := range attrs {
+		if pat, err := regexp.Compile(fmt.Sprintf(".*%s.*", searchFilter)); err == nil {
+			filters = append(filters, map[string]any{
+				attr: map[string]any{"$regex": pat},
+			})
+		}
+	}
+	spec := map[string]any{
+		"$or": filters,
+	}
+	query := "{}"
+	if data, err := json.Marshal(spec); err == nil {
+		query = string(data)
+	}
+	return query
 }
