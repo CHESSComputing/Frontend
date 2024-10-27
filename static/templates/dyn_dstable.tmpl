@@ -31,13 +31,14 @@ $(document).ready(function() {
     let columns = [];
 
     // Fetch initial data to determine columns and populate the first page
-    fetchData(0, pageSize).then(response => {
+    fetchData(0, pageSize, "").then(response => {
         columns = response.columns;
 
         // Create table headers dynamically
         columns.forEach(function(col) {
             $("#tableHeader").append(`<th>${toCamelCase(col)}</th>`);
         });
+        $("#tableHeader").append(`<th>Record</th>`); // Extra column for the record button
 
         totalRecords = response.total;
         initializeDataTable(response.records);
@@ -48,38 +49,64 @@ $(document).ready(function() {
         return str.replace(/_./g, match => match.charAt(1).toUpperCase()).replace(/^./, match => match.toUpperCase());
     }
 
-    // Function to fetch data from the server
-    function fetchData(startIndex, limit) {
+    // Function to fetch data from the server with optional search parameter
+    function fetchData(startIndex, limit, searchTerm) {
         return $.ajax({
             url: "/datasets",
             type: "GET",
             data: {
                 idx: startIndex,
-                limit: limit
+                limit: limit,
+                search: searchTerm
             },
             dataType: "json"
         });
     }
 
-    // Initialize DataTable with server-side pagination
+    // Initialize DataTable with server-side pagination and search
     function initializeDataTable(initialData) {
         $('#dataTable').DataTable({
             data: initialData,
-            columns: columns.map(col => ({ data: col, title: toCamelCase(col) })),
+            columns: columns.map(col => ({ data: col, title: toCamelCase(col) }))
+                .concat([{ data: null, title: "Action", orderable: false, render: function(data, type, row) {
+                    const payload = {
+                        {{- range $index, $column := .Columns }}
+                            "{{ $column }}": row["{{$column}}"],
+                        {{- end }}
+                    };
+                    const payloadStr = JSON.stringify(payload);
+                    return `
+                        <form action="/search" method="POST" style="display:inline;">
+                            <input type="hidden" name="query" value='${payloadStr}'>
+                            <button type="submit">Record</button>
+                        </form>
+                    `;
+                }}]),
             pageLength: pageSize,
             serverSide: true,
             processing: true,
+            searchDelay: 500, // make delay 
             ajax: function(data, callback, settings) {
                 let pageIndex = Math.floor(data.start / pageSize);
-                fetchData(pageIndex * pageSize, pageSize).then(response => {
+                let searchTerm = data.search.value || "";  // Retrieve search term from DataTables
+
+                // Fetch data with current pagination and search term
+                fetchData(pageIndex * pageSize, pageSize, searchTerm).then(response => {
                     callback({
                         recordsTotal: totalRecords,
-                        recordsFiltered: totalRecords,
+                        recordsFiltered: response.total,
                         data: response.records
                     });
                 });
             },
             language: {
+                search: "Filter:",  // Customize the search label
+                searchPlaceholder: "Type to filter...", // Optional: Customize the placeholder text
+                infoEmpty: "No entries available",
+                infoFiltered: "(filtered from _MAX_ total entries)",
+                emptyTable: "No data available in table",
+                loadingRecords: "Loading...",
+                processing: "Processing...",
                 paginate: {
                     first: 'First',
                     last: 'Last',

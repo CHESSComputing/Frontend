@@ -858,7 +858,11 @@ func DatasetsHandler(c *gin.Context) {
 	} else {
 		attrs = []string{"beamline", "btr", "cycle", "sample_name", "user"}
 	}
-	query := c.DefaultQuery("query", "{}")
+	searchFilter := c.Query("search")
+	query := "{}"
+	//     log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d", user, query, searchFilter, attrs, idx, limit)
+
+	query = makeQuery(searchFilter, attrs)
 
 	// obtain total number of records from BE DB for our request
 	rec := services.ServiceRequest{
@@ -885,34 +889,36 @@ func DatasetsHandler(c *gin.Context) {
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
-	if attrs, err := chessAttributes(user); err == nil {
-		log.Printf("### user attributes %+v", attrs)
-		spec := make(map[string]any)
-		if len(attrs.Foxdens) == 0 {
-			if len(attrs.Btrs) == 1 {
-				spec = map[string]any{
-					"btr": map[string]any{"$in": attrs.Btrs},
+	/*
+		if attrs, err := chessAttributes(user); err == nil {
+			log.Printf("### user attributes %+v", attrs)
+			spec := make(map[string]any)
+			if len(attrs.Foxdens) == 0 {
+				if len(attrs.Btrs) == 1 {
+					spec = map[string]any{
+						"btr": map[string]any{"$in": attrs.Btrs},
+					}
+				} else if len(attrs.Btrs) > 1 {
+					var filters []map[string]any
+					for _, btr := range attrs.Btrs {
+						filters = append(filters, map[string]any{
+							"key": map[string]any{"$regex": btr},
+						})
+					}
+					spec = map[string]any{
+						"$or": filters,
+					}
 				}
-			} else if len(attrs.Btrs) > 1 {
-				var filters []map[string]any
-				for _, btr := range attrs.Btrs {
-					filters = append(filters, map[string]any{
-						"key": map[string]any{"$regex": btr},
-					})
+				if data, err := json.Marshal(spec); err == nil {
+					query = string(data)
 				}
-				spec = map[string]any{
-					"$or": filters,
+				rec = services.ServiceRequest{
+					Client:       "frontend",
+					ServiceQuery: services.ServiceQuery{Query: query, Spec: spec, Idx: idx, Limit: limit},
 				}
-			}
-			if data, err := json.Marshal(spec); err == nil {
-				query = string(data)
-			}
-			rec = services.ServiceRequest{
-				Client:       "frontend",
-				ServiceQuery: services.ServiceQuery{Query: query, Spec: spec, Idx: idx, Limit: limit},
 			}
 		}
-	}
+	*/
 	resp, err := chunkOfRecords(rec)
 	if resp.HttpCode != http.StatusOK {
 		log.Printf("ERROR: failed request to discovery service, query %+v, response %+v", rec, resp)
