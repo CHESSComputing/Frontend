@@ -31,6 +31,8 @@ import (
 // Documentation about gib handlers can be found over here:
 // https://go.dev/doc/tutorial/web-service-gin
 
+var DEFAULT_END_POINT string
+
 //
 // Data structure we use through the code
 //
@@ -56,7 +58,7 @@ func GithubOauthLoginHandler(c *gin.Context) {
 
 // GithubCallBackHandler provides kerberos authentication handler
 func GithubCallBackHandler(c *gin.Context) {
-	authz.GithubCallBack(c, "/services", Verbose)
+	authz.GithubCallBack(c, DEFAULT_END_POINT, Verbose)
 }
 
 // GoogleOauthLoginHandler provides kerberos authentication handler
@@ -66,7 +68,7 @@ func GoogleOauthLoginHandler(c *gin.Context) {
 
 // GoogleCallBackHandler provides kerberos authentication handler
 func GoogleCallBackHandler(c *gin.Context) {
-	authz.GoogleCallBack(c, "/services", Verbose)
+	authz.GoogleCallBack(c, DEFAULT_END_POINT, Verbose)
 }
 
 // FacebookOauthLoginHandler provides kerberos authentication handler
@@ -76,7 +78,19 @@ func FacebookOauthLoginHandler(c *gin.Context) {
 
 // FacebookCallBackHandler provides kerberos authentication handler
 func FacebookCallBackHandler(c *gin.Context) {
-	authz.FacebookCallBack(c, "/services", Verbose)
+	authz.FacebookCallBack(c, DEFAULT_END_POINT, Verbose)
+}
+
+// helper function to get user from gin context
+func getUser(c *gin.Context) (string, error) {
+	var user string
+	var err error
+	if srvConfig.Config.Frontend.TestMode {
+		user = "test"
+	} else {
+		user, err = c.Cookie("user")
+	}
+	return user, err
 }
 
 //
@@ -89,10 +103,11 @@ func KAuthHandler(c *gin.Context) {
 	w := c.Writer
 	r := c.Request
 
-	user, err := c.Cookie("user")
+	//     user, err := c.Cookie("user")
+	user, err := getUser(c)
 	if err == nil && user != "" {
 		log.Println("found user cookie", user)
-		c.Redirect(http.StatusFound, "/services")
+		c.Redirect(http.StatusFound, "/dstable")
 		return
 	}
 
@@ -103,7 +118,7 @@ func KAuthHandler(c *gin.Context) {
 		c.Set("user", "TestUser")
 		cookie := http.Cookie{Name: "user", Value: "TestUser", Expires: expiration}
 		http.SetCookie(w, &cookie)
-		c.Redirect(http.StatusFound, "/services")
+		c.Redirect(http.StatusFound, DEFAULT_END_POINT)
 		return
 	}
 
@@ -140,17 +155,19 @@ func KAuthHandler(c *gin.Context) {
 	cookie := http.Cookie{Name: "user", Value: name, Expires: expiration}
 	http.SetCookie(w, &cookie)
 	log.Println("KAuthHandler set cookie user", name)
-	c.Redirect(http.StatusFound, "/services")
+	c.Redirect(http.StatusFound, DEFAULT_END_POINT)
 }
 
 // MainHandler provides access to GET / end-point
 func MainHandler(c *gin.Context) {
 	// check if user cookie is set, this is necessary as we do not
 	// use authorization handler for / end-point
-	user, err := c.Cookie("user")
+	user, err := getUser(c)
 	if err == nil {
 		c.Set("user", user)
-		ServicesHandler(c)
+		// switch to default handler
+		DatasetsTableHandler(c)
+		//         ServicesHandler(c)
 	} else {
 		LoginHandler(c)
 	}
@@ -204,9 +221,10 @@ func LogoutHandler(c *gin.Context) {
 
 // ServicesHandler provides access to GET / end-point
 func ServicesHandler(c *gin.Context) {
-	user, err := c.Cookie("user")
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
+		return
 	}
 	if Verbose > 0 {
 		log.Printf("user from c.Cookie: '%s'", user)
@@ -216,18 +234,7 @@ func ServicesHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Home")
 	tmpl["MapClass"] = "hide"
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	//     content := server.TmplPage(StaticFs, "services.tmpl", tmpl)
-
-	// default page will be /dstable
-	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
-	tmpl["Columns"] = columns
-	tmpl["DisplayNames"] = columnNames(columns)
-	tmpl["User"] = user
-	if attrs, err := chessAttributes(user); err == nil {
-		tmpl["Btrs"] = attrs.Btrs
-	}
-	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
-
+	content := server.TmplPage(StaticFs, "services.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
@@ -363,7 +370,7 @@ func ToolsHandler(c *gin.Context) {
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	r := c.Request
-	user, err := c.Cookie("user")
+	user, err := getUser(c)
 	log.Println("SearchHandler", user, err, c.Request.Method)
 	if err != nil {
 		LoginHandler(c)
@@ -499,7 +506,7 @@ func SearchHandler(c *gin.Context) {
 
 // SpecScansHandler provides information about spec scan records
 func SpecScansHandler(c *gin.Context) {
-	_, err := c.Cookie("user")
+	_, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -542,9 +549,10 @@ func SpecScansHandler(c *gin.Context) {
 
 // MetaDataHandler provides access to GET /meta endpoint
 func MetaDataHandler(c *gin.Context) {
-	user, err := c.Cookie("user")
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
+		return
 	}
 
 	tmpl := server.MakeTmpl(StaticFs, "Data")
@@ -576,7 +584,7 @@ func MetaDataHandler(c *gin.Context) {
 func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	r := c.Request
 	mrec := services.MetaRecord{}
-	user, _ := c.Cookie("user")
+	user, _ := getUser(c)
 
 	// read schema name from web form
 	var schema string
@@ -613,7 +621,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	r := c.Request
 	log.Printf("### parseFormUploadForm %+v", r)
 	mrec := services.MetaRecord{}
-	user, _ := c.Cookie("user")
+	user, _ := getUser(c)
 	// read schemaName from form beamlines drop-down
 	//     sname := r.FormValue("beamlines")
 	sname := r.FormValue("SchemaName")
@@ -704,9 +712,10 @@ func MetaFileUploadHandler(c *gin.Context) {
 
 // MetaUploadHandler manages upload of record to MetaData service
 func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
-	user, err := c.Cookie("user")
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
+		return
 	}
 	tmpl := server.MakeTmpl(StaticFs, "Upload")
 
@@ -839,7 +848,7 @@ func DataHandler(c *gin.Context) {
 
 // DatasetsHandler provides access to GET /datasets endpoint
 func DatasetsHandler(c *gin.Context) {
-	user, err := c.Cookie("user")
+	user, err := getUser(c)
 	log.Println("DatasetsHandler", user, err, c.Request.Method)
 	if err != nil {
 		LoginHandler(c)
@@ -862,7 +871,10 @@ func DatasetsHandler(c *gin.Context) {
 	query := "{}"
 	//     log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d", user, query, searchFilter, attrs, idx, limit)
 
-	query = makeQuery(searchFilter, attrs)
+	spec := makeSpec(searchFilter, attrs)
+	if data, err := json.Marshal(spec); err == nil {
+		query = string(data)
+	}
 
 	// obtain total number of records from BE DB for our request
 	rec := services.ServiceRequest{
@@ -889,36 +901,18 @@ func DatasetsHandler(c *gin.Context) {
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
-	/*
+	if user != "test" {
 		if attrs, err := chessAttributes(user); err == nil {
-			log.Printf("### user attributes %+v", attrs)
-			spec := make(map[string]any)
-			if len(attrs.Foxdens) == 0 {
-				if len(attrs.Btrs) == 1 {
-					spec = map[string]any{
-						"btr": map[string]any{"$in": attrs.Btrs},
-					}
-				} else if len(attrs.Btrs) > 1 {
-					var filters []map[string]any
-					for _, btr := range attrs.Btrs {
-						filters = append(filters, map[string]any{
-							"key": map[string]any{"$regex": btr},
-						})
-					}
-					spec = map[string]any{
-						"$or": filters,
-					}
-				}
-				if data, err := json.Marshal(spec); err == nil {
-					query = string(data)
-				}
-				rec = services.ServiceRequest{
-					Client:       "frontend",
-					ServiceQuery: services.ServiceQuery{Query: query, Spec: spec, Idx: idx, Limit: limit},
-				}
+			spec = updateSpec(spec, attrs)
+			if data, err := json.Marshal(spec); err == nil {
+				query = string(data)
+			}
+			rec = services.ServiceRequest{
+				Client:       "frontend",
+				ServiceQuery: services.ServiceQuery{Query: query, Spec: spec, Idx: idx, Limit: limit},
 			}
 		}
-	*/
+	}
 	resp, err := chunkOfRecords(rec)
 	if resp.HttpCode != http.StatusOK {
 		log.Printf("ERROR: failed request to discovery service, query %+v, response %+v", rec, resp)
@@ -951,11 +945,23 @@ func DatasetsHandler(c *gin.Context) {
 
 // DatasetsTableHandler provides access to GET /dstable endpoint
 func DatasetsTableHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
 	tmpl := server.MakeTmpl(StaticFs, "CHESS datasets")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
 	tmpl["Columns"] = columns
+	tmpl["User"] = user
 	tmpl["DisplayNames"] = columnNames(columns)
+	tmpl["DisplayNames"] = columnNames(columns)
+	if user != "test" {
+		if attrs, err := chessAttributes(user); err == nil {
+			tmpl["Btrs"] = attrs.Btrs
+		}
+	}
 	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
@@ -965,9 +971,10 @@ func DatasetsTableHandler(c *gin.Context) {
 // UploadJsonHandler handles upload of JSON record
 func UploadJsonHandler(c *gin.Context) {
 
-	user, err := c.Cookie("user")
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
+		return
 	}
 
 	r := c.Request
