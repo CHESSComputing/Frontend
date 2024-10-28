@@ -159,7 +159,7 @@ func chunkOfRecords(rec services.ServiceRequest) (services.ServiceResponse, erro
 }
 
 // helper function to make new query out of search filter and list of attributes
-func makeQuery(searchFilter string, attrs []string) string {
+func makeSpec(searchFilter string, attrs []string) map[string]any {
 	var filters []map[string]any
 	for _, attr := range attrs {
 		if pat, err := regexp.Compile(fmt.Sprintf(".*%s.*", searchFilter)); err == nil {
@@ -171,9 +171,33 @@ func makeQuery(searchFilter string, attrs []string) string {
 	spec := map[string]any{
 		"$or": filters,
 	}
-	query := "{}"
-	if data, err := json.Marshal(spec); err == nil {
-		query = string(data)
+	return spec
+}
+
+// helper function to update spec with ldap attributes
+func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
+	spec := make(map[string]any)
+	if len(attrs.Foxdens) == 0 {
+		if len(attrs.Btrs) == 1 {
+			spec = map[string]any{
+				"btr": map[string]any{"$in": attrs.Btrs},
+			}
+		} else if len(attrs.Btrs) > 1 {
+			var filters []map[string]any
+			for _, btr := range attrs.Btrs {
+				filters = append(filters, map[string]any{
+					"key": map[string]any{"$regex": btr},
+				})
+			}
+			spec = map[string]any{
+				"$or": filters,
+			}
+		}
 	}
-	return query
+	if len(spec) == 0 {
+		return ispec
+	}
+	return map[string]any{
+		"$and": []map[string]any{ispec, spec},
+	}
 }
