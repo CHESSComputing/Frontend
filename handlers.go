@@ -901,7 +901,7 @@ func DatasetsHandler(c *gin.Context) {
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
 	}
-	if user != "test" {
+	if user != "test" && srvConfig.Config.Frontend.CheckBtrs {
 		if attrs, err := chessAttributes(user); err == nil {
 			spec = updateSpec(spec, attrs)
 			if data, err := json.Marshal(spec); err == nil {
