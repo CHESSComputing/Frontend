@@ -124,6 +124,13 @@ func Server() {
 	// set Verbose level
 	Verbose = srvConfig.Config.Frontend.Verbose
 
+	// set default end-point
+	if srvConfig.Config.Frontend.DefaultEndPoint != "" {
+		DEFAULT_END_POINT = srvConfig.Config.Frontend.DefaultEndPoint
+	} else {
+		DEFAULT_END_POINT = "/dstable"
+	}
+
 	// initialize schema manager
 	_smgr = beamlines.SchemaManager{}
 	for _, fname := range srvConfig.Config.CHESSMetaData.SchemaFiles {
