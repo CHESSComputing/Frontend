@@ -868,7 +868,19 @@ func DatasetsHandler(c *gin.Context) {
 	}
 	searchFilter := c.Query("search")
 	query := "{}"
-	//     log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d", user, query, searchFilter, attrs, idx, limit)
+	var sortKeys []string
+	skey := c.Query("sortKey")
+	if skey != "" {
+		sortKeys = []string{skey}
+	}
+	var sortOrder int
+	sorder := c.Query("sortDirection")
+	if sorder == "asc" {
+		sortOrder = 1
+	} else if sorder == "desc" {
+		sortOrder = -1
+	}
+	log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v", user, query, searchFilter, attrs, idx, limit, skey, sorder)
 
 	spec := makeSpec(searchFilter, attrs)
 	if data, err := json.Marshal(spec); err == nil {
@@ -897,8 +909,13 @@ func DatasetsHandler(c *gin.Context) {
 	}
 
 	rec = services.ServiceRequest{
-		Client:       "frontend",
-		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit},
+		Client: "frontend",
+		ServiceQuery: services.ServiceQuery{
+			Query:     query,
+			Idx:       idx,
+			Limit:     limit,
+			SortKeys:  sortKeys,
+			SortOrder: sortOrder},
 	}
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs {
 		if attrs, err := chessAttributes(user); err == nil {
@@ -907,8 +924,14 @@ func DatasetsHandler(c *gin.Context) {
 				query = string(data)
 			}
 			rec = services.ServiceRequest{
-				Client:       "frontend",
-				ServiceQuery: services.ServiceQuery{Query: query, Spec: spec, Idx: idx, Limit: limit},
+				Client: "frontend",
+				ServiceQuery: services.ServiceQuery{
+					Query:     query,
+					Spec:      spec,
+					Idx:       idx,
+					Limit:     limit,
+					SortKeys:  sortKeys,
+					SortOrder: sortOrder},
 			}
 		}
 	}

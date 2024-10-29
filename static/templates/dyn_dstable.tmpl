@@ -49,14 +49,16 @@ $(document).ready(function() {
     }
 
     // Function to fetch data from the server with optional search parameter
-    function fetchData(startIndex, limit, searchTerm) {
+    function fetchData(startIndex, limit, searchTerm, sortKey, sortDirection) {
         return $.ajax({
             url: "/datasets",
             type: "GET",
             data: {
                 idx: startIndex,
                 limit: limit,
-                search: searchTerm
+                search: searchTerm,
+                sortKey: sortKey,
+                sortDirection: sortDirection
             },
             dataType: "json"
         });
@@ -92,8 +94,13 @@ $(document).ready(function() {
                 const pageIndex = data.start; // Start index for data
                 const searchTerm = data.search.value || "";  // Retrieve search term from DataTables
 
+                // Extract sorting information from the DataTables settings
+                const orderColumnIdx = data.order[0].column;
+                const sortKey = columns[orderColumnIdx];
+                const sortDirection = data.order[0].dir; // "asc" or "desc"
+
                 // Fetch data with current pagination and search term
-                fetchData(pageIndex, pageSize, searchTerm).then(response => {
+                fetchData(pageIndex, pageSize, searchTerm, sortKey, sortDirection).then(response => {
                     callback({
                         recordsTotal: totalRecords,
                         recordsFiltered: response.total,
