@@ -849,7 +849,6 @@ func DataHandler(c *gin.Context) {
 // DatasetsHandler provides access to GET /datasets endpoint
 func DatasetsHandler(c *gin.Context) {
 	user, err := getUser(c)
-	log.Println("DatasetsHandler", user, err, c.Request.Method)
 	if err != nil {
 		LoginHandler(c)
 		return
