@@ -177,27 +177,58 @@ func makeSpec(searchFilter string, attrs []string) map[string]any {
 // helper function to update spec with ldap attributes
 func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
 	spec := make(map[string]any)
-	if len(attrs.Foxdens) == 0 {
-		if len(attrs.Btrs) == 1 {
-			spec = map[string]any{
-				"btr": map[string]any{"$in": attrs.Btrs},
-			}
-		} else if len(attrs.Btrs) > 1 {
-			var filters []map[string]any
-			for _, btr := range attrs.Btrs {
-				filters = append(filters, map[string]any{
-					"key": map[string]any{"$regex": btr},
-				})
-			}
-			spec = map[string]any{
-				"$or": filters,
-			}
+	if (len(attrs.Foxdens) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
+		srvConfig.Config.Frontend.AllowAllRecords {
+		// foxden attributes allows to see all btrs
+		return ispec
+	}
+	var filters []map[string]any
+	if val, ok := ispec["$or"]; ok {
+		filters = val.([]map[string]any)
+	}
+	if len(attrs.Btrs) == 1 {
+		spec = map[string]any{
+			"btr": map[string]any{"$in": attrs.Btrs},
+		}
+		spec = addSpecFilters(spec, filters)
+	} else if len(attrs.Btrs) > 1 {
+		var newFilters []map[string]any
+		for _, btr := range attrs.Btrs {
+			spec = addSpecFilters(map[string]any{"btr": map[string]any{"regex": btr}}, filters)
+			newFilters = append(newFilters, spec)
+		}
+		spec = map[string]any{
+			"$or": filters,
 		}
 	}
 	if len(spec) == 0 {
 		return ispec
 	}
-	return map[string]any{
-		"$and": []map[string]any{ispec, spec},
+	return spec
+}
+
+// helper function to add spec filters to existing spec query
+func addSpecFilters(spec map[string]any, filters []map[string]any) map[string]any {
+	var newFilters []map[string]any
+	for key, cond := range spec {
+		newSpec := make(map[string]any)
+		newSpec[key] = cond
+		for _, filter := range filters {
+			for kkk, val := range filter {
+				if key == kkk {
+					// skip filter since we use spec condition
+					continue
+				}
+				newSpec[kkk] = val
+			}
+		}
+		newFilters = append(newFilters, newSpec)
 	}
+	if len(newFilters) > 0 {
+		newSpec := map[string]any{
+			"$or": newFilters,
+		}
+		return newSpec
+	}
+	return spec
 }
