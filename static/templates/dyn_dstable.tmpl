@@ -64,6 +64,8 @@ $(document).ready(function() {
     }
 
     // Initialize DataTable with server-side pagination and search
+    // https://datatables.net/manual/
+    // https://datatables.net/reference/option/language
     function initializeDataTable(initialData) {
         $('#dataTable').DataTable({
             data: initialData,
@@ -102,7 +104,7 @@ $(document).ready(function() {
             language: {
                 search: "Filter:",  // Customize the search label
                 searchPlaceholder: "Type to filter...", // Optional: Customize the placeholder text
-                info: "_START_ to _END_ of _TOTAL_ FOXDEN entries",
+                info: "Page _START_ of entries related to your BTR",
                 infoEmpty: "No entries available based on your BTR...",
                 infoFiltered: "(filtered from _MAX_ total entries)",
                 emptyTable: "No datasets avaiable based on your BTR...",
