@@ -27,11 +27,10 @@
 <script>
 $(document).ready(function() {
     let totalRecords = 0;
-    let pageSize = 10;
     let columns = [];
 
     // Fetch initial data to determine columns and populate the first page
-    fetchData(0, pageSize, "").then(response => {
+    fetchData(0, 10, "").then(response => {
         columns = response.columns;
 
         // Create table headers dynamically
@@ -84,16 +83,17 @@ $(document).ready(function() {
                         </form>
                     `;
                 }}]),
-            pageLength: pageSize,
+            pageLength: 10,
             serverSide: true,
             processing: true,
             searchDelay: 500, // make delay 
             ajax: function(data, callback, settings) {
-                let pageIndex = Math.floor(data.start / pageSize);
-                let searchTerm = data.search.value || "";  // Retrieve search term from DataTables
+                const pageSize = data.length; // Get the current page length selected in the UI
+                const pageIndex = data.start; // Start index for data
+                const searchTerm = data.search.value || "";  // Retrieve search term from DataTables
 
                 // Fetch data with current pagination and search term
-                fetchData(pageIndex * pageSize, pageSize, searchTerm).then(response => {
+                fetchData(pageIndex, pageSize, searchTerm).then(response => {
                     callback({
                         recordsTotal: totalRecords,
                         recordsFiltered: response.total,
@@ -101,6 +101,7 @@ $(document).ready(function() {
                     });
                 });
             },
+            lengthMenu: [10, 25, 50, 100], // Define selectable page length options
             language: {
                 search: "Filter:",  // Customize the search label
                 searchPlaceholder: "Type to filter...", // Optional: Customize the placeholder text
