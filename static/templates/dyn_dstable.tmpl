@@ -3,9 +3,19 @@
 <div class="center huge">
     FOXDEN: datasets
 </div>
-<div>
-    User {{.User}}{{if .Btrs}}, BTRs: {{.Btrs}}{{end}}
+<div class="grid">
+    <div class="column column-11">
+        <div>
+            User {{.User}}{{if .Btrs}}, BTRs: {{.Btrs}}{{end}}
+        </div>
+    </div>
+    <div class="column column-1">
+        <span id="gearIcon">
+            <img src="https://cdn.onlinewebfonts.com/svg/img_535570.png" alt="Services" style="width:20px;">
+        </span>
+    </div>
 </div>
+
 <hr/>
 
 
@@ -21,16 +31,51 @@
     </table>
 </div>
 
+
+<!-- Overlay and Popup Menu -->
+<div id="overlay"></div>
+<div id="popupMenu">
+    <h3>Customize Columns</h3>
+    <div id="columnCheckboxes">
+        <!-- Checkboxes will be added dynamically -->
+    </div>
+    <button onclick="applySettings()">Apply</button>
+</div>
+
   </article>
 </section>
 
 <script>
+
+function getCookie(name, defaultValue = "defaultValue") {
+    const cookieArr = document.cookie.split(";");
+
+    for (let i = 0; i < cookieArr.length; i++) {
+        const cookie = cookieArr[i].trim();
+        if (cookie.startsWith(name + "=")) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+    }
+
+    // If the cookie wasn't found, return the default value
+    return defaultValue;
+}
+
 $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
+{{if .DataAttributes}}
+    let userAttrs = getCookie("userAttrs", {{.DataAttributes}});
+{{else}}
+    let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,user");
+{{end}}
+
+    function saveSelectedColumns(columns) {
+        document.cookie = "userAttrs=" + columns + "; path=/";
+    }
 
     // Fetch initial data to determine columns and populate the first page
-    fetchData(0, 10, "").then(response => {
+    fetchData(0, 10, "", "", "", userAttrs).then(response => {
         columns = response.columns;
 
         // Create table headers dynamically
@@ -48,8 +93,43 @@ $(document).ready(function() {
         return str.replace(/_./g, match => match.charAt(1).toUpperCase()).replace(/^./, match => match.toUpperCase());
     }
 
+    function openPopup() {
+        $('#overlay').show();
+        $('#popupMenu').show();
+        $('#columnCheckboxes').html('');
+{{if .DataAttributes}}
+        cols = {{.DataAttributes}}
+{{else}}
+        cols = "beamline,btr,cycle,sample_name,user";
+{{end}}
+        userColumns = cols.split(',');
+        userColumns.sort();
+        userColumns.forEach(col => {
+            $('#columnCheckboxes').append(`<label><input type="checkbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label><br>`);
+        });
+    }
+
+    function closePopup() {
+        $('#overlay').hide();
+        $('#popupMenu').hide();
+    }
+
+    $('#gearIcon').click(openPopup);
+    $('#overlay').click(closePopup);
+
+    window.applySettings = function() {
+        selectedColumns = [];
+        $('#columnCheckboxes input:checked').each(function() {
+            selectedColumns.push($(this).val());
+        });
+        saveSelectedColumns(selectedColumns.join(","));
+        closePopup();
+        // reload page with new data
+        window.location.reload();
+    }
+
     // Function to fetch data from the server with optional search parameter
-    function fetchData(startIndex, limit, searchTerm, sortKey, sortDirection) {
+    function fetchData(startIndex, limit, searchTerm, sortKey, sortDirection, attrs) {
         return $.ajax({
             url: "/datasets",
             type: "GET",
@@ -57,6 +137,7 @@ $(document).ready(function() {
                 idx: startIndex,
                 limit: limit,
                 search: searchTerm,
+                attrs: attrs,
                 sortKey: sortKey,
                 sortDirection: sortDirection
             },
@@ -98,9 +179,10 @@ $(document).ready(function() {
                 const orderColumnIdx = data.order[0].column;
                 const sortKey = columns[orderColumnIdx];
                 const sortDirection = data.order[0].dir; // "asc" or "desc"
+                const attrs = "beamline,btr,cycle,sample_name,user";
 
                 // Fetch data with current pagination and search term
-                fetchData(pageIndex, pageSize, searchTerm, sortKey, sortDirection).then(response => {
+                fetchData(pageIndex, pageSize, searchTerm, sortKey, sortDirection, attrs).then(response => {
                     callback({
                         recordsTotal: totalRecords,
                         recordsFiltered: response.total,

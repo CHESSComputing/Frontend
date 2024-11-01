@@ -976,6 +976,7 @@ func DatasetsTableHandler(c *gin.Context) {
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
 	tmpl["Columns"] = columns
+	tmpl["DataAttrs"] = strings.Join(columns, ",")
 	tmpl["User"] = user
 	tmpl["DisplayNames"] = columnNames(columns)
 	tmpl["DisplayNames"] = columnNames(columns)
