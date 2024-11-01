@@ -115,10 +115,6 @@ $(document).ready(function() {
             // Append the checkbox to the current row
             $('#checkboxTable tr:last').append(`<td><label><input type="checkbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label></td>`);
         });
-
-        //userColumns.forEach(col => {
-        //    $('#columnCheckboxes').append(`<label><input type="checkbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label><br>`);
-        //});
     }
 
     function closePopup() {
