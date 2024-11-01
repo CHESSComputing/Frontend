@@ -967,8 +967,15 @@ func DatasetsHandler(c *gin.Context) {
 
 // helper function to get attributes based on user's affiliation
 func userAttrs(user string) []string {
-	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
-	return columns
+	var attrs []string
+	//     attrs := []string{"beamline", "btr", "cycle", "sample_name", "user"}
+	for _, obj := range _smgr.Map {
+		for key, _ := range obj.Schema.Map {
+			attrs = append(attrs, key)
+		}
+
+	}
+	return utils.List2Set[string](attrs)
 }
 
 // DatasetsTableHandler provides access to GET /dstable endpoint

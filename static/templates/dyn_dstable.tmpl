@@ -35,11 +35,26 @@
 <!-- Overlay and Popup Menu -->
 <div id="overlay"></div>
 <div id="popupMenu">
-    <h3>Customize Columns</h3>
-    <div id="columnCheckboxes">
+    <div class="grid">
+        <div class="column column-9">
+            <b>Select attributes</b>
+        </div>
+        <div class="column column-1">
+            <button id="selectDefaultsBtn" class="button button-small button-dark">Defaults</button>
+        </div>
+        <div class="column column-1">
+            <button id="selectAllBtn" class="button button-small">Select All</button>
+        </div>
+        <div class="column column-1">
+            <button id="deselectAllBtn" class="button button-small">Deselect All</button>
+        </div>
+    </div>
+    <br/>
+    <div id="scrollableTable">
         <!-- Checkboxes will be added dynamically -->
     </div>
-    <button onclick="applySettings()">Apply</button>
+    <br/>
+    <button class="button button-small button-primary" onclick="applySettings()">Apply</button>
 </div>
 
   </article>
@@ -96,7 +111,7 @@ $(document).ready(function() {
     function openPopup() {
         $('#overlay').show();
         $('#popupMenu').show();
-        $('#columnCheckboxes').html('');
+        $('#scrollableTable').html('');
 {{if .DataAttributes}}
         cols = "{{.DataAttributes}}";
 {{else}}
@@ -105,18 +120,41 @@ $(document).ready(function() {
         userColumns = cols.split(',');
         userColumns.sort();
         // Create a table to hold the checkboxes
-        $('#columnCheckboxes').append('<table id="checkboxTable"></table>');
+        $('#scrollableTable').append('<table id="checkboxTable"></table>');
+
+        // fill out all table cells
         userColumns.forEach((col, index) => {
-            // Start a new row every 10 columns
-            if (index % 10 === 0) {
+            // Start a new row every 4 columns
+            if (index % 4 === 0) {
                 $('#checkboxTable').append('<tr></tr>');
             }
 
             // Append the checkbox to the current row
-            $('#checkboxTable tr:last').append(`<td><label><input type="checkbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label></td>`);
+            $('#checkboxTable tr:last').append(`<td><label><input type="checkbox" class="attributeCheckbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label></td>`);
         });
     }
 
+    // helper function to select all selected checkbox'es
+    $('#selectAllBtn').click(function() {
+        $('.attributeCheckbox').prop('checked', true);
+    });
+
+    // helper function to deselect all selected checkbox'es
+    $('#deselectAllBtn').click(function() {
+        $('.attributeCheckbox').prop('checked', false);
+    });
+    // helper function to select default checkbox'es attributes
+    $('#selectDefaultsBtn').click(function() {
+        // deselect all attributes
+        $('.attributeCheckbox').prop('checked', false);
+        // select our default attributes
+        $('.attributeCheckbox[value="beamline"]').prop('checked', true);
+        $('.attributeCheckbox[value="btr"]').prop('checked', true);
+        $('.attributeCheckbox[value="cycle"]').prop('checked', true);
+        $('.attributeCheckbox[value="sample_name"]').prop('checked', true);
+    });
+
+    // helper function to close popup window
     function closePopup() {
         $('#overlay').hide();
         $('#popupMenu').hide();
@@ -127,7 +165,7 @@ $(document).ready(function() {
 
     window.applySettings = function() {
         selectedColumns = [];
-        $('#columnCheckboxes input:checked').each(function() {
+        $('#scrollableTable input:checked').each(function() {
             selectedColumns.push($(this).val());
         });
         saveSelectedColumns(selectedColumns.join(","));
@@ -187,7 +225,7 @@ $(document).ready(function() {
                 const orderColumnIdx = data.order[0].column;
                 const sortKey = columns[orderColumnIdx];
                 const sortDirection = data.order[0].dir; // "asc" or "desc"
-                const attrs = "beamline,btr,cycle,sample_name,user";
+                const attrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,user");
 
                 // Fetch data with current pagination and search term
                 fetchData(pageIndex, pageSize, searchTerm, sortKey, sortDirection, attrs).then(response => {

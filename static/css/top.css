@@ -1,4 +1,4 @@
-
+attributeCheckbox
 * {
   box-sizing: border-box;
 }
@@ -242,6 +242,8 @@ footer {
     padding: 20px;
     background-color: white;
     z-index: 10;
+    width: 90%; /* Width of the pop-up window */
+    height: 80%; /* Height of the pop-up window */
 }
 #overlay {
     display: none;
@@ -258,4 +260,21 @@ footer {
     cursor: pointer;
     font-size: 20px;
     padding: 10px;
+}
+
+#scrollableTable {
+    width: 100%;
+    height: 80%;
+    overflow: auto; /* Enable scrolling if content overflows */
+}
+
+#checkboxTable {
+    width: 100%; /* Ensure the table takes up full width */
+    border-collapse: collapse;
+}
+
+#checkboxTable td {
+    padding: 5px;
+}
+.attributeCheckbox {
 }
