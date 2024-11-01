@@ -65,7 +65,7 @@ $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
 {{if .DataAttributes}}
-    let userAttrs = getCookie("userAttrs", {{.DataAttributes}});
+    let userAttrs = getCookie("userAttrs", "{{.DataAttributes}}");
 {{else}}
     let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,user");
 {{end}}
@@ -98,15 +98,27 @@ $(document).ready(function() {
         $('#popupMenu').show();
         $('#columnCheckboxes').html('');
 {{if .DataAttributes}}
-        cols = {{.DataAttributes}}
+        cols = "{{.DataAttributes}}";
 {{else}}
         cols = "beamline,btr,cycle,sample_name,user";
 {{end}}
         userColumns = cols.split(',');
         userColumns.sort();
-        userColumns.forEach(col => {
-            $('#columnCheckboxes').append(`<label><input type="checkbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label><br>`);
+        // Create a table to hold the checkboxes
+        $('#columnCheckboxes').append('<table id="checkboxTable"></table>');
+        userColumns.forEach((col, index) => {
+            // Start a new row every 10 columns
+            if (index % 10 === 0) {
+                $('#checkboxTable').append('<tr></tr>');
+            }
+
+            // Append the checkbox to the current row
+            $('#checkboxTable tr:last').append(`<td><label><input type="checkbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label></td>`);
         });
+
+        //userColumns.forEach(col => {
+        //    $('#columnCheckboxes').append(`<label><input type="checkbox" value="${col}" ${userAttrs.includes(col) ? 'checked' : ''}> ${col}</label><br>`);
+        //});
     }
 
     function closePopup() {

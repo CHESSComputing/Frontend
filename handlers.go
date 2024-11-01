@@ -965,6 +965,12 @@ func DatasetsHandler(c *gin.Context) {
 
 }
 
+// helper function to get attributes based on user's affiliation
+func userAttrs(user string) []string {
+	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
+	return columns
+}
+
 // DatasetsTableHandler provides access to GET /dstable endpoint
 func DatasetsTableHandler(c *gin.Context) {
 	user, err := getUser(c)
@@ -974,12 +980,10 @@ func DatasetsTableHandler(c *gin.Context) {
 	}
 	tmpl := server.MakeTmpl(StaticFs, "CHESS datasets")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	columns := []string{"beamline", "btr", "cycle", "sample_name", "user"}
-	tmpl["Columns"] = columns
-	tmpl["DataAttrs"] = strings.Join(columns, ",")
+	attrs := userAttrs(user)
+	tmpl["Columns"] = attrs
+	tmpl["DataAttributes"] = strings.Join(attrs, ",")
 	tmpl["User"] = user
-	tmpl["DisplayNames"] = columnNames(columns)
-	tmpl["DisplayNames"] = columnNames(columns)
 	if user != "test" {
 		if attrs, err := chessAttributes(user); err == nil {
 			tmpl["Btrs"] = attrs.Btrs
