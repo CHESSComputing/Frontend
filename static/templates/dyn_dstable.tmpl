@@ -54,7 +54,16 @@
         <!-- Checkboxes will be added dynamically -->
     </div>
     <br/>
-    <button class="button button-small button-primary" onclick="applySettings()">Apply</button>
+    <div class="grid">
+        <div class="column column-10">
+        </div>
+        <div class="column column-1">
+            <button class="button button-small" onclick="closePopup()">Cancel</button>
+        </div>
+        <div class="column column-1">
+            <button class="button button-small button-primary" onclick="applySettings()">Apply</button>
+        </div>
+    </div>
 </div>
 
   </article>
@@ -155,7 +164,7 @@ $(document).ready(function() {
     });
 
     // helper function to close popup window
-    function closePopup() {
+    window.closePopup = function() {
         $('#overlay').hide();
         $('#popupMenu').hide();
     }
