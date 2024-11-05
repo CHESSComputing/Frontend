@@ -1,0 +1,39 @@
+<section>
+  <article id="article">
+<div class="center huge">
+     FOXDEN: Publish dataset
+</div>
+
+
+<form action="{{.Base}}/publish" method="post" name="did_publish" id="did_publish" class="form">
+    <div class="form-item">
+        <label>Dataset</label>
+        <input class="input" type="text" value="{{.Did}}">
+    </div>
+    <div class="form-item">
+        <label>Publication Service</label>
+        <select class="input">
+            <option value="Zenodo">Zenodo</option>
+            <option value="MaterialCommons">Material Commons</option>
+        </select>
+    </div>
+    <div class="form-item">
+        <label class="checkbox">
+            <input class="input" type="checkbox"> Check me
+        </label>
+        <label class="radio">
+            <input class="input" type="radio"> Radio me
+        </label>
+    </div>
+    <div class="form-item">
+        <label>Dataset description</label>
+        <textarea class="input" rows="6"></textarea>
+    </div>
+    <div class="form-item">
+        <button class="button button-small button-dark">Publish</button>
+        <button class="button button-small">Cancel</button>
+    </div>
+</form>
+
+  </article>
+</section>

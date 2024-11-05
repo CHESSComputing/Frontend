@@ -806,8 +806,8 @@ func NotebookHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// PublishHandler provides access to GET /piublish endpoint
-func PublishHandler(c *gin.Context) {
+// PublishSrvHandler provides access to GET /piublish endpoint
+func PublishSrvHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Publication Service")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	content := server.TmplPage(StaticFs, "publish.tmpl", tmpl)
@@ -1001,6 +1001,55 @@ func DatasetsTableHandler(c *gin.Context) {
 }
 
 // POST handlers
+// PublishHandler handles publish request for did
+func PublishHandler(c *gin.Context) {
+	_, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+
+	var sresp services.ServiceResponse
+	// get data from publication service
+	// get DOI link
+	// update MetaData record with DOI link
+
+	//     err = json.Unmarshal(data, &sresp)
+	//     rec := services.Response("PublicationService", http.StatusOK, services.OK, nil)
+	//     c.JSON(http.StatusBadRequest, rec)
+
+	tmpl := server.MakeTmpl(StaticFs, "Login")
+	tmpl["Content"] = template.HTML(sresp.JsonString())
+	template := "success.tmpl"
+	if err != nil {
+		template = "error.tmpl"
+	}
+	page := server.TmplPage(StaticFs, template, tmpl)
+	w := c.Writer
+	w.Write([]byte(header() + page + footer()))
+}
+
+// PublishFormHandler handles publish request for did
+func PublishFormHandler(c *gin.Context) {
+
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+
+	r := c.Request
+	w := c.Writer
+	// get beamline value from the form
+	did := r.FormValue("did")
+	tmpl := server.MakeTmpl(StaticFs, "Login")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	tmpl["Did"] = did
+	tmpl["User"] = user
+	page := server.TmplPage(StaticFs, "publishform.tmpl", tmpl)
+	w.Write([]byte(header() + page + footer()))
+}
 
 // UploadJsonHandler handles upload of JSON record
 func UploadJsonHandler(c *gin.Context) {

@@ -84,7 +84,7 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/specscans", Handler: SpecScansHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/notebook", Handler: NotebookHandler, Authorized: false},
-		server.Route{Method: "GET", Path: "/publish", Handler: PublishHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/publish", Handler: PublishSrvHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/aiml", Handler: AIMLHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/analysis", Handler: AnalysisHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/visualization", Handler: VisualizationHandler, Authorized: false},
@@ -96,6 +96,8 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "POST", Path: "/prov", Handler: ProvInfoHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/meta/form/upload", Handler: MetaFormUploadHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/meta/file/upload", Handler: MetaFileUploadHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/publish", Handler: PublishHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/publishform", Handler: PublishFormHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/populateform", Handler: UploadJsonHandler, Authorized: false},
 	}
 	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)

@@ -32,7 +32,13 @@ Date: {{.TimeStamp}}
     <div class="column column-1">
         <a href="javascript:SaveRecord('json-record-{{.Id}}')" class="button button-small">Save</a>
     </div>
-    <div class="column column-7">
+    <div class="column column-1">
+        <form class="form-content" method="post" action="{{.Base}}/publishform">
+            <input type="hidden" name="did" value="{{.Did}}">
+            <button class="button button-small button-dark">Publish</button>
+        </form>
+    </div>
+    <div class="column column-6">
     </div>
 </div>
 <div id="table-record-{{.Id}}" class="hide">
