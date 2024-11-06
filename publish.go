@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	materialCommons "github.com/CHESSComputing/golib/MaterialCommons"
 )
 
+// helper function to publish did with given provider
 func publishDataset(did, provider, description string) (string, error) {
 	p := strings.ToLower(provider)
 	var err error
@@ -22,6 +25,7 @@ func publishDataset(did, provider, description string) (string, error) {
 	return doi, err
 }
 
+// helper function to publish did to Zenodo
 func publishToZenodo(did, description string) (string, error) {
 	var err error
 	var doi string
@@ -29,13 +33,13 @@ func publishToZenodo(did, description string) (string, error) {
 	return doi, err
 }
 
+// helper function to publish did into MaterialCommons
 func publishToMaterialCommons(did, description string) (string, error) {
-	var err error
-	var doi string
-	log.Println("call publishToMaterialCommons", did)
+	doi, err := materialCommons.Publish(did, description)
 	return doi, err
 }
 
+// helper function to update DOI information in FOXDEN MetaData service
 func updateMetaDataDOI(did, doi string) error {
 	var err error
 	return err
