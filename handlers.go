@@ -1009,24 +1009,43 @@ func PublishHandler(c *gin.Context) {
 		return
 	}
 
-	var sresp services.ServiceResponse
-	// get data from publication service
-	// get DOI link
-	// update MetaData record with DOI link
-
-	//     err = json.Unmarshal(data, &sresp)
-	//     rec := services.Response("PublicationService", http.StatusOK, services.OK, nil)
-	//     c.JSON(http.StatusBadRequest, rec)
-
+	// defaults
+	r := c.Request
+	w := c.Writer
 	tmpl := server.MakeTmpl(StaticFs, "Login")
-	tmpl["Content"] = template.HTML(sresp.JsonString())
 	template := "success.tmpl"
+	httpCode := http.StatusOK
+	srvCode := services.OK
+
+	// parse input form data
+	did := r.FormValue("did")
+	provider := r.FormValue("provider")
+	description := r.FormValue("description")
+
+	// publish our dataset
+	doi, err := publishDataset(did, provider, description)
+	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s", did, doi)
 	if err != nil {
 		template = "error.tmpl"
+		httpCode = http.StatusBadRequest
+		content = fmt.Sprintf("ERROR: fail to publish did=%s, error=%v", did, err)
+	} else {
+		// update metadata with DOI information
+		err = updateMetaDataDOI(did, doi)
+		if err != nil {
+			template = "error.tmpl"
+			httpCode = http.StatusBadRequest
+			content = fmt.Sprintf("ERROR: fail to publish did=%s, error=%v", did, err)
+		}
 	}
-	page := server.TmplPage(StaticFs, template, tmpl)
-	w := c.Writer
-	w.Write([]byte(header() + page + footer()))
+	rec := services.Response("PublicationService", httpCode, srvCode, err)
+	if r.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusBadRequest, rec)
+	} else {
+		tmpl["Content"] = content
+		page := server.TmplPage(StaticFs, template, tmpl)
+		w.Write([]byte(header() + page + footer()))
+	}
 }
 
 // PublishFormHandler handles publish request for did

@@ -8,13 +8,13 @@
 <form action="{{.Base}}/publish" method="post" name="did_publish" id="did_publish" class="form">
     <div class="form-item">
         <label>Dataset</label>
-        <input class="input" type="text" value="{{.Did}}">
+        <input class="input" type="text" value="{{.Did}}" id="did" name="did">
     </div>
     <div class="form-item">
         <label>Publication Service</label>
-        <select class="input">
+        <select class="input" id="provider" name="provider">
             <option value="Zenodo">Zenodo</option>
-            <option value="MaterialCommons">Material Commons</option>
+            <option value="MaterialCommons">MaterialCommons</option>
         </select>
     </div>
     <div class="form-item">
@@ -27,7 +27,7 @@
     </div>
     <div class="form-item">
         <label>Dataset description</label>
-        <textarea class="input" rows="6"></textarea>
+        <textarea class="input" rows="6" id="description" name="description"></textarea>
     </div>
     <div class="form-item">
         <button class="button button-small button-dark">Publish</button>
