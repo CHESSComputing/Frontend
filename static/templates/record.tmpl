@@ -9,6 +9,9 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
 {{if .GlobusLink}}
 <a href="{{.GlobusLink}}">Globus link</a>,
 {{end}}
+{{if and .DoiLink .Doi}}
+    DOI: <a href="{{.DoiLink}}">{{.Doi}}</a>,
+{{end}}
 Date: {{.TimeStamp}}
 
 <div class="grid">
