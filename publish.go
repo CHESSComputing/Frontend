@@ -16,7 +16,7 @@ func publishDataset(did, provider, description string) (string, error) {
 	var doi string
 	if p == "zenodo" {
 		doi, err = publishToZenodo(did, description)
-	} else if p == "materialcommonts" {
+	} else if p == "materialcommons" {
 		doi, err = publishToMaterialCommons(did, description)
 	} else {
 		msg := fmt.Sprintf("Provider '%s' is not supported", provider)
