@@ -1023,15 +1023,15 @@ func PublishHandler(c *gin.Context) {
 	description := r.FormValue("description")
 
 	// publish our dataset
-	doi, err := publishDataset(did, provider, description)
-	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s", did, doi)
+	doi, doiLink, err := publishDataset(did, provider, description)
+	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s URL=%s", did, doi, doiLink)
 	if err != nil {
 		template = "error.tmpl"
 		httpCode = http.StatusBadRequest
 		content = fmt.Sprintf("ERROR: fail to publish did=%s, error=%v", did, err)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(did, doi)
+		err = updateMetaDataDOI(did, doi, doiLink)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
