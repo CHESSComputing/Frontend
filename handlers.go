@@ -619,13 +619,11 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 // helper function to parse meta upload web form
 func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	r := c.Request
-	log.Printf("### parseFormUploadForm %+v", r)
 	mrec := services.MetaRecord{}
 	user, _ := getUser(c)
 	// read schemaName from form beamlines drop-down
 	//     sname := r.FormValue("beamlines")
 	sname := r.FormValue("SchemaName")
-	log.Println("### parseFormUploadForm", sname, user)
 	mrec.Schema = sname
 	fname := beamlines.SchemaFileName(sname)
 	schema, err := _smgr.Load(fname)
@@ -696,7 +694,6 @@ func MetaFormUploadHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
 		return
 	}
-	log.Println("### form record", rec.JsonString())
 	MetaUploadHandler(c, rec)
 }
 
@@ -880,7 +877,9 @@ func DatasetsHandler(c *gin.Context) {
 	} else if sorder == "desc" {
 		sortOrder = -1
 	}
-	log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v", user, query, searchFilter, attrs, idx, limit, skey, sorder)
+	if Verbose > 0 {
+		log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v", user, query, searchFilter, attrs, idx, limit, skey, sorder)
+	}
 
 	spec := makeSpec(searchFilter, attrs)
 	if data, err := json.Marshal(spec); err == nil {
@@ -1024,6 +1023,9 @@ func PublishHandler(c *gin.Context) {
 
 	// publish our dataset
 	doi, doiLink, err := publishDataset(did, provider, description)
+	if Verbose > 0 {
+		log.Printf("### publish dataset doi=%s doiLink=%s error=%v", doi, doiLink, err)
+	}
 	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s URL=%s", did, doi, doiLink)
 	if err != nil {
 		template = "error.tmpl"
@@ -1035,7 +1037,7 @@ func PublishHandler(c *gin.Context) {
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
-			content = fmt.Sprintf("ERROR: fail to publish did=%s, error=%v", did, err)
+			content = fmt.Sprintf("ERROR: fail to update MetaData DOI for did=%s, error=%v", did, err)
 		}
 	}
 	rec := services.Response("PublicationService", httpCode, srvCode, err)
