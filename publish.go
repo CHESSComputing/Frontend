@@ -41,11 +41,17 @@ func publishToZenodo(did, description string) (string, string, error) {
 		return doi, doiLink, err
 	}
 
+	// add foxden record
+	frec := zenodo.FoxdenRecord{Beamline: "test-beamline", Type: "raw-data"}
+	err = zenodo.AddRecord(docId, "foxden-meta.json", frec)
+
 	// create new meta-data record
 	creator := zenodo.Creator{Name: "FOXDEN", Affiliation: "Cornell University"}
 	mrec := zenodo.MetaDataRecord{
-		PublicationType: "dataset",
+		PublicationType: "deliverable",
+		UploadType:      "dataset",
 		Description:     description,
+		Keywords:        []string{"FOXDEN"},
 		Title:           fmt.Sprintf("FOXDEN dataset did=%s", did),
 		Licences:        []string{"MIT"},
 		Creators:        []zenodo.Creator{creator},
