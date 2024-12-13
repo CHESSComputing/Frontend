@@ -941,11 +941,9 @@ func DatasetsHandler(c *gin.Context) {
 			SortKeys:  sortKeys,
 			SortOrder: sortOrder},
 	}
-	log.Println("### main rec", rec)
 	// request only user's specific data (check user attributes)
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs {
 		attrs, err := chessAttributes(user)
-		log.Println("### user attrs", user, attrs, err)
 		if err == nil {
 			spec = updateSpec(spec, attrs)
 			if data, err := json.Marshal(spec); err == nil {
@@ -961,7 +959,6 @@ func DatasetsHandler(c *gin.Context) {
 					SortKeys:  sortKeys,
 					SortOrder: sortOrder},
 			}
-			log.Println("### updated rec", rec)
 		}
 	}
 	resp, err := chunkOfRecords(rec)
