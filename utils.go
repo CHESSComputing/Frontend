@@ -203,11 +203,16 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
 			filters = append(filters, flt)
 		}
 	}
-	spec := map[string]any{
-		"$and": []map[string]any{
-			map[string]any{"$or": filters},
-			map[string]any{"btr": map[string]any{"$in": attrs.Btrs}},
-		},
+	// default spec will contain only btrs
+	spec := map[string]any{"btr": map[string]any{"$in": attrs.Btrs}}
+	if len(filters) > 0 {
+		// if we had other filters we will construct "$and" query with them
+		spec = map[string]any{
+			"$and": []map[string]any{
+				map[string]any{"$or": filters},
+				map[string]any{"btr": map[string]any{"$in": attrs.Btrs}},
+			},
+		}
 	}
 	return spec
 }
