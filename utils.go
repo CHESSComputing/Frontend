@@ -176,7 +176,6 @@ func makeSpec(searchFilter string, attrs []string) map[string]any {
 
 // helper function to update spec with ldap attributes
 func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
-	spec := make(map[string]any)
 	if (len(attrs.Foxdens) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
 		srvConfig.Config.Frontend.AllowAllRecords {
 		// foxden attributes allows to see all btrs
@@ -184,27 +183,31 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
 	}
 	var filters []map[string]any
 	if val, ok := ispec["$or"]; ok {
-		filters = val.([]map[string]any)
-	}
-	if len(attrs.Btrs) == 1 {
-		spec = map[string]any{
-			"btr": map[string]any{"$in": attrs.Btrs},
-		}
-		spec = addSpecFilters(spec, filters)
-	} else if len(attrs.Btrs) > 1 {
-		var newFilters []map[string]any
-		for _, btr := range attrs.Btrs {
-			spec = addSpecFilters(map[string]any{"btr": map[string]any{"regex": btr}}, filters)
-			newFilters = append(newFilters, spec)
-		}
-		if len(filters) > 0 {
-			spec = map[string]any{
-				"$or": filters,
+		specFilters := val.([]map[string]any)
+		// we already have series of maps with or condition
+		for _, flt := range specFilters {
+			if _, ok := flt["btr"]; ok {
+				continue
 			}
+			filters = append(filters, flt)
+		}
+	} else {
+		// ispec is plain dictionary of key:value pairs without $or condition
+		for key, val := range ispec {
+			if key == "btr" {
+				continue
+			}
+			flt := map[string]any{
+				key: val,
+			}
+			filters = append(filters, flt)
 		}
 	}
-	if len(spec) == 0 {
-		return ispec
+	spec := map[string]any{
+		"$and": []map[string]any{
+			map[string]any{"$or": filters},
+			map[string]any{"btr": map[string]any{"$in": attrs.Btrs}},
+		},
 	}
 	return spec
 }
