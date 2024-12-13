@@ -197,8 +197,10 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
 			spec = addSpecFilters(map[string]any{"btr": map[string]any{"regex": btr}}, filters)
 			newFilters = append(newFilters, spec)
 		}
-		spec = map[string]any{
-			"$or": filters,
+		if len(filters) > 0 {
+			spec = map[string]any{
+				"$or": filters,
+			}
 		}
 	}
 	if len(spec) == 0 {
