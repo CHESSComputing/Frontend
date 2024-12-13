@@ -499,9 +499,34 @@ func SearchHandler(c *gin.Context) {
 		Client:       "frontend",
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit, SortKeys: skeys, SortOrder: order},
 	}
+	// request only user's specific data (check user attributes)
+	if user != "test" && srvConfig.Config.Frontend.CheckBtrs {
+		attrs, err := chessAttributes(user)
+		if err == nil {
+			var spec map[string]any
+			err := json.Unmarshal([]byte(query), &spec)
+			if err != nil {
+				msg := fmt.Sprintf("malformed query, unable to create spec")
+				handleError(c, http.StatusBadRequest, msg, err)
+				return
+			}
+			spec = updateSpec(spec, attrs)
+			if data, err := json.Marshal(spec); err == nil {
+				query = string(data)
+			}
+			rec = services.ServiceRequest{
+				Client: "frontend",
+				ServiceQuery: services.ServiceQuery{
+					Query: query,
+					Spec:  spec,
+					Idx:   idx,
+					Limit: limit,
+				},
+			}
+		}
+	}
 	// based on user query process request from all FOXDEN services
 	processResults(c, rec, user, idx, limit)
-
 }
 
 // SpecScansHandler provides information about spec scan records
@@ -916,8 +941,12 @@ func DatasetsHandler(c *gin.Context) {
 			SortKeys:  sortKeys,
 			SortOrder: sortOrder},
 	}
+	log.Println("### main rec", rec)
+	// request only user's specific data (check user attributes)
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs {
-		if attrs, err := chessAttributes(user); err == nil {
+		attrs, err := chessAttributes(user)
+		log.Println("### user attrs", user, attrs, err)
+		if err == nil {
 			spec = updateSpec(spec, attrs)
 			if data, err := json.Marshal(spec); err == nil {
 				query = string(data)
@@ -932,6 +961,7 @@ func DatasetsHandler(c *gin.Context) {
 					SortKeys:  sortKeys,
 					SortOrder: sortOrder},
 			}
+			log.Println("### updated rec", rec)
 		}
 	}
 	resp, err := chunkOfRecords(rec)
@@ -967,7 +997,6 @@ func DatasetsHandler(c *gin.Context) {
 // helper function to get attributes based on user's affiliation
 func userAttrs(user string) []string {
 	var attrs []string
-	//     attrs := []string{"beamline", "btr", "cycle", "sample_name", "user"}
 	for _, obj := range _smgr.Map {
 		for key, _ := range obj.Schema.Map {
 			attrs = append(attrs, key)

@@ -88,11 +88,8 @@ function getCookie(name, defaultValue = "defaultValue") {
 $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
-{{if .DataAttributes}}
-    let userAttrs = getCookie("userAttrs", "{{.DataAttributes}}");
-{{else}}
-    let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,user");
-{{end}}
+    // set user attributes with default set
+    let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name");
 
     function saveSelectedColumns(columns) {
         document.cookie = "userAttrs=" + columns + "; path=/";
@@ -124,7 +121,7 @@ $(document).ready(function() {
 {{if .DataAttributes}}
         cols = "{{.DataAttributes}}";
 {{else}}
-        cols = "beamline,btr,cycle,sample_name,user";
+        cols = "beamline,btr,cycle,sample_name";
 {{end}}
         userColumns = cols.split(',');
         userColumns.sort();
