@@ -500,7 +500,7 @@ func SearchHandler(c *gin.Context) {
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit, SortKeys: skeys, SortOrder: order},
 	}
 	// request only user's specific data (check user attributes)
-	if user != "test" && srvConfig.Config.Frontend.CheckBtrs {
+	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
 		attrs, err := chessAttributes(user)
 		if err == nil {
 			var spec map[string]any
@@ -942,7 +942,7 @@ func DatasetsHandler(c *gin.Context) {
 			SortOrder: sortOrder},
 	}
 	// request only user's specific data (check user attributes)
-	if user != "test" && srvConfig.Config.Frontend.CheckBtrs {
+	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
 		attrs, err := chessAttributes(user)
 		if err == nil {
 			spec = updateSpec(spec, attrs)

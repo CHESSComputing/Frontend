@@ -160,6 +160,10 @@ func chunkOfRecords(rec services.ServiceRequest) (services.ServiceResponse, erro
 
 // helper function to make new query out of search filter and list of attributes
 func makeSpec(searchFilter string, attrs []string) map[string]any {
+	if srvConfig.Config.Embed.DocDb != "" {
+		// TODO: so far for embed db we can't use filters
+		return map[string]any{}
+	}
 	var filters []map[string]any
 	for _, attr := range attrs {
 		if pat, err := regexp.Compile(fmt.Sprintf(".*%s.*", searchFilter)); err == nil {
