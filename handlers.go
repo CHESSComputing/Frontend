@@ -1028,7 +1028,7 @@ func DatasetsTableHandler(c *gin.Context) {
 // POST handlers
 // PublishHandler handles publish request for did
 func PublishHandler(c *gin.Context) {
-	_, err := getUser(c)
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -1048,7 +1048,7 @@ func PublishHandler(c *gin.Context) {
 	description := r.FormValue("description")
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(did, provider, description)
+	doi, doiLink, err := publishDataset(user, provider, did, description)
 	if Verbose > 0 {
 		log.Printf("### publish dataset doi=%s doiLink=%s error=%v", doi, doiLink, err)
 	}
