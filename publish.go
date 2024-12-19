@@ -10,68 +10,74 @@ import (
 	"net/http"
 	"strings"
 
-	materialCommons "github.com/CHESSComputing/golib/MaterialCommons"
 	srvConfig "github.com/CHESSComputing/golib/config"
+	doi "github.com/CHESSComputing/golib/doi"
 	services "github.com/CHESSComputing/golib/services"
-	"github.com/CHESSComputing/golib/zenodo"
 )
 
+func getMetaData(user, did string) (map[string]any, error) {
+	var rec map[string]any
+	token, err := newToken(user, "read")
+	if err != nil {
+		return rec, err
+	}
+	_httpReadRequest.Token = token
+	query := fmt.Sprintf("{\"did\": \"%s\"}", did)
+	srec := services.ServiceRequest{
+		Client:       "foxden-doi",
+		ServiceQuery: services.ServiceQuery{Query: query, Idx: 0, Limit: -1},
+	}
+
+	data, err := json.Marshal(srec)
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.MetaDataURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return rec, err
+	}
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return rec, err
+	}
+	var records []map[string]any
+	err = json.Unmarshal(data, &records)
+	if err != nil {
+		return rec, err
+	}
+	if len(records) != 1 {
+		return rec, errors.New("wrong number of records")
+	}
+	rec = records[0]
+	return rec, nil
+}
+
 // helper function to publish did with given provider
-func publishDataset(did, provider, description string) (string, string, error) {
+func publishDataset(user, provider, did, description string) (string, string, error) {
+	zenodoDoi := doi.ZenodoProvider{}
+	mcDoi := doi.MCProvider{}
+	dataciteDoi := doi.DataciteProvider{}
+
+	// get meta-data record associated with did
+	record, err := getMetaData(user, did)
+	if err != nil {
+		return "", "", err
+	}
+
 	p := strings.ToLower(provider)
-	var err error
 	var doi, doiLink string
 	if p == "zenodo" {
-		doi, doiLink, err = publishToZenodo(did, description)
+		zenodoDoi.Init()
+		doi, doiLink, err = zenodoDoi.Publish(did, description, record)
 	} else if p == "materialcommons" {
-		doi, doiLink, err = publishToMaterialCommons(did, description)
+		mcDoi.Init()
+		doi, doiLink, err = mcDoi.Publish(did, description, record)
+	} else if p == "datacite" {
+		dataciteDoi.Init()
+		doi, doiLink, err = dataciteDoi.Publish(did, description, record)
 	} else {
 		msg := fmt.Sprintf("Provider '%s' is not supported", provider)
 		err = errors.New(msg)
 	}
-	return doi, doiLink, err
-}
-
-// helper function to publish did to Zenodo
-func publishToZenodo(did, description string) (string, string, error) {
-	var doi, doiLink string
-	var err error
-	docId, err := zenodo.CreateRecord()
-	if err != nil {
-		return doi, doiLink, err
-	}
-
-	// add foxden record
-	frec := zenodo.FoxdenRecord{Beamline: "test-beamline", Type: "raw-data"}
-	err = zenodo.AddRecord(docId, "foxden-meta.json", frec)
-
-	// create new meta-data record
-	creator := zenodo.Creator{Name: "FOXDEN", Affiliation: "Cornell University"}
-	mrec := zenodo.MetaDataRecord{
-		PublicationType: "deliverable",
-		UploadType:      "dataset",
-		Description:     description,
-		Keywords:        []string{"FOXDEN"},
-		Title:           fmt.Sprintf("FOXDEN dataset did=%s", did),
-		Licences:        []string{"MIT"},
-		Creators:        []zenodo.Creator{creator},
-	}
-	err = zenodo.UpdateRecord(docId, mrec)
-	if err != nil {
-		return doi, doiLink, err
-	}
-
-	// publish record
-	doiRecord, err := zenodo.PublishRecord(docId)
-	if err != nil {
-		return doi, doiLink, err
-	}
-	return doiRecord.Doi, doiRecord.DoiUrl, nil
-}
-
-// helper function to publish did into MaterialCommons
-func publishToMaterialCommons(did, description string) (string, string, error) {
-	doi, doiLink, err := materialCommons.Publish(did, description)
 	return doi, doiLink, err
 }
 
