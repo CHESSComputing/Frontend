@@ -80,7 +80,7 @@ func publishDataset(user, provider, did, description string) (string, string, er
 		}
 		zenodoDoi.Init()
 		doi, doiLink, err = zenodoDoi.Publish(did, description, record)
-	} else if p == "materialcommons" {
+	} else if p == "materialscommons" {
 		if mcDoi == nil {
 			mcDoi = &srvDoi.MCProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
 		}
