@@ -1052,14 +1052,14 @@ func PublishHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Printf("### publish dataset doi=%s doiLink=%s error=%v", doi, doiLink, err)
 	}
-	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s URL=%s", did, doi, doiLink)
+	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s URL=%s Please note: it will take some time for DOI record to appear", did, doi, doiLink)
 	if err != nil {
 		template = "error.tmpl"
 		httpCode = http.StatusBadRequest
 		content = fmt.Sprintf("ERROR: fail to publish did=%s, error=%v", did, err)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(did, doi, doiLink)
+		err = updateMetaDataDOI(user, did, doi, doiLink)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest

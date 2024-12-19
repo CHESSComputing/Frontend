@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	srvConfig "github.com/CHESSComputing/golib/config"
 	doi "github.com/CHESSComputing/golib/doi"
@@ -48,6 +49,12 @@ func getMetaData(user, did string) (map[string]any, error) {
 		return rec, errors.New("wrong number of records")
 	}
 	rec = records[0]
+
+	// check if doi link is not present in a record
+	if val, ok := rec["doi"]; ok {
+		msg := fmt.Sprintf("Record with did=%s has already DOI: %s", did, val)
+		return rec, errors.New(msg)
+	}
 	return rec, nil
 }
 
@@ -82,7 +89,7 @@ func publishDataset(user, provider, did, description string) (string, string, er
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
-func updateMetaDataDOI(did, doi, doiLink string) error {
+func updateMetaDataDOI(user, did, doi, doiLink string) error {
 	var err error
 
 	// extract schema from did
@@ -126,6 +133,8 @@ func updateMetaDataDOI(did, doi, doiLink string) error {
 		// and add doi attributes
 		rec["doi"] = doi
 		rec["doi_url"] = doiLink
+		rec["doi_user"] = user
+		rec["doi_created_at"] = time.Now().Format(time.RFC3339)
 
 		// create meta-data record for update
 		mrec := services.MetaRecord{Schema: schema, Record: rec}
