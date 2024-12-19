@@ -12,9 +12,14 @@ import (
 	"time"
 
 	srvConfig "github.com/CHESSComputing/golib/config"
-	doi "github.com/CHESSComputing/golib/doi"
+	srvDoi "github.com/CHESSComputing/golib/doi"
 	services "github.com/CHESSComputing/golib/services"
 )
+
+// pointers to various doi providers
+var zenodoDoi *srvDoi.ZenodoProvider
+var mcDoi *srvDoi.MCProvider
+var dataciteDoi *srvDoi.DataciteProvider
 
 func getMetaData(user, did string) (map[string]any, error) {
 	var rec map[string]any
@@ -60,9 +65,6 @@ func getMetaData(user, did string) (map[string]any, error) {
 
 // helper function to publish did with given provider
 func publishDataset(user, provider, did, description string) (string, string, error) {
-	zenodoDoi := doi.ZenodoProvider{}
-	mcDoi := doi.MCProvider{}
-	dataciteDoi := doi.DataciteProvider{}
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
@@ -73,12 +75,21 @@ func publishDataset(user, provider, did, description string) (string, string, er
 	p := strings.ToLower(provider)
 	var doi, doiLink string
 	if p == "zenodo" {
+		if zenodoDoi == nil {
+			zenodoDoi = &srvDoi.ZenodoProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
 		zenodoDoi.Init()
 		doi, doiLink, err = zenodoDoi.Publish(did, description, record)
 	} else if p == "materialcommons" {
+		if mcDoi == nil {
+			mcDoi = &srvDoi.MCProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
 		mcDoi.Init()
 		doi, doiLink, err = mcDoi.Publish(did, description, record)
 	} else if p == "datacite" {
+		if dataciteDoi == nil {
+			dataciteDoi = &srvDoi.DataciteProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
 		dataciteDoi.Init()
 		doi, doiLink, err = dataciteDoi.Publish(did, description, record)
 	} else {

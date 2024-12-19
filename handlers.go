@@ -1050,7 +1050,7 @@ func PublishHandler(c *gin.Context) {
 	// publish our dataset
 	doi, doiLink, err := publishDataset(user, provider, did, description)
 	if Verbose > 0 {
-		log.Printf("### publish dataset doi=%s doiLink=%s error=%v", doi, doiLink, err)
+		log.Printf("### publish did=%s provider=%s doi=%s doiLink=%s error=%v", did, provider, doi, doiLink, err)
 	}
 	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s URL=%s Please note: it will take some time for DOI record to appear", did, doi, doiLink)
 	if err != nil {
