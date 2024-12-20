@@ -14,6 +14,24 @@
 {{.Children}}
 </pre>
 
+<h3>OS info</h3>
+<br/>
+<pre id="osinfo-{{.Did}}">
+{{.osinfo}}
+</pre>
+
+<h3>Environment</h3>
+<br/>
+<pre id="env-{{.Did}}">
+{{.environment}}
+</pre>
+
+<h3>Script</h3>
+<br/>
+<pre id="script-{{.Did}}">
+{{.script}}
+</pre>
+
 <h3>Files</h3>
 <a href="javascript:SaveRecord('data-{{.Did}}')" class="button button-small">Files JSON</a>
 <a href="javascript:SaveRecord('files-{{.Did}}')" class="button button-small">Save</a>

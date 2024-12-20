@@ -354,6 +354,19 @@ func ProvInfoHandler(c *gin.Context) {
 	}
 	tmpl["Data"] = string(data)
 	tmpl["Did"] = did
+	// fill out necessary aux info
+	for _, key := range []string{"osinfo", "environment", "script"} {
+		records, err = getData(key, did)
+		if err != nil {
+			content := errorTmpl(c, fmt.Sprintf("unable to get %s data from provenance service, error", key), err)
+			c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+			return
+		}
+		if data, err := json.MarshalIndent(records, "", "  "); err == nil {
+			tmpl[key] = string(data)
+		}
+	}
+
 	page := server.TmplPage(StaticFs, "prov_info.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
