@@ -519,7 +519,7 @@ func SearchHandler(c *gin.Context) {
 			var spec map[string]any
 			err := json.Unmarshal([]byte(query), &spec)
 			if err != nil {
-				msg := fmt.Sprintf("malformed query, unable to create spec")
+				msg := fmt.Sprintf("malformed query %+v, unable to create spec", query)
 				handleError(c, http.StatusBadRequest, msg, err)
 				return
 			}
