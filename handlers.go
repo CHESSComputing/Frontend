@@ -523,7 +523,8 @@ func SearchHandler(c *gin.Context) {
 				handleError(c, http.StatusBadRequest, msg, err)
 				return
 			}
-			spec = updateSpec(spec, attrs)
+			// in search we use $and conditions for spec attributes
+			spec = updateSpec(spec, attrs, "$and")
 			if data, err := json.Marshal(spec); err == nil {
 				query = string(data)
 			}
@@ -958,7 +959,8 @@ func DatasetsHandler(c *gin.Context) {
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
 		attrs, err := chessAttributes(user)
 		if err == nil {
-			spec = updateSpec(spec, attrs)
+			// in filters we use $or conditions for spec attributes
+			spec = updateSpec(spec, attrs, "$or")
 			if data, err := json.Marshal(spec); err == nil {
 				query = string(data)
 			}
