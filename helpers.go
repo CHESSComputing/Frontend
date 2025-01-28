@@ -179,7 +179,7 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey
 	tmpl["PrevUrl"] = makeURL(url, "prev", startIdx, limit, nres)
 	tmpl["NextUrl"] = makeURL(url, "next", startIdx, limit, nres)
 	tmpl["LastUrl"] = makeURL(url, "last", startIdx, limit, nres)
-	tmpl["Query"] = query
+	tmpl["Query"] = template.HTML(query)
 	tmpl["SortKey"] = sortKey
 	tmpl["SortOrder"] = sortOrder
 	page := server.TmplPage(StaticFs, "pagination.tmpl", tmpl)
