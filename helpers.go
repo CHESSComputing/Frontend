@@ -100,7 +100,7 @@ func records2html(user string, records []map[string]any) string {
 		if doiLink, ok := rec["doi_url"]; ok {
 			tmpl["DoiLink"] = doiLink
 		}
-		tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", recValue(rec, "did"))
+		tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", url.QueryEscape(recValue(rec, "did")))
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
 	}
