@@ -9,7 +9,7 @@
     </div>
     <div class="column column-2">
         <form id="searchSortForm" action="/search" method="POST">
-            <input type="hidden" name="query" value="{{.Query}}">
+            <input type="hidden" name="query" value='{{.Query}}'>
             <input type="hidden" name="idx" value="0">
             <input type="hidden" name="limit" value="10">
             <input type="hidden" id="sort_order" name="sort_order" value="descending">
