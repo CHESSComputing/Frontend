@@ -531,10 +531,12 @@ func SearchHandler(c *gin.Context) {
 			rec = services.ServiceRequest{
 				Client: "frontend",
 				ServiceQuery: services.ServiceQuery{
-					Query: query,
-					Spec:  spec,
-					Idx:   idx,
-					Limit: limit,
+					Query:     query,
+					Spec:      spec,
+					SortKeys:  skeys,
+					SortOrder: order,
+					Idx:       idx,
+					Limit:     limit,
 				},
 			}
 		}
