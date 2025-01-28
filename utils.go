@@ -179,7 +179,7 @@ func makeSpec(searchFilter string, attrs []string) map[string]any {
 }
 
 // helper function to update spec with ldap attributes
-func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
+func updateSpec(ispec map[string]any, attrs ldap.Entry, operator string) map[string]any {
 	if (len(attrs.Foxdens) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
 		srvConfig.Config.Frontend.AllowAllRecords {
 		// foxden attributes allows to see all btrs
@@ -213,7 +213,7 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry) map[string]any {
 		// if we had other filters we will construct "$and" query with them
 		spec = map[string]any{
 			"$and": []map[string]any{
-				map[string]any{"$or": filters},
+				map[string]any{operator: filters},
 				map[string]any{"btr": map[string]any{"$in": attrs.Btrs}},
 			},
 		}
