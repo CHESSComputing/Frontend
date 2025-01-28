@@ -6,8 +6,8 @@ github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
 github.com/BurntSushi/toml v1.4.0 h1:kuoIxZQy2WRRk1pttg9asf+WVv6tWQuBNVmK8+nqPr0=
 github.com/BurntSushi/toml v1.4.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
-github.com/CHESSComputing/golib v0.6.1 h1:rbzuQVGLQQzbNyZKywv87qK8r25aUwFPWpjt4N6cQ4o=
-github.com/CHESSComputing/golib v0.6.1/go.mod h1:kxRvcrGM5gX2R98Rmt7yhTTN5lVYaLpxEgjkpyLg424=
+github.com/CHESSComputing/golib v0.6.2 h1:IdrdJks4VY+/R+djXX4+fr51DnQsmtsLpWfAvHFwGeY=
+github.com/CHESSComputing/golib v0.6.2/go.mod h1:kxRvcrGM5gX2R98Rmt7yhTTN5lVYaLpxEgjkpyLg424=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
