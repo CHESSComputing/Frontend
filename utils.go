@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 
 	authz "github.com/CHESSComputing/golib/authz"
@@ -209,6 +210,10 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry, operator string) map[str
 	}
 	// default spec will contain only btrs
 	spec := map[string]any{"btr": map[string]any{"$in": attrs.Btrs}}
+	// check if ispec contains btrs and compare them with attrs.Btrs
+	if btrs, ok := ispec["btrs"]; ok {
+		spec = map[string]any{"btr": map[string]any{"$in": finalBtrs(btrs, attrs.Btrs)}}
+	}
 	if len(filters) > 0 {
 		// if we had other filters we will construct "$and" query with them
 		spec = map[string]any{
@@ -219,6 +224,55 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry, operator string) map[str
 		}
 	}
 	return spec
+}
+
+// helper function to get final list of btrs
+func finalBtrs(btrs any, attrBtrs []string) []string {
+	validBtrs := make(map[string]struct{}) // Use map to avoid duplicates
+	attrSet := make(map[string]struct{})
+
+	// Convert attrBtrs slice into a set for fast lookup
+	for _, attr := range attrBtrs {
+		attrSet[attr] = struct{}{}
+	}
+
+	// Helper function to add values if they exist in attrBtrs
+	addIfValid := func(value string) {
+		if _, exists := attrSet[value]; exists {
+			validBtrs[value] = struct{}{}
+		}
+	}
+
+	// Process different types of `btrs`
+	switch v := btrs.(type) {
+	case string:
+		addIfValid(v)
+	case []string:
+		for _, item := range v {
+			addIfValid(item)
+		}
+	case map[string]any:
+		// Handle {"$or": [...] } and {"$in": [...] }
+		for key, val := range v {
+			if key == "$or" || key == "$in" {
+				if list, ok := val.([]any); ok {
+					for _, item := range list {
+						if str, ok := item.(string); ok {
+							addIfValid(str)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Convert map keys to slice
+	result := make([]string, 0, len(validBtrs))
+	for key := range validBtrs {
+		result = append(result, key)
+	}
+	sort.Strings(result)
+	return result
 }
 
 // helper function to add spec filters to existing spec query
