@@ -3,8 +3,12 @@ package main
 import (
 	"reflect"
 	"testing"
+
+	srvConfig "github.com/CHESSComputing/golib/config"
+	ldap "github.com/CHESSComputing/golib/ldap"
 )
 
+// TestFinalBtrs tests finalBtrs function
 func TestFinalBtrs(t *testing.T) {
 	attrBtrs := []string{"A", "B", "C", "D"}
 
@@ -73,6 +77,65 @@ func TestFinalBtrs(t *testing.T) {
 			result := finalBtrs(tt.input, attrBtrs)
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("finalBtrs(%v) = %v; want %v", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
+// TestUpdateSpec tests updateSpec function
+func TestUpdateSpec(t *testing.T) {
+	srvConfig.Init()
+	tests := []struct {
+		name     string
+		ispec    map[string]any
+		attrs    ldap.Entry
+		useCase  string
+		expected map[string]any
+	}{
+		{
+			name: "Search use-case with allowed btrs",
+			ispec: map[string]any{
+				"btr": []string{"btr1", "btr2", "btr3"},
+			},
+			attrs: ldap.Entry{
+				Btrs: []string{"btr1", "btr3"},
+			},
+			useCase: "search",
+			expected: map[string]any{
+				"btr": map[string]any{"$in": []string{"btr1", "btr3"}},
+			},
+		},
+		{
+			name: "Filter use-case with multiple conditions",
+			ispec: map[string]any{
+				"category": "science",
+				"status":   "active",
+			},
+			attrs: ldap.Entry{
+				Btrs: []string{"btr1", "btr3"},
+			},
+			useCase: "filter",
+			expected: map[string]any{
+				"$and": []map[string]any{
+					{
+						"$or": []map[string]any{
+							{"category": "science"},
+							{"status": "active"},
+						},
+					},
+					{
+						"btr": map[string]any{"$in": []string{"btr1", "btr3"}},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := updateSpec(test.ispec, test.attrs, test.useCase)
+			if !reflect.DeepEqual(result, test.expected) {
+				t.Errorf("Test %s failed. Expected %v, got %v", test.name, test.expected, result)
 			}
 		})
 	}
