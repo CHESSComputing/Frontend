@@ -193,7 +193,7 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry, useCase string) map[stri
 	if useCase == "search" {
 		// check if ispec contains btrs and make final list from attrs.Btrs
 		// this will restrict spec to btrs allowed by ldap entry btrs associated with user
-		if btrs, ok := ispec["btrs"]; ok {
+		if btrs, ok := ispec["btr"]; ok {
 			ispec["btr"] = map[string]any{"$in": finalBtrs(btrs, attrs.Btrs)}
 		}
 		return ispec
