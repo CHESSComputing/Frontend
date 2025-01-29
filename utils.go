@@ -179,13 +179,27 @@ func makeSpec(searchFilter string, attrs []string) map[string]any {
 	return spec
 }
 
-// helper function to update spec with ldap attributes
-func updateSpec(ispec map[string]any, attrs ldap.Entry, operator string) map[string]any {
+// helper function to update spec with ldap attributes. It has the following logic
+// - in case of search spec we only update input spec with btrs limited to user ldap attributes
+// - in case of filter spec we make a new spec based on filter conditions
+func updateSpec(ispec map[string]any, attrs ldap.Entry, useCase string) map[string]any {
 	if (len(attrs.Foxdens) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
 		srvConfig.Config.Frontend.AllowAllRecords {
 		// foxden attributes allows to see all btrs
 		return ispec
 	}
+
+	// search use-case
+	if useCase == "search" {
+		// check if ispec contains btrs and make final list from attrs.Btrs
+		// this will restrict spec to btrs allowed by ldap entry btrs associated with user
+		if btrs, ok := ispec["btrs"]; ok {
+			ispec["btr"] = map[string]any{"$in": finalBtrs(btrs, attrs.Btrs)}
+		}
+		return ispec
+	}
+
+	// filter use-case
 	var filters []map[string]any
 	if val, ok := ispec["$or"]; ok {
 		specFilters := val.([]map[string]any)
@@ -210,15 +224,11 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry, operator string) map[str
 	}
 	// default spec will contain only btrs
 	spec := map[string]any{"btr": map[string]any{"$in": attrs.Btrs}}
-	// check if ispec contains btrs and compare them with attrs.Btrs
-	if btrs, ok := ispec["btrs"]; ok {
-		spec = map[string]any{"btr": map[string]any{"$in": finalBtrs(btrs, attrs.Btrs)}}
-	}
 	if len(filters) > 0 {
 		// if we had other filters we will construct "$and" query with them
 		spec = map[string]any{
 			"$and": []map[string]any{
-				map[string]any{operator: filters},
+				map[string]any{"$or": filters},
 				map[string]any{"btr": map[string]any{"$in": attrs.Btrs}},
 			},
 		}
@@ -273,30 +283,4 @@ func finalBtrs(btrs any, attrBtrs []string) []string {
 	}
 	sort.Strings(result)
 	return result
-}
-
-// helper function to add spec filters to existing spec query
-func addSpecFilters(spec map[string]any, filters []map[string]any) map[string]any {
-	var newFilters []map[string]any
-	for key, cond := range spec {
-		newSpec := make(map[string]any)
-		newSpec[key] = cond
-		for _, filter := range filters {
-			for kkk, val := range filter {
-				if key == kkk {
-					// skip filter since we use spec condition
-					continue
-				}
-				newSpec[kkk] = val
-			}
-		}
-		newFilters = append(newFilters, newSpec)
-	}
-	if len(newFilters) > 0 {
-		newSpec := map[string]any{
-			"$or": newFilters,
-		}
-		return newSpec
-	}
-	return spec
 }
