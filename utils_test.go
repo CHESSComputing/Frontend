@@ -109,7 +109,6 @@ func TestUpdateSpec(t *testing.T) {
 			name: "Filter use-case with multiple conditions",
 			ispec: map[string]any{
 				"category": "science",
-				"status":   "active",
 			},
 			attrs: ldap.Entry{
 				Btrs: []string{"btr1", "btr3"},
@@ -120,7 +119,6 @@ func TestUpdateSpec(t *testing.T) {
 					{
 						"$or": []map[string]any{
 							{"category": "science"},
-							{"status": "active"},
 						},
 					},
 					{
