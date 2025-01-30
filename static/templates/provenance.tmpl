@@ -1,55 +1,73 @@
 <section>
-  <article id="article">
-<div class="center huge">
-     FOXDEN: Provenance service
-</div>
+    <article id="article">
+<h2>{{.Did}}</h2>
+<br/>
+<h3>Parents</h3>
+<br/>
+<pre id="parents-{{.Did}}">
+{{.Parents}}
+</pre>
 
 <br/>
-      <h3>Provenance GET APIs</h3>
-      This set of APIs is designed to get specific content in provenance database
-      <ul>
-          <li>
-              <span class="api">/datasets</span> get list of all datasets
-          </li>
-          <li>
-              <span class="api">/dataset/*name</span> get information about specific dataset name
-          </li>
-          <li>
-              <span class="api">/files</span> get list of all files
-          </li>
-          <li>
-              <span class="api">/file/*name</span> get information about specific file name
-          </li>
-      </ul>
-      <h3>Provenance POST APIs</h3>
-      This set of APIs is designed to create specific content in provenance database
-      <ul>
-          <li>
-              <span class="api">/dataset</span> creates new dataset
-          </li>
-          <li>
-              <span class="api">/file</span> creates new file
-          </li>
-      </ul>
-      <h3>Provenance PUT APIs</h3>
-      This set of APIs is designed to update specific content in provenance database
-      <ul>
-          <li>
-              <span class="api">/dataset/*name</span> updates information about given dataset name
-          </li>
-          <li>
-              <span class="api">/file/*name</span> updates  information about given file name
-          </li>
-      </ul>
-      <h3>Provenance DELETE APIs</h3>
-      This set of APIs is designed to delete specific content in provenance database
-      <ul>
-          <li>
-              <span class="api">/dataset/*name</span> deletes given dataset name
-          </li>
-          <li>
-              <span class="api">/file/*name</span> deletes given file name
-          </li>
-      </ul>
-  </article>
+<h3>Children</h3>
+<br/>
+<pre id="child-{{.Did}}">
+{{.Children}}
+</pre>
+
+<br/>
+<h3>OS info</h3>
+<br/>
+<pre id="osinfo-{{.Did}}">
+{{.osinfo}}
+</pre>
+
+<br/>
+<h3>Environments</h3>
+<br/>
+<pre id="env-{{.Did}}">
+{{.environments}}
+</pre>
+
+<br/>
+<h3>Packages</h3>
+<br/>
+<pre id="pkg-{{.Did}}">
+{{.packages}}
+</pre>
+
+<br/>
+<h3>Scripts</h3>
+<br/>
+<pre id="script-{{.Did}}">
+{{.scripts}}
+</pre>
+
+<br/>
+<h3>Dataset output files</h3>
+<br/>
+<pre id="ifiles-{{.Did}}">
+{{.InputFiles}}
+</pre>
+
+<br/>
+<h3>Dataset input files</h3>
+<br/>
+<pre id="ofiles-{{.Did}}">
+{{.OutputFiles}}
+</pre>
+
+<hr />
+
+<h3>Download links:</h3>
+<br/>
+<a href="javascript:SaveRecord('provenance-{{.Did}}')" class="button button-small">Provenance record</a>
+<a href="javascript:SaveRecord('ifiles-{{.Did}}')" class="button button-small">Input files</a>
+<a href="javascript:SaveRecord('ofiles-{{.Did}}')" class="button button-small">Output files</a>
+<pre id='provenance-{{.Did}}' class="hide">
+{{.Provenance}}
+</pre>
+
+
+    </article>
 </section>

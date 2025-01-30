@@ -273,24 +273,13 @@ func DocsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// ProvInfoHandler provides access to GET /meta/files endpoint
-func ProvInfoHandler(c *gin.Context) {
+// ProvenanceHandler provides access to GET /provenance endpoint
+func ProvenanceHandler(c *gin.Context) {
 	r := c.Request
 	did := r.FormValue("did")
 
 	// obtain valid token
 	_httpReadRequest.GetToken()
-
-	rec := services.ServiceRequest{
-		Client:       "frontend",
-		ServiceQuery: services.ServiceQuery{},
-	}
-	data, err := json.Marshal(rec)
-	if err != nil {
-		msg := "unable to parse user query"
-		handleError(c, http.StatusInternalServerError, msg, err)
-		return
-	}
 
 	// get files from provenance service
 	records, err := getData("files", did)
@@ -299,11 +288,18 @@ func ProvInfoHandler(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	var files []string
+	var inputFiles, outputFiles []string
 	for _, r := range records {
-		if f, ok := r["file"]; ok {
-			v := f.(string)
-			files = append(files, v)
+		if f, ok := r["name"]; ok {
+			fname := f.(string)
+			if t, ok := r["file_type"]; ok {
+				v := t.(string)
+				if v == "input" {
+					inputFiles = append(inputFiles, fname)
+				} else if v == "output" {
+					outputFiles = append(outputFiles, fname)
+				}
+			}
 		}
 	}
 	// get files from provenance service
@@ -339,9 +335,18 @@ func ProvInfoHandler(c *gin.Context) {
 		}
 	}
 
+	// obtain provenance record
+	provenance, err := getData("provenance", did)
+	if err != nil {
+		content := errorTmpl(c, "unable to get provenance record from provenance service, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+
 	// construct output record
 	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
-	tmpl["Files"] = strings.Join(files, "\n")
+	tmpl["InputFiles"] = strings.Join(inputFiles, "\n")
+	tmpl["OutputFiles"] = strings.Join(outputFiles, "\n")
 	if len(parents) > 0 {
 		tmpl["Parents"] = strings.Join(parents, "\n")
 	} else {
@@ -352,10 +357,17 @@ func ProvInfoHandler(c *gin.Context) {
 	} else {
 		tmpl["Children"] = "Not available"
 	}
-	tmpl["Data"] = string(data)
+	tmpl["Provenance"] = "Not available"
+	if len(provenance) > 0 {
+		if data, err := json.MarshalIndent(provenance, "", "  "); err == nil {
+			tmpl["Provenance"] = string(data)
+		} else {
+			log.Println("ERROR: unable to marshal provenance records")
+		}
+	}
 	tmpl["Did"] = did
 	// fill out necessary aux info
-	for _, key := range []string{"osinfo", "environment", "script"} {
+	for _, key := range []string{"osinfo", "environments", "scripts", "packages"} {
 		records, err = getData(key, did)
 		if err != nil {
 			content := errorTmpl(c, fmt.Sprintf("unable to get %s data from provenance service, error", key), err)
@@ -367,7 +379,7 @@ func ProvInfoHandler(c *gin.Context) {
 		}
 	}
 
-	page := server.TmplPage(StaticFs, "prov_info.tmpl", tmpl)
+	page := server.TmplPage(StaticFs, "provenance.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
@@ -805,11 +817,11 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// ProvenanceHandler provides access to GET /provenance endpoint
-func ProvenanceHandler(c *gin.Context) {
-	tmpl := server.MakeTmpl(StaticFs, "Provenance")
+// ProvInfoHandler provides access to GET /provinfo endpoint
+func ProvInfoHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	content := server.TmplPage(StaticFs, "provenance.tmpl", tmpl)
+	content := server.TmplPage(StaticFs, "provinfo.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
