@@ -276,7 +276,7 @@ func DocsHandler(c *gin.Context) {
 // ProvenanceHandler provides access to GET /provenance endpoint
 func ProvenanceHandler(c *gin.Context) {
 	r := c.Request
-	did := r.FormValue("did")
+	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
 
 	// obtain valid token
 	_httpReadRequest.GetToken()
