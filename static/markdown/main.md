@@ -1,6 +1,6 @@
 # FOXDEN Documentation
 - Quick start guides:
-  - [Web interfance](/docs/web.md)
+  - [Web interface](/docs/web.md)
   - [CLI tool](/docs/cli.md)
 - Tutorials:
   - [foxden cli tutorial](/docs/FOXDEN_CLI.pdf)
@@ -10,6 +10,6 @@
 - [Dataset IDentifier (DID)](/docs/did.md)
 - [Apis](/docs/apis.md)
 - [Architecture](/docs/architecture.md)
-- [Infrustructure](/docs/infrastructure.md).
+- [Infrastructure](/docs/infrastructure.md).
 - [Implementation](/docs/implementation.md)
 - [References](/docs/references.md)
