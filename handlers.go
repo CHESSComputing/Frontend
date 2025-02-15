@@ -383,6 +383,76 @@ func ProvenanceHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
+// DataManagementHandler provides access to GET /dm end-point
+func DataManagementHandler(c *gin.Context) {
+	// check if user cookie is set, this is necessary as we do not
+	// use authorization handler for / end-point
+	user, err := getUser(c)
+	if err == nil {
+		c.Set("user", user)
+
+		did := c.Query("did")
+		if did == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing 'did' parameter"})
+			return
+		}
+
+		// Prepare redirection URL
+		targetURL := fmt.Sprintf("%s/data?did=%s", srvConfig.Config.DataManagementURL, did)
+
+		// get new read token
+		token, err := newToken(user, "read")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		log.Printf("### redirect to %s with token %s", targetURL, token)
+
+		// Create a new HTTP request to the target URL
+		req, err := http.NewRequest(http.MethodGet, targetURL, nil)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+			return
+		}
+
+		// Set custom headers
+		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("X-Custom-Header", "DataManagementRequest")
+
+		// Copy headers from the original request
+		for key, values := range c.Request.Header {
+			for _, value := range values {
+				req.Header.Add(key, value)
+			}
+		}
+
+		// Send the request
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to forward request"})
+			return
+		}
+		defer resp.Body.Close()
+
+		// Copy response headers
+		for key, values := range resp.Header {
+			for _, value := range values {
+				c.Writer.Header().Add(key, value)
+			}
+		}
+
+		// Set response status code
+		c.Status(resp.StatusCode)
+
+		// Copy response body to Gin's response writer
+		io.Copy(c.Writer, resp.Body)
+
+	} else {
+		LoginHandler(c)
+	}
+}
+
 // ToolsHandler provides access to GET /tools endpoint
 func ToolsHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Tools")

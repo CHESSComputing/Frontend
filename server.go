@@ -92,6 +92,7 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "GET", Path: "/dstable", Handler: DatasetsTableHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/provinfo", Handler: ProvInfoHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/dm", Handler: DataManagementHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/login", Handler: KAuthHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/search", Handler: SearchHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
