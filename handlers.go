@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -391,14 +392,23 @@ func DataManagementHandler(c *gin.Context) {
 	if err == nil {
 		c.Set("user", user)
 
+		path := c.Query("path")
+		fname := c.Query("file")
 		did := c.Query("did")
 		if did == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing 'did' parameter"})
 			return
 		}
+		did = url.QueryEscape(did)
 
 		// Prepare redirection URL
 		targetURL := fmt.Sprintf("%s/data?did=%s", srvConfig.Config.DataManagementURL, did)
+		if path != "" {
+			targetURL = fmt.Sprintf("%s&path=%s", targetURL, url.QueryEscape(path))
+		}
+		if fname != "" {
+			targetURL = fmt.Sprintf("%s&file=%s", targetURL, url.QueryEscape(fname))
+		}
 
 		// get new read token
 		token, err := newToken(user, "read")
@@ -406,7 +416,6 @@ func DataManagementHandler(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		log.Printf("### redirect to %s with token %s", targetURL, token)
 
 		// Create a new HTTP request to the target URL
 		req, err := http.NewRequest(http.MethodGet, targetURL, nil)
