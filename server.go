@@ -35,32 +35,17 @@ var Verbose int
 
 // helper function to define our header
 func header() string {
-	if _header == "" {
-		tmpl := server.MakeTmpl(StaticFs, "Header")
-		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-		_header = server.TmplPage(StaticFs, "header.tmpl", tmpl)
-	}
-	return _header
+	return server.Header(StaticFs, srvConfig.Config.Frontend.WebServer.Base)
 }
 
 // helper function to define our footer
 func footer() string {
-	if _footer == "" {
-		tmpl := server.MakeTmpl(StaticFs, "Footer")
-		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-		_footer = server.TmplPage(StaticFs, "footer.tmpl", tmpl)
-	}
-	return _footer
+	return server.Footer(StaticFs, srvConfig.Config.Frontend.WebServer.Base)
 }
 
 // helper function to define our footer
 func footerEmpty() string {
-	if _footerEmpty == "" {
-		tmpl := server.MakeTmpl(StaticFs, "Footer")
-		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-		_footerEmpty = server.TmplPage(StaticFs, "footer_empty.tmpl", tmpl)
-	}
-	return _footerEmpty
+	return server.FooterEmpty(StaticFs, srvConfig.Config.Frontend.WebServer.Base)
 }
 
 // helper function to handle base path of URL requests
