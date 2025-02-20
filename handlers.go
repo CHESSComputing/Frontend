@@ -463,7 +463,7 @@ func DMFilesHandler(c *gin.Context) {
 		if val, err := url.QueryUnescape(pat); err == nil {
 			pat = val
 		}
-		content = fmt.Sprintf("%s<h2>DID: %s</h2><h4>Files for pattern: %s</h4>", content, did, pat)
+		content = fmt.Sprintf("%s<h4>DID: %s</h4><h4>Files for pattern: %s</h4>", content, did, pat)
 		for _, f := range files {
 			content = fmt.Sprintf("%s\n<br/>%s", content, f)
 		}
