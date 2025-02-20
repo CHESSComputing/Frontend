@@ -384,6 +384,94 @@ func ProvenanceHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
+// DMFiles provides access to GET /dm end-point
+func DMFilesHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	c.Set("user", user)
+	ext := c.Request.FormValue("ext")
+	did := c.Request.FormValue("did")
+	if did == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing 'did' parameter"})
+		return
+	}
+	did = url.QueryEscape(did)
+	pat := url.QueryEscape(ext)
+
+	// Prepare redirection URL
+	targetURL := fmt.Sprintf("%s/files?did=%s&pattern=%s", srvConfig.Config.DataManagementURL, did, pat)
+
+	// get new read token
+	token, err := newToken(user, "read")
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to acquire read token", err)
+		return
+	}
+
+	// Create a new HTTP request to the target URL
+	req, err := http.NewRequest(http.MethodGet, targetURL, nil)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to query DataManagement service", err)
+		return
+	}
+
+	// Set custom headers
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("X-Custom-Header", "DataManagementRequest")
+
+	// Copy headers from the original request
+	for key, values := range c.Request.Header {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to query DataManagement service", err)
+		return
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to read the data", err)
+		return
+	}
+
+	var files []string
+	err = json.Unmarshal(data, &files)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to unmarshal the data", err)
+		return
+	}
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, files)
+		return
+	}
+	content := "<section><article>"
+	if len(files) == 0 {
+		content = "No files found for your pattern"
+	} else {
+		if val, err := url.QueryUnescape(did); err == nil {
+			did = val
+		}
+		if val, err := url.QueryUnescape(pat); err == nil {
+			pat = val
+		}
+		content = fmt.Sprintf("%s<h2>DID: %s</h2><h4>Files for pattern: %s</h4>", content, did, pat)
+		for _, f := range files {
+			content = fmt.Sprintf("%s\n<br/>%s", content, f)
+		}
+	}
+	content += "</article></section>"
+	c.Writer.Write([]byte(header() + content + footerEmpty()))
+}
+
 // DataManagementHandler provides access to GET /dm end-point
 func DataManagementHandler(c *gin.Context) {
 	// check if user cookie is set, this is necessary as we do not

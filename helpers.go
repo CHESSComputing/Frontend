@@ -29,9 +29,13 @@ import (
 //
 
 // helper function to provide error page
-func handleError(c *gin.Context, status int, msg string, err error) {
+func handleError(c *gin.Context, code int, msg string, err error) {
 	page := server.ErrorPage(StaticFs, msg, err)
-	c.Data(status, "text/html; charset=utf-8", []byte(header()+page+footer()))
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(code, gin.H{"error": err.Error(), "message": msg, "code": code})
+		return
+	}
+	c.Data(code, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // helper function to provides error template message
