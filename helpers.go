@@ -105,7 +105,14 @@ func records2html(user string, records []map[string]any) string {
 			tmpl["DoiLink"] = doiLink
 		}
 		tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", url.QueryEscape(recValue(rec, "did")))
-		tmpl["DMLink"] = fmt.Sprintf("/dm?did=%s", recValue(rec, "did"))
+
+		// look for data location attributes, if found create Data Management link
+		for _, loc := range srvConfig.Config.CHESSMetaData.DataLocationAttributes {
+			if _, ok := rec[loc]; ok {
+				tmpl["DMLink"] = fmt.Sprintf("/dm?did=%s", recValue(rec, "did"))
+				break
+			}
+		}
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
 	}
