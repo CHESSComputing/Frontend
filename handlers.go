@@ -894,7 +894,9 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	attrs := srvConfig.Config.DID.Attributes
 	sep := srvConfig.Config.DID.Separator
 	div := srvConfig.Config.DID.Divider
-	if _, ok := rec["did"]; !ok {
+	val, _ := rec["did"]
+	recDid := fmt.Sprintf("%v", val)
+	if recDid == "" {
 		did := utils.CreateDID(rec, attrs, sep, div)
 		rec["did"] = did
 	}
