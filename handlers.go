@@ -241,6 +241,15 @@ func ServicesHandler(c *gin.Context) {
 
 // DocsHandler provides access to GET /docs end-point
 func DocsHandler(c *gin.Context) {
+	if srvConfig.Config.Frontend.DocUrl != "" {
+		c.Redirect(http.StatusFound, srvConfig.Config.Frontend.DocUrl)
+		return
+	}
+	DocsLocalHandler(c)
+}
+
+// DocsLocalHandler provides access to GET /docs end-point
+func DocsLocalHandler(c *gin.Context) {
 	// check if user cookie is set, this is necessary as we do not
 	// use authorization handler for /docs end-point
 	tmpl := server.MakeTmpl(StaticFs, "Documentation")
