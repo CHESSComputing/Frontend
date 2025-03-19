@@ -98,11 +98,14 @@ func records2html(user string, records []map[string]any) string {
 		if val, ok := rec["globus_link"]; ok {
 			tmpl["GlobusLink"] = fmt.Sprintf("%v", val)
 		}
-		if doi, ok := rec["doi"]; ok {
-			tmpl["Doi"] = doi
+		if val, ok := rec["doi"]; ok {
+			tmpl["Doi"] = val
 		}
-		if doiLink, ok := rec["doi_url"]; ok {
-			tmpl["DoiLink"] = doiLink
+		if val, ok := rec["schema"]; ok {
+			tmpl["Schema"] = val
+		}
+		if val, ok := rec["doi_url"]; ok {
+			tmpl["DoiLink"] = val
 		}
 		tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", url.QueryEscape(recValue(rec, "did")))
 
