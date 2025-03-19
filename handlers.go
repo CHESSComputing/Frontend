@@ -1253,6 +1253,7 @@ func PublishHandler(c *gin.Context) {
 	did := r.FormValue("did")
 	provider := r.FormValue("provider")
 	description := r.FormValue("description")
+	schema := r.FormValue("schema")
 
 	// publish our dataset
 	doi, doiLink, err := publishDataset(user, provider, did, description)
@@ -1266,7 +1267,7 @@ func PublishHandler(c *gin.Context) {
 		content = fmt.Sprintf("ERROR: fail to publish did=%s, error=%v", did, err)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(user, did, doi, doiLink)
+		err = updateMetaDataDOI(user, did, schema, doi, doiLink)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
@@ -1296,11 +1297,13 @@ func PublishFormHandler(c *gin.Context) {
 	w := c.Writer
 	// get beamline value from the form
 	did := r.FormValue("did")
+	schema := r.FormValue("schema")
 	tmpl := server.MakeTmpl(StaticFs, "Login")
 	base := srvConfig.Config.Frontend.WebServer.Base
 	tmpl["Base"] = base
 	tmpl["Did"] = did
 	tmpl["User"] = user
+	tmpl["Schema"] = schema
 	page := server.TmplPage(StaticFs, "publishform.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))
 }
