@@ -100,17 +100,9 @@ func publishDataset(user, provider, did, description string) (string, string, er
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
-func updateMetaDataDOI(user, did, doi, doiLink string) error {
+func updateMetaDataDOI(user, did, schema, doi, doiLink string) error {
 	var err error
 
-	// extract schema from did
-	var schema string
-	for _, part := range strings.Split(did, "/") {
-		if strings.HasPrefix(part, "beamline=") {
-			schema = strings.Replace(part, "beamline=", "", -1)
-			break
-		}
-	}
 	if strings.Contains(schema, ",") {
 		msg := fmt.Sprintf("unsupported did=%s with multiple schemas %s for MetaData update", did, schema)
 		return errors.New(msg)
