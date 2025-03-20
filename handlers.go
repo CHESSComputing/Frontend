@@ -1254,9 +1254,14 @@ func PublishHandler(c *gin.Context) {
 	provider := r.FormValue("provider")
 	description := r.FormValue("description")
 	schema := r.FormValue("schema")
+	draft := r.FormValue("draft")
+	publish := false
+	if draft != "checked" {
+		publish = true
+	}
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(user, provider, did, description)
+	doi, doiLink, err := publishDataset(user, provider, did, description, publish)
 	if Verbose > 0 {
 		log.Printf("### publish did=%s provider=%s doi=%s doiLink=%s error=%v", did, provider, doi, doiLink, err)
 	}
