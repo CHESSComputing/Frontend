@@ -1265,18 +1265,18 @@ func PublishHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Printf("### publish did=%s provider=%s doi=%s doiLink=%s error=%v", did, provider, doi, doiLink, err)
 	}
-	content := fmt.Sprintf("SUCCESS: did=%s is published with doi=%s URL=%s Please note: it will take some time for DOI record to appear", did, doi, doiLink)
+	content := fmt.Sprintf("SUCCESS:<br/>did=%s<br/>is published with<br/>doi=%s URL=%s<br/>Please note: it will take some time for DOI record to appear", did, doi, doiLink)
 	if err != nil {
 		template = "error.tmpl"
 		httpCode = http.StatusBadRequest
-		content = fmt.Sprintf("ERROR: fail to publish did=%s, error=%v", did, err)
+		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>did=%s<br/>error=%v", did, err)
 	} else {
 		// update metadata with DOI information
 		err = updateMetaDataDOI(user, did, schema, doi, doiLink)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
-			content = fmt.Sprintf("ERROR: fail to update MetaData DOI for did=%s, error=%v", did, err)
+			content = fmt.Sprintf("ERROR:<br/>fail to update MetaData DOI for<br/>did=%s<br/>error=%v", did, err)
 		}
 	}
 	rec := services.Response("PublicationService", httpCode, srvCode, err)
