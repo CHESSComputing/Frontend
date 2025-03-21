@@ -22,19 +22,16 @@
             <option value="DataCite">DataCite</option>
         </select>
     </div>
-    <div class="form-item">
-        <label>Dataset description</label>
-        <textarea class="input" rows="6" id="description" name="description"></textarea>
+    <div class="form-item alert alert-info">
+        <input type="checkbox" checked="checked" id="draft" name="draft">
+        <span>Create draft DOI</span>
+        &nbsp; | &nbsp;
+        <input type="checkbox" checked="" id="metadata" name="metadata">
+        <span>Publish meta-data</span>
     </div>
     <div class="form-item">
-        <div class="grid">
-          <div class="column-1">
-            <input type="checkbox" checked="checked" id="draft" name="draf">
-          </div>
-          <div class="column-11">
-            <label>Create draft DOI</label>
-          </div>
-        </div>
+        <label>Dataset description</label>
+        <textarea class="input" rows="3" id="description" name="description"></textarea>
     </div>
     <div class="form-item">
         <button class="button button-small button-dark">Publish</button>
