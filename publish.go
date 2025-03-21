@@ -64,7 +64,7 @@ func getMetaData(user, did string) (map[string]any, error) {
 }
 
 // helper function to publish did with given provider
-func publishDataset(user, provider, did, description string, publish bool) (string, string, error) {
+func publishDataset(user, provider, did, description string, publish, writeMeta bool) (string, string, error) {
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
@@ -96,6 +96,11 @@ func publishDataset(user, provider, did, description string, publish bool) (stri
 		msg := fmt.Sprintf("Provider '%s' is not supported", provider)
 		err = errors.New(msg)
 	}
+	if err != nil {
+		log.Printf("ERROR: unable to publish did=%s provider=%s error=%v", did, p, err)
+		return doi, doiLink, err
+	}
+	err = srvDoi.CreateEntry(doi, record, writeMeta)
 	return doi, doiLink, err
 }
 
@@ -145,7 +150,7 @@ func updateMetaDataDOI(user, did, schema, doi, doiLink string) error {
 		// prepare http writer
 		_httpWriteRequest.GetToken()
 
-		// place request to MetaData service
+		// place request to MetaData service to update record with doi info
 		rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
 		data, err := json.Marshal(mrec)
 		if err != nil {
