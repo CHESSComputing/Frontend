@@ -54,13 +54,19 @@ func getMetaData(user, did string) (map[string]any, error) {
 		return rec, errors.New("wrong number of records")
 	}
 	rec = records[0]
-
-	// check if doi link is not present in a record
-	if val, ok := rec["doi"]; ok {
-		msg := fmt.Sprintf("Record with did=%s has already DOI: %s", did, val)
-		return rec, errors.New(msg)
-	}
 	return rec, nil
+}
+
+// helper function to update DOI service info
+func updateDOIService(user, did, doi, description string, writeMeta bool) error {
+	// get meta-data record associated with did
+	record, err := getMetaData(user, did)
+	if err != nil {
+		log.Println("ERROR: unable to find meta-data record", err)
+		return err
+	}
+	err = srvDoi.CreateEntry(doi, record, description, writeMeta)
+	return err
 }
 
 // helper function to publish did with given provider
@@ -72,6 +78,12 @@ func publishDataset(user, provider, did, description string, publish, writeMeta 
 		return "", "", err
 	}
 
+	if val, ok := record["doi"]; ok {
+		if fmt.Sprintf("%v", val) != "" {
+			msg := fmt.Sprintf("Record with did=%s has already DOI: %s", did, val)
+			return "", "", errors.New(msg)
+		}
+	}
 	p := strings.ToLower(provider)
 	var doi, doiLink string
 	if p == "zenodo" {
@@ -100,7 +112,6 @@ func publishDataset(user, provider, did, description string, publish, writeMeta 
 		log.Printf("ERROR: unable to publish did=%s provider=%s error=%v", did, p, err)
 		return doi, doiLink, err
 	}
-	err = srvDoi.CreateEntry(doi, record, writeMeta)
 	return doi, doiLink, err
 }
 
