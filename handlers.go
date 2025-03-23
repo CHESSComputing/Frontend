@@ -1282,6 +1282,17 @@ func PublishHandler(c *gin.Context) {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
 			content = fmt.Sprintf("ERROR:<br/>fail to update MetaData DOI for<br/>did=%s<br/>error=%v", did, err)
+		} else {
+			// update DOI service
+			if Verbose > 0 {
+				log.Println("### updateDOIService", user, did, doi)
+			}
+			err = updateDOIService(user, did, doi, description, writeMeta)
+			if err != nil {
+				template = "error.tmpl"
+				httpCode = http.StatusBadRequest
+				content = fmt.Sprintf("ERROR:<br/>fail to update DOIService for<br/>did=%s<br/>error=%v", did, err)
+			}
 		}
 	}
 	rec := services.Response("PublicationService", httpCode, srvCode, err)
