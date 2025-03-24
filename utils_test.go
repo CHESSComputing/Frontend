@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
@@ -84,7 +85,10 @@ func TestFinalBtrs(t *testing.T) {
 
 // TestUpdateSpec tests updateSpec function
 func TestUpdateSpec(t *testing.T) {
-	srvConfig.Init()
+	config := os.Getenv("FOXDEN_CONFIG")
+	if cobj, err := srvConfig.ParseConfig(config); err == nil {
+		srvConfig.Config = &cobj
+	}
 	tests := []struct {
 		name     string
 		ispec    map[string]any
