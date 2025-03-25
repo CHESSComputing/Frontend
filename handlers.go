@@ -1256,9 +1256,9 @@ func PublishHandler(c *gin.Context) {
 	schema := r.FormValue("schema")
 	draft := r.FormValue("draft")
 	metadata := r.FormValue("metadata")
-	publish := false
+	doiPublic := false
 	if draft == "" {
-		publish = true
+		doiPublic = true
 	}
 	writeMeta := false
 	if metadata != "" {
@@ -1266,7 +1266,7 @@ func PublishHandler(c *gin.Context) {
 	}
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(user, provider, did, description, publish, writeMeta)
+	doi, doiLink, err := publishDataset(user, provider, did, description, doiPublic, writeMeta)
 	if Verbose > 0 {
 		log.Printf("### publish did=%s provider=%s doi=%s doiLink=%s error=%v", did, provider, doi, doiLink, err)
 	}
@@ -1277,7 +1277,7 @@ func PublishHandler(c *gin.Context) {
 		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>did=%s<br/>error=%v", did, err)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(user, did, schema, doi, doiLink)
+		err = updateMetaDataDOI(user, did, schema, doi, doiLink, doiPublic)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest

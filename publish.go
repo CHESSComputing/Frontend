@@ -70,7 +70,7 @@ func updateDOIService(user, did, doi, description string, writeMeta bool) error 
 }
 
 // helper function to publish did with given provider
-func publishDataset(user, provider, did, description string, publish, writeMeta bool) (string, string, error) {
+func publishDataset(user, provider, did, description string, doiPublic, writeMeta bool) (string, string, error) {
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
@@ -91,19 +91,19 @@ func publishDataset(user, provider, did, description string, publish, writeMeta 
 			zenodoDoi = &srvDoi.ZenodoProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
 		}
 		zenodoDoi.Init()
-		doi, doiLink, err = zenodoDoi.Publish(did, description, record, publish)
+		doi, doiLink, err = zenodoDoi.Publish(did, description, record, doiPublic)
 	} else if p == "materialscommons" {
 		if mcDoi == nil {
 			mcDoi = &srvDoi.MCProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
 		}
 		mcDoi.Init()
-		doi, doiLink, err = mcDoi.Publish(did, description, record, publish)
+		doi, doiLink, err = mcDoi.Publish(did, description, record, doiPublic)
 	} else if p == "datacite" {
 		if dataciteDoi == nil {
 			dataciteDoi = &srvDoi.DataciteProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
 		}
 		dataciteDoi.Init()
-		doi, doiLink, err = dataciteDoi.Publish(did, description, record, publish)
+		doi, doiLink, err = dataciteDoi.Publish(did, description, record, doiPublic)
 	} else {
 		msg := fmt.Sprintf("Provider '%s' is not supported", provider)
 		err = errors.New(msg)
@@ -116,7 +116,7 @@ func publishDataset(user, provider, did, description string, publish, writeMeta 
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
-func updateMetaDataDOI(user, did, schema, doi, doiLink string) error {
+func updateMetaDataDOI(user, did, schema, doi, doiLink string, doiPublic bool) error {
 	var err error
 
 	if strings.Contains(schema, ",") {
@@ -153,6 +153,7 @@ func updateMetaDataDOI(user, did, schema, doi, doiLink string) error {
 		rec["doi"] = doi
 		rec["doi_url"] = doiLink
 		rec["doi_user"] = user
+		rec["doi_public"] = doiPublic
 		rec["doi_created_at"] = time.Now().Format(time.RFC3339)
 
 		// create meta-data record for update

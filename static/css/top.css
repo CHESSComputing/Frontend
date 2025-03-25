@@ -277,3 +277,14 @@ footer {
 }
 .attributeCheckbox {
 }
+.doiPublic {
+  background-color: #0096FF;
+  color: white;
+  padding: 1px;
+  font-weight: 700;
+}
+.doiDraft {
+  background-color: #CBC9A8;
+  padding: 1px;
+  font-weight: 700;
+}

@@ -107,6 +107,9 @@ func records2html(user string, records []map[string]any) string {
 		if val, ok := rec["doi_url"]; ok {
 			tmpl["DoiLink"] = val
 		}
+		if val, ok := rec["doi_public"]; ok {
+			tmpl["DoiPublic"] = val
+		}
 		tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", url.QueryEscape(recValue(rec, "did")))
 
 		// look for data location attributes, if found create Data Management link
