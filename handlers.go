@@ -1298,6 +1298,7 @@ func PublishHandler(c *gin.Context) {
 	rec := services.Response("PublicationService", httpCode, srvCode, err)
 	if r.Header.Get("Accept") == "application/json" {
 		c.JSON(http.StatusBadRequest, rec)
+		return
 	} else {
 		tmpl["Content"] = content
 		page := server.TmplPage(StaticFs, template, tmpl)
