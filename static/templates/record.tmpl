@@ -44,11 +44,22 @@ Date: {{.TimeStamp}}
         <a href="javascript:SaveRecord('json-record-{{.Id}}')" class="button button-small">Save</a>
     </div>
     <div class="column column-1">
+{{if and .DoiLink .Doi}}
+    {{if not .DoiPublic}}
+        <form class="form-content" method="post" action="{{.Base}}/makepublic">
+            <input type="hidden" name="did" value="{{.Did}}">
+            <input type="hidden" name="doi" value="{{.Doi}}">
+            <input type="hidden" name="doilink" value="{{.DoiLink}}">
+            <button class="button button-small button-primary">&rArr;&nbsp;Public</button>
+        </form>
+    {{end}}
+{{else}}
         <form class="form-content" method="post" action="{{.Base}}/publishform">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="schema" value="{{.Schema}}">
             <button class="button button-small button-dark">Publish</button>
         </form>
+{{end}}
     </div>
     <div class="column column-6">
     </div>
