@@ -1295,9 +1295,13 @@ func PublishHandler(c *gin.Context) {
 			}
 		}
 	}
-	rec := services.Response("PublicationService", httpCode, srvCode, err)
+	rec := services.Response("FrontendService", httpCode, srvCode, err)
 	if r.Header.Get("Accept") == "application/json" {
-		c.JSON(http.StatusBadRequest, rec)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, rec)
+		} else {
+			c.JSON(http.StatusOK, rec)
+		}
 		return
 	} else {
 		tmpl["Content"] = content
