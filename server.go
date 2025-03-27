@@ -87,6 +87,7 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "POST", Path: "/publish", Handler: PublishHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/publishform", Handler: PublishFormHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/populateform", Handler: UploadJsonHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/doipublic", Handler: DoiPublicHandler, Authorized: false},
 	}
 	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)
 
