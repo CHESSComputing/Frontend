@@ -76,7 +76,7 @@ func records2html(user string, records []map[string]any) string {
 	for _, rec := range records {
 		tmpl := server.MakeTmpl(StaticFs, "Record")
 		tmpl["User"] = user
-		tmpl["Id"] = recValue(rec, "_id")
+		tmpl["Id"] = recValue(rec, "did")
 		tmpl["Did"] = recValue(rec, "did")
 		tmpl["Cycle"] = recValue(rec, "cycle")
 		tmpl["Beamline"] = recValue(rec, "beamline")
