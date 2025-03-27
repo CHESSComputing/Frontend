@@ -46,11 +46,11 @@ Date: {{.TimeStamp}}
     <div class="column column-1">
 {{if and .DoiLink .Doi}}
     {{if not .DoiPublic}}
-        <form class="form-content" method="post" action="{{.Base}}/makepublic">
+        <form class="form-content" method="post" action="{{.Base}}/doipublic">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="doi" value="{{.Doi}}">
             <input type="hidden" name="doilink" value="{{.DoiLink}}">
-            <button class="button button-small button-primary">&rArr;&nbsp;Public</button>
+            <button class="button button-small button-primary">&#8658; &nbsp; Public DOI</button>
         </form>
     {{end}}
 {{else}}
