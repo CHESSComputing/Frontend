@@ -1334,6 +1334,11 @@ func PublishFormHandler(c *gin.Context) {
 	w.Write([]byte(header() + page + footer()))
 }
 
+// DoiPublicHandler handles publishing given DOI as public record
+func DoiPublicHandler(c *gin.Context) {
+	NotImplementedHandler(c)
+}
+
 // UploadJsonHandler handles upload of JSON record
 func UploadJsonHandler(c *gin.Context) {
 
