@@ -1275,6 +1275,10 @@ func PublishHandler(c *gin.Context) {
 		template = "error.tmpl"
 		httpCode = http.StatusBadRequest
 		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>did=%s<br/>error=%v", did, err)
+	} else if doi == "" || doiLink == "" {
+		template = "error.tmpl"
+		httpCode = http.StatusBadRequest
+		content = fmt.Sprintf("ERROR:<br/>unable to get DOI info for <br/>did=%s<br/> from %s DOI provider", did, provider)
 	} else {
 		// update metadata with DOI information
 		err = updateMetaDataDOI(user, did, schema, doi, doiLink, doiPublic)
