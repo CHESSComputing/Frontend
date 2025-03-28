@@ -1291,7 +1291,7 @@ func PublishHandler(c *gin.Context) {
 			if Verbose > 0 {
 				log.Println("### updateDOIService", user, did, doi)
 			}
-			err = updateDOIService(user, did, doi, description, writeMeta)
+			err = updateDOIService(user, did, doi, provider, description, writeMeta)
 			if err != nil {
 				template = "error.tmpl"
 				httpCode = http.StatusBadRequest

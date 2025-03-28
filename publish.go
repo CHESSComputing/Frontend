@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -58,14 +60,14 @@ func getMetaData(user, did string) (map[string]any, error) {
 }
 
 // helper function to update DOI service info
-func updateDOIService(user, did, doi, description string, writeMeta bool) error {
+func updateDOIService(user, did, doi, provider, description string, writeMeta bool) error {
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
 	if err != nil {
 		log.Println("ERROR: unable to find meta-data record", err)
 		return err
 	}
-	err = srvDoi.CreateEntry(doi, record, description, writeMeta)
+	err = srvDoi.CreateEntry(doi, provider, record, description, writeMeta)
 	return err
 }
 
@@ -192,4 +194,77 @@ func updateMetaDataDOI(user, did, schema, doi, doiLink string, doiPublic bool) e
 		}
 	}
 	return nil
+}
+
+// DOIRecord represents structure of public DOI attributes which will be written to DOI record
+type DOIRecord struct {
+	Doi      string `json:"doi"`
+	Provider string `json:"provider"`
+}
+
+// helper function to publish did with given provider
+func makePublicDOI(doi string) error {
+	// Create HTTP request to DOI service
+	data := url.Values{}
+	data.Set("doi", doi)
+	reqBody := strings.NewReader(data.Encode())
+	req, err := http.NewRequest("POST", srvConfig.Config.Services.DOIServiceURL, reqBody)
+	if err != nil {
+		log.Println("ERROR: unable to POST to DOIService", err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("ERROR: unable to perform HTTP request", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Read and print response
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("ERROR: unable to read response body", err)
+		return err
+	}
+	var records []DOIRecord
+	err = json.Unmarshal(body, &records)
+	if err != nil {
+		log.Println("ERROR: unable to unmarshal HTTP response", err)
+		return err
+	}
+	// we should receive single DOI record since we provider fully qualified DOI
+	if len(records) != 1 {
+		msg := "found multiple DOI records for single DOI"
+		log.Println("ERROR:", msg)
+		return errors.New(msg)
+	}
+	rec := records[0]
+
+	p := strings.ToLower(rec.Provider)
+	if p == "zenodo" {
+		if zenodoDoi == nil {
+			zenodoDoi = &srvDoi.ZenodoProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
+		zenodoDoi.Init()
+		err = zenodoDoi.MakePublic(doi)
+	} else if p == "materialscommons" {
+		if mcDoi == nil {
+			mcDoi = &srvDoi.MCProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
+		mcDoi.Init()
+		err = mcDoi.MakePublic(doi)
+	} else if p == "datacite" {
+		if dataciteDoi == nil {
+			dataciteDoi = &srvDoi.DataciteProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
+		dataciteDoi.Init()
+		err = dataciteDoi.MakePublic(doi)
+	} else {
+		msg := fmt.Sprintf("Provider '%s' is not supported", rec.Provider)
+		err = errors.New(msg)
+	}
+	return err
 }
