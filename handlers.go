@@ -1340,7 +1340,32 @@ func PublishFormHandler(c *gin.Context) {
 
 // DoiPublicHandler handles publishing given DOI as public record
 func DoiPublicHandler(c *gin.Context) {
-	NotImplementedHandler(c)
+	_, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	r := c.Request
+	w := c.Writer
+	doi := r.FormValue("doi")
+	tmpl := server.MakeTmpl(StaticFs, "Login")
+	template := "success.tmpl"
+	content := fmt.Sprintf("SUCCESS:<br/>doi=%s<br/>is published", doi)
+	err = makePublicDOI(doi)
+	if err != nil {
+		template = "error.tmpl"
+		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>DOI=%s<br/>error=%v", doi, err)
+	} else {
+		// if we successfully made public DOI we should update DOIService
+		err := updateDOIServiceRecord(doi, true)
+		if err != nil {
+			template = "error.tmpl"
+			content = fmt.Sprintf("ERROR:<br/>fail to update DOIService record<br/>DOI=%s<br/>error=%v", doi, err)
+		}
+	}
+	tmpl["Content"] = content
+	page := server.TmplPage(StaticFs, template, tmpl)
+	w.Write([]byte(header() + page + footer()))
 }
 
 // UploadJsonHandler handles upload of JSON record

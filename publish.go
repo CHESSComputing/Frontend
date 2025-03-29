@@ -208,7 +208,8 @@ func makePublicDOI(doi string) error {
 	data := url.Values{}
 	data.Set("doi", doi)
 	reqBody := strings.NewReader(data.Encode())
-	req, err := http.NewRequest("POST", srvConfig.Config.Services.DOIServiceURL, reqBody)
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DOIServiceURL)
+	req, err := http.NewRequest("POST", rurl, reqBody)
 	if err != nil {
 		log.Println("ERROR: unable to POST to DOIService", err)
 		return err
@@ -232,7 +233,7 @@ func makePublicDOI(doi string) error {
 	var records []DOIRecord
 	err = json.Unmarshal(body, &records)
 	if err != nil {
-		log.Println("ERROR: unable to unmarshal HTTP response", err)
+		log.Printf("ERROR: unable to unmarshal HTTP response %+v, error %v", string(body), err)
 		return err
 	}
 	// we should receive single DOI record since we provider fully qualified DOI
@@ -267,4 +268,36 @@ func makePublicDOI(doi string) error {
 		err = errors.New(msg)
 	}
 	return err
+}
+
+// helper function to update DOIService record
+func updateDOIServiceRecord(doi string, public bool) error {
+	// Create HTTP request to DOI service
+	data := make(map[string]any)
+	data["doi"] = doi
+	data["public"] = public
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Println("ERROR: unable to marshal data", err)
+		return err
+	}
+	rurl := fmt.Sprintf("%s/update", srvConfig.Config.Services.DOIServiceURL)
+	req, err := http.NewRequest("PUT", rurl, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Println("ERROR: unable to POST to DOIService", err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("ERROR: unable to perform HTTP request", err)
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+	return errors.New("unable to update DOI record")
 }
