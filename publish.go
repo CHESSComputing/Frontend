@@ -58,7 +58,7 @@ func getMetaData(user, did string) (map[string]any, error) {
 }
 
 // helper function to publish did with given provider
-func publishDataset(user, provider, did, description string, doiPublic, writeMeta bool) (string, string, error) {
+func publishDataset(user, provider, did, description string, doiPublic bool) (string, string, error) {
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
@@ -104,7 +104,7 @@ func publishDataset(user, provider, did, description string, doiPublic, writeMet
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
-func updateMetaDataDOI(user, did, schema, provider, doi, doiLink string, doiPublic bool) error {
+func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiPublic bool, doiAccessMetadata string) error {
 	var err error
 
 	if strings.Contains(schema, ",") {
@@ -142,8 +142,11 @@ func updateMetaDataDOI(user, did, schema, provider, doi, doiLink string, doiPubl
 		rec["doi_url"] = doiLink
 		rec["doi_user"] = user
 		rec["doi_public"] = doiPublic
-		rec["doi_provider"] = provider
+		rec["doi_provider"] = doiProvider
 		rec["doi_created_at"] = time.Now().Format(time.RFC3339)
+		if doiAccessMetadata == "on" {
+			rec["doi_access_metadata"] = true
+		}
 
 		// create meta-data record for update
 		mrec := services.MetaRecord{Schema: schema, Record: rec}

@@ -1251,24 +1251,20 @@ func PublishHandler(c *gin.Context) {
 
 	// parse input form data
 	did := r.FormValue("did")
-	provider := r.FormValue("doiprovider")
+	doiprovider := r.FormValue("doiprovider")
 	description := r.FormValue("description")
 	schema := r.FormValue("schema")
 	draft := r.FormValue("draft")
-	metadata := r.FormValue("metadata")
+	publishmetadata := r.FormValue("publishmetadata")
 	doiPublic := false
 	if draft == "" {
 		doiPublic = true
 	}
-	writeMeta := false
-	if metadata != "" {
-		writeMeta = true
-	}
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(user, provider, did, description, doiPublic, writeMeta)
+	doi, doiLink, err := publishDataset(user, doiprovider, did, description, doiPublic)
 	if Verbose > 0 {
-		log.Printf("### publish did=%s provider=%s doi=%s doiLink=%s error=%v", did, provider, doi, doiLink, err)
+		log.Printf("### publish did=%s doiprovider=%s doi=%s doiLink=%s error=%v", did, doiprovider, doi, doiLink, err)
 	}
 	content := fmt.Sprintf("SUCCESS:<br/>did=%s<br/>is published with<br/>doi=%s URL=%s<br/>Please note: it will take some time for DOI record to appear", did, doi, doiLink)
 	if err != nil {
@@ -1278,10 +1274,10 @@ func PublishHandler(c *gin.Context) {
 	} else if doi == "" || doiLink == "" {
 		template = "error.tmpl"
 		httpCode = http.StatusBadRequest
-		content = fmt.Sprintf("ERROR:<br/>unable to get DOI info for <br/>did=%s<br/> from %s DOI provider", did, provider)
+		content = fmt.Sprintf("ERROR:<br/>unable to get DOI info for <br/>did=%s<br/> from %s DOI provider", did, doiprovider)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(user, did, schema, provider, doi, doiLink, doiPublic)
+		err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, publishmetadata)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
@@ -1347,7 +1343,7 @@ func DoiPublicHandler(c *gin.Context) {
 
 	// update DOI info in MetaData service to make it public
 	doiPublic := true
-	err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic)
+	err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "")
 	if err != nil {
 		template = "error.tmpl"
 		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>DOI=%s<br/>error=%v", doi, err)
