@@ -52,17 +52,17 @@ Date: {{.TimeStamp}}
             <input type="hidden" name="doilink" value="{{.DoiLink}}">
             <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
             <input type="hidden" name="schema" value="{{.Schema}}">
-            <button class="button button-small custom-button-draft-public">Draft &#8658; Public</button>
+            <button class="button button-small custom-button-draft-public center width-200">Draft &#8658; Public</button>
         </form>
     {{else}}
-        <button class="button button-small custom-button-published-doi">&nbsp;Published DOI&nbsp;</button>
+        <button class="button button-small custom-button-published-doi center width-200">Published DOI</button>
     {{end}}
 {{else}}
         <form class="form-content" method="post" action="{{.Base}}/publishform">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="schema" value="{{.Schema}}">
             <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
-            <button class="button button-small custom-button-publish-doi">&nbsp; &nbsp; Create DOI &nbsp; &nbsp;</button>
+            <button class="button button-small custom-button-publish-doi center width-200">Create DOI</button>
         </form>
 {{end}}
     </div>
