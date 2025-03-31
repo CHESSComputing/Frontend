@@ -1281,22 +1281,11 @@ func PublishHandler(c *gin.Context) {
 		content = fmt.Sprintf("ERROR:<br/>unable to get DOI info for <br/>did=%s<br/> from %s DOI provider", did, provider)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(user, did, schema, doi, doiLink, doiPublic)
+		err = updateMetaDataDOI(user, did, schema, provider, doi, doiLink, doiPublic)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
 			content = fmt.Sprintf("ERROR:<br/>fail to update MetaData DOI for<br/>did=%s<br/>error=%v", did, err)
-		} else {
-			// update DOI service
-			if Verbose > 0 {
-				log.Println("### updateDOIService", user, did, doi)
-			}
-			err = updateDOIService(user, did, doi, provider, description, writeMeta)
-			if err != nil {
-				template = "error.tmpl"
-				httpCode = http.StatusBadRequest
-				content = fmt.Sprintf("ERROR:<br/>fail to update DOIService for<br/>did=%s<br/>error=%v", did, err)
-			}
 		}
 	}
 	rec := services.Response("FrontendService", httpCode, srvCode, err)
@@ -1340,7 +1329,7 @@ func PublishFormHandler(c *gin.Context) {
 
 // DoiPublicHandler handles publishing given DOI as public record
 func DoiPublicHandler(c *gin.Context) {
-	_, err := getUser(c)
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -1348,20 +1337,20 @@ func DoiPublicHandler(c *gin.Context) {
 	r := c.Request
 	w := c.Writer
 	doi := r.FormValue("doi")
+	did := r.FormValue("did")
+	doiLink := r.FormValue("doilink")
+	schema := r.FormValue("schema")
+	doiprovider := r.FormValue("doiprovider")
 	tmpl := server.MakeTmpl(StaticFs, "Login")
 	template := "success.tmpl"
 	content := fmt.Sprintf("SUCCESS:<br/>doi=%s<br/>is published", doi)
-	err = makePublicDOI(doi)
+
+	// update DOI info in MetaData service to make it public
+	doiPublic := true
+	err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic)
 	if err != nil {
 		template = "error.tmpl"
 		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>DOI=%s<br/>error=%v", doi, err)
-	} else {
-		// if we successfully made public DOI we should update DOIService
-		err := updateDOIServiceRecord(doi, true)
-		if err != nil {
-			template = "error.tmpl"
-			content = fmt.Sprintf("ERROR:<br/>fail to update DOIService record<br/>DOI=%s<br/>error=%v", doi, err)
-		}
 	}
 	tmpl["Content"] = content
 	page := server.TmplPage(StaticFs, template, tmpl)

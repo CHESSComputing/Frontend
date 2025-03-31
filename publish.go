@@ -6,10 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -59,18 +57,6 @@ func getMetaData(user, did string) (map[string]any, error) {
 	return rec, nil
 }
 
-// helper function to update DOI service info
-func updateDOIService(user, did, doi, provider, description string, writeMeta bool) error {
-	// get meta-data record associated with did
-	record, err := getMetaData(user, did)
-	if err != nil {
-		log.Println("ERROR: unable to find meta-data record", err)
-		return err
-	}
-	err = srvDoi.CreateEntry(doi, provider, record, description, writeMeta)
-	return err
-}
-
 // helper function to publish did with given provider
 func publishDataset(user, provider, did, description string, doiPublic, writeMeta bool) (string, string, error) {
 
@@ -118,7 +104,7 @@ func publishDataset(user, provider, did, description string, doiPublic, writeMet
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
-func updateMetaDataDOI(user, did, schema, doi, doiLink string, doiPublic bool) error {
+func updateMetaDataDOI(user, did, schema, provider, doi, doiLink string, doiPublic bool) error {
 	var err error
 
 	if strings.Contains(schema, ",") {
@@ -156,6 +142,7 @@ func updateMetaDataDOI(user, did, schema, doi, doiLink string, doiPublic bool) e
 		rec["doi_url"] = doiLink
 		rec["doi_user"] = user
 		rec["doi_public"] = doiPublic
+		rec["doi_provider"] = provider
 		rec["doi_created_at"] = time.Now().Format(time.RFC3339)
 
 		// create meta-data record for update
@@ -194,110 +181,4 @@ func updateMetaDataDOI(user, did, schema, doi, doiLink string, doiPublic bool) e
 		}
 	}
 	return nil
-}
-
-// DOIRecord represents structure of public DOI attributes which will be written to DOI record
-type DOIRecord struct {
-	Doi      string `json:"doi"`
-	Provider string `json:"provider"`
-}
-
-// helper function to publish did with given provider
-func makePublicDOI(doi string) error {
-	// Create HTTP request to DOI service
-	data := url.Values{}
-	data.Set("doi", doi)
-	reqBody := strings.NewReader(data.Encode())
-	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DOIServiceURL)
-	req, err := http.NewRequest("POST", rurl, reqBody)
-	if err != nil {
-		log.Println("ERROR: unable to POST to DOIService", err)
-		return err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println("ERROR: unable to perform HTTP request", err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Read and print response
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("ERROR: unable to read response body", err)
-		return err
-	}
-	var records []DOIRecord
-	err = json.Unmarshal(body, &records)
-	if err != nil {
-		log.Printf("ERROR: unable to unmarshal HTTP response %+v, error %v", string(body), err)
-		return err
-	}
-	// we should receive single DOI record since we provider fully qualified DOI
-	if len(records) != 1 {
-		msg := "found multiple DOI records for single DOI"
-		log.Println("ERROR:", msg)
-		return errors.New(msg)
-	}
-	rec := records[0]
-
-	p := strings.ToLower(rec.Provider)
-	if p == "zenodo" {
-		if zenodoDoi == nil {
-			zenodoDoi = &srvDoi.ZenodoProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
-		}
-		zenodoDoi.Init()
-		err = zenodoDoi.MakePublic(doi)
-	} else if p == "materialscommons" {
-		if mcDoi == nil {
-			mcDoi = &srvDoi.MCProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
-		}
-		mcDoi.Init()
-		err = mcDoi.MakePublic(doi)
-	} else if p == "datacite" {
-		if dataciteDoi == nil {
-			dataciteDoi = &srvDoi.DataciteProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
-		}
-		dataciteDoi.Init()
-		err = dataciteDoi.MakePublic(doi)
-	} else {
-		msg := fmt.Sprintf("Provider '%s' is not supported", rec.Provider)
-		err = errors.New(msg)
-	}
-	return err
-}
-
-// helper function to update DOIService record
-func updateDOIServiceRecord(doi string, public bool) error {
-	// Create HTTP request to DOI service
-	data := make(map[string]any)
-	data["doi"] = doi
-	data["public"] = public
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		log.Println("ERROR: unable to marshal data", err)
-		return err
-	}
-	rurl := fmt.Sprintf("%s/update", srvConfig.Config.Services.DOIServiceURL)
-	req, err := http.NewRequest("PUT", rurl, bytes.NewBuffer(jsonData))
-	if err != nil {
-		log.Println("ERROR: unable to POST to DOIService", err)
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println("ERROR: unable to perform HTTP request", err)
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusOK {
-		return nil
-	}
-	return errors.New("unable to update DOI record")
 }

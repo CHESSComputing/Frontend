@@ -50,6 +50,7 @@ Date: {{.TimeStamp}}
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="doi" value="{{.Doi}}">
             <input type="hidden" name="doilink" value="{{.DoiLink}}">
+            <input type="hidden" name="schema" value="{{.Schema}}">
             <button class="button button-small button-round custom-button">Draft &#8658; Public</button>
         </form>
     {{end}}
@@ -57,6 +58,7 @@ Date: {{.TimeStamp}}
         <form class="form-content" method="post" action="{{.Base}}/publishform">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="schema" value="{{.Schema}}">
+            <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
             <button class="button button-small button-dark">Publish</button>
         </form>
 {{end}}
