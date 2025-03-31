@@ -55,14 +55,14 @@ Date: {{.TimeStamp}}
             <button class="button button-small custom-button-draft-public">Draft &#8658; Public</button>
         </form>
     {{else}}
-        <button class="button button-small custom-button-published-doi">Published DOI &nbsp;</button>
+        <button class="button button-small custom-button-published-doi">&nbsp;Published DOI&nbsp;</button>
     {{end}}
 {{else}}
         <form class="form-content" method="post" action="{{.Base}}/publishform">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="schema" value="{{.Schema}}">
             <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
-            <button class="button button-small custom-button-publish-doi">&nbsp; &nbsp; Publish DOI &nbsp;&nbsp;</button>
+            <button class="button button-small custom-button-publish-doi">&nbsp; &nbsp; Create DOI &nbsp; &nbsp;</button>
         </form>
 {{end}}
     </div>
