@@ -1251,7 +1251,7 @@ func PublishHandler(c *gin.Context) {
 
 	// parse input form data
 	did := r.FormValue("did")
-	provider := r.FormValue("provider")
+	provider := r.FormValue("doiprovider")
 	description := r.FormValue("description")
 	schema := r.FormValue("schema")
 	draft := r.FormValue("draft")
