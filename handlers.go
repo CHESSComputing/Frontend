@@ -1266,7 +1266,7 @@ func PublishHandler(c *gin.Context) {
 	if Verbose > 0 {
 		log.Printf("### publish did=%s doiprovider=%s doi=%s doiLink=%s error=%v", did, doiprovider, doi, doiLink, err)
 	}
-	content := fmt.Sprintf("SUCCESS:<br/>did=%s<br/>is published with<br/>doi=%s URL=%s<br/>Please note: it will take some time for DOI record to appear", did, doi, doiLink)
+	content := fmt.Sprintf("SUCCESS:<br/><b>did=%s</b><br/>is published with<br/><b>DOI=%s</b><br/><b>URL=<a href=\"%s\">%s</a></b><br/>Please note: it will take some time for DOI record to appear", did, doi, doiLink, doiLink)
 	if err != nil {
 		template = "error.tmpl"
 		httpCode = http.StatusBadRequest
