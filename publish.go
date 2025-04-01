@@ -185,3 +185,32 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 	}
 	return nil
 }
+
+// helper function to make DOI public for given provider
+func makePublic(doi, provider string) error {
+	var err error
+	p := strings.ToLower(provider)
+	if p == "zenodo" {
+		if zenodoDoi == nil {
+			zenodoDoi = &srvDoi.ZenodoProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
+		zenodoDoi.Init()
+		err = zenodoDoi.MakePublic(doi)
+	} else if p == "materialscommons" {
+		if mcDoi == nil {
+			mcDoi = &srvDoi.MCProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
+		mcDoi.Init()
+		err = mcDoi.MakePublic(doi)
+	} else if p == "datacite" {
+		if dataciteDoi == nil {
+			dataciteDoi = &srvDoi.DataciteProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+		}
+		dataciteDoi.Init()
+		err = dataciteDoi.MakePublic(doi)
+	} else {
+		msg := fmt.Sprintf("Provider '%s' is not supported", provider)
+		err = errors.New(msg)
+	}
+	return err
+}

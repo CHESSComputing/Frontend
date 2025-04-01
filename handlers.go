@@ -1341,10 +1341,15 @@ func DoiPublicHandler(c *gin.Context) {
 	template := "success.tmpl"
 	content := fmt.Sprintf("SUCCESS:<br/>doi=%s<br/>is published", doi)
 
-	// update DOI info in MetaData service to make it public
-	doiPublic := true
-	err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "")
-	if err != nil {
+	// update dataset info in DOI provider
+	if err := makePublic(doi, doiprovider); err == nil {
+		// update DOI info in MetaData service to make it public
+		doiPublic := true
+		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, ""); err != nil {
+			template = "error.tmpl"
+			content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>DOI=%s<br/>error=%v", doi, err)
+		}
+	} else {
 		template = "error.tmpl"
 		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>DOI=%s<br/>error=%v", doi, err)
 	}
