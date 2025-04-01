@@ -1339,7 +1339,7 @@ func DoiPublicHandler(c *gin.Context) {
 	doiprovider := r.FormValue("doiprovider")
 	tmpl := server.MakeTmpl(StaticFs, "Login")
 	template := "success.tmpl"
-	content := fmt.Sprintf("SUCCESS:<br/>doi=%s<br/>is published", doi)
+	content := fmt.Sprintf("SUCCESS:<br/>doi=%s<br/>is published with %s as public DOI", doi, doiprovider)
 
 	// update dataset info in DOI provider
 	if err := makePublic(doi, doiprovider); err == nil {
