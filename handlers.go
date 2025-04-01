@@ -1347,11 +1347,11 @@ func DoiPublicHandler(c *gin.Context) {
 		doiPublic := true
 		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, ""); err != nil {
 			template = "error.tmpl"
-			content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>DOI=%s<br/>error=%v", doi, err)
+			content = fmt.Sprintf("ERROR:<br/>fail to update Metadata DOI information<br/>DOI=%s<br/>error=%v", doi, err)
 		}
 	} else {
 		template = "error.tmpl"
-		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>DOI=%s<br/>error=%v", doi, err)
+		content = fmt.Sprintf("ERROR:<br/>fail to create public DOI record<br/>DOI=%s<br/>error=%v", doi, err)
 	}
 	tmpl["Content"] = content
 	page := server.TmplPage(StaticFs, template, tmpl)
