@@ -235,6 +235,7 @@ func ServicesHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Home")
 	tmpl["MapClass"] = "hide"
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["DOIServiceUrl"] = srvConfig.Config.Services.DOIServiceURL
 	content := server.TmplPage(StaticFs, "services.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
