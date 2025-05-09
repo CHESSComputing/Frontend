@@ -1,0 +1,20 @@
+<button id="chat-button">💬 AI</button>
+
+<div id="chat-window">
+    <div id="chat-header">
+        <span>AI Assistant</span>
+        <span>
+            <span id="minimize-chat" class="chat-icon">&#x2212;</span>
+            <span id="close-chat" class="chat-icon">&#x2715;</span>
+        </span>
+    </div>
+    <div id="chat-messages">
+        <div class="chat-message bot">Hello, I am your AI assistance. Please put your question in the chat prompt.</div>
+    </div>
+    <div id="chat-input">
+        <input type="text" id="chat-user-input" placeholder="Type your message...">
+        <button id="send-chat">Send</button>
+    </div>
+</div>
+
+<script type="module" src="{{.Base}}/js/ai_chat.js"></script>

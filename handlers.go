@@ -606,6 +606,11 @@ func SearchHandler(c *gin.Context) {
 		}
 	}
 
+	// add AIChat into search page if it is presented within FOXDEN configuration
+	if srvConfig.Config.AIChat.Model != "" {
+		tmpl["AIChat"] = server.TmplPage(StaticFs, "ai_chat.tmpl", tmpl)
+	}
+
 	// if we got GET request it is /search web form without query request
 	if r.Method == "GET" && r.FormValue("query") == "" {
 		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
@@ -1441,4 +1446,41 @@ func UploadJsonHandler(c *gin.Context) {
 	tmpl["Form"] = template.HTML(strings.Join(forms, "\n"))
 	page := server.TmplPage(StaticFs, "metaforms.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))
+}
+
+/* DEVELOPMENT: AIChatHandler for assisting AI chat requests */
+
+// ChatRequest represents incoming JSON from frontend
+type ChatRequest struct {
+	Message string `json:"message"`
+}
+
+// ChatResponse represents outgoing JSON to frontend
+type ChatResponse struct {
+	Reply string `json:"reply"`
+}
+
+// AIChatHandler handles requests from AI assitance chat
+func AIChatHandler(c *gin.Context) {
+	_, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+
+	var req ChatRequest
+
+	// Bind JSON body to struct
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// Placeholder response — you will replace this with real AI logic later
+	resp, err := aichat(req.Message)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ChatResponse{Reply: err.Error()})
+	}
+
+	c.JSON(http.StatusOK, ChatResponse{Reply: resp})
 }
