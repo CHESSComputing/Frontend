@@ -1001,7 +1001,7 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// ProvInfoHandler provides access to GET /provinfo endpoint
+// ProvInfoHandler provides access to GET /info/provenance endpoint
 func ProvInfoHandler(c *gin.Context) {
 	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
@@ -1009,13 +1009,21 @@ func ProvInfoHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// SpecScansHandler provides access to GET /scanspecs endpoint
-// func SpecScansHandler(c *gin.Context) {
-//     tmpl := server.MakeTmpl(StaticFs, "SpecScans")
-//     tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-//     content := server.TmplPage(StaticFs, "specscans.tmpl", tmpl)
-//     c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
-// }
+// SpecScansInfoHandler provides access to GET /info/scanspecs endpoint
+func SpecScansInfoHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "SpecScans information")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "specscansinfo.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// DataManagementInfoHandler provides access to GET /info/datamanagement endpoint
+func DataManagementInfoHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "DataManagement information")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	content := server.TmplPage(StaticFs, "datamgtinfo.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
 
 // NotebookHandler provides access to GET /notebook endpoint
 func NotebookHandler(c *gin.Context) {
