@@ -5,7 +5,7 @@ go 1.24.3
 replace github.com/CHESSComputing/golib => ../golib
 
 require (
-	github.com/CHESSComputing/golib v0.0.0-00010101000000-000000000000
+	github.com/CHESSComputing/golib v0.7.5
 	github.com/gin-gonic/gin v1.10.1
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0
 )
