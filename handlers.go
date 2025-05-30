@@ -1492,3 +1492,67 @@ func AIChatHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, ChatResponse{Reply: resp})
 }
+
+// AmendFormHandler provides access to GET /amend endpoint
+func AmendFormHandler(c *gin.Context) {
+	w := c.Writer
+	tmpl := server.MakeTmpl(StaticFs, "Amend")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	did := c.Query("did")
+	// find meta-data record for provided did
+	record, err := findMetadataRecord(did)
+	if err != nil {
+		tmpl["Content"] = fmt.Sprintf("Unable to find metadata record for did=%s, error=%v", did, err)
+		page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
+		w.Write([]byte(header() + page + footer()))
+		return
+	}
+	// find meta-data record with did
+	tmpl["Base"] = base
+	tmpl["Did"] = did
+	if val, err := json.MarshalIndent(record, "", "  "); err == nil {
+		tmpl["Record"] = string(val)
+	} else {
+		tmpl["Record"] = record
+	}
+	content := server.TmplPage(StaticFs, "amend.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// AmendRecordHandler provides access to GET /amend endpoint
+func AmendRecordHandler(c *gin.Context) {
+	tmpl := server.MakeTmpl(StaticFs, "AmendForm")
+	r := c.Request
+	w := c.Writer
+	var err error
+	did := r.FormValue("did")
+	recStr := r.FormValue("record")
+	var rec map[string]any
+	content := fmt.Sprintf("Record %s is successfully updated", did)
+	if err := json.Unmarshal([]byte(recStr), &rec); err == nil {
+		// update meta-data record
+		err := updateMetadataRecord(did, rec)
+		if err != nil {
+			content = fmt.Sprintf("Record %s update fails with error=%v", did, err)
+		}
+	} else {
+		content = fmt.Sprintf("Record %s update fails with error=%v", did, err)
+	}
+
+	template := "success.tmpl"
+	httpCode := http.StatusOK
+	srvCode := services.OK
+	resp := services.Response("FrontendService", httpCode, srvCode, err)
+	if r.Header.Get("Accept") == "application/json" {
+		if err != nil {
+			c.JSON(http.StatusBadRequest, resp)
+		} else {
+			c.JSON(http.StatusOK, resp)
+		}
+		return
+	} else {
+		tmpl["Content"] = content
+		page := server.TmplPage(StaticFs, template, tmpl)
+		w.Write([]byte(header() + page + footer()))
+	}
+}
