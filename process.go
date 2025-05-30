@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -111,4 +112,70 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	// instead we'll use footerEmpty() function
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
 	// c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+}
+
+func findMetadataRecord(did string) (map[string]any, error) {
+	var record map[string]any
+	//query := fmt.Sprintf("{\"did\": \"%s\"}", did)
+	query := fmt.Sprintf("did:%s", did)
+	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{Query: query},
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		return record, errors.New(msg)
+	}
+	// obtain valid token for read request
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		return record, errors.New(msg)
+	}
+	// parse data records from meta-data service
+	var response services.ServiceResponse
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		msg := "unable to read response body"
+		return record, errors.New(msg)
+	}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		msg := "unable to unmarshal response"
+		return record, errors.New(msg)
+	}
+	records := response.Results.Records
+	if len(records) > 1 {
+		msg := fmt.Sprintf("multiple records found for did=%s, response=%+v", did, response)
+		return record, errors.New(msg)
+	} else if len(records) == 0 {
+		msg := fmt.Sprintf("no metadata record found for did=%s, response=%+v", did, response)
+		return record, errors.New(msg)
+	}
+	return records[0], nil
+}
+
+// helper function to update metadata record
+func updateMetadataRecord(did string, rec map[string]any) error {
+	// obtain valid token for write request
+	_httpWriteRequest.GetToken()
+	schema := recValue(rec, "schema")
+	mrec := services.MetaRecord{Schema: schema, Record: rec}
+	// serialize data record
+	data, err := json.Marshal(mrec)
+	if err != nil {
+		return err
+	}
+	// place request to Metadata service
+	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
+	_, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		return errors.New(msg)
+	}
+	return nil
 }
