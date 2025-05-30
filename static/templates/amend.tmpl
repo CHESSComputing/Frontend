@@ -1,0 +1,16 @@
+<section>
+    <article id="article">
+      <form class="form" action="{{.Base}}/amendrecord" method="post">
+        <h1 class="text-large">Metadata record</h1>
+          <div class="form-item">
+            <input class="hidden" type="text" value="{{.Did}}" id="did" name="did">
+          </div>
+          <div class="form-item">
+            <textarea id="record" name="record" rows="15" class="input column-9" required>{{.Record}}</textarea>
+          </div>
+          <div class="form-item">
+            <button class="button button-primary">Amend</button>
+          </div>
+      </form>
+    </article>
+</section>
