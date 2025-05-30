@@ -77,7 +77,11 @@ func records2html(user string, records []map[string]any) string {
 		tmpl := server.MakeTmpl(StaticFs, "Record")
 		tmpl["User"] = user
 		tmpl["Id"] = recValue(rec, "did")
-		tmpl["Did"] = recValue(rec, "did")
+		did := recValue(rec, "did")
+		tmpl["Did"] = did
+		if val, err := url.QueryUnescape(did); err == nil {
+			tmpl["DidEncoded"] = val
+		}
 		tmpl["Cycle"] = recValue(rec, "cycle")
 		tmpl["Beamline"] = recValue(rec, "beamline")
 		tmpl["Btr"] = recValue(rec, "btr")
