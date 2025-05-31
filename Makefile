@@ -8,6 +8,7 @@ all: golib build
 
 golib:
 	./get_golib.sh
+	ls -l ../golib | grep ^d | awk '{print $9}' | awk '{print "go get github.com/CHESSComputing/golib/"$1"@v0.7.7"}' | /bin/sh
 
 gorelease:
 	goreleaser release --snapshot --clean
