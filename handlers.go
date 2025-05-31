@@ -634,7 +634,7 @@ func SearchHandler(c *gin.Context) {
 	// proceed with processing the user query from web form
 	if query == "" {
 		query = "{}"
-		log.Println("WARNING: user %s used empty query, substitue to {}", user)
+		log.Printf("WARNING: user %s used empty query, substitue to {}\n", user)
 	}
 	dataTypes := []string{"STRING", "INT", "INTEGER", "FLOAT", "LIST", "BOOL"}
 	for _, key := range dataTypes {
