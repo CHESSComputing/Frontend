@@ -21,6 +21,21 @@ jobs:
       with:
         go-version: '1.24'
 
+    - name: Get golib
+      run: |
+        ./get_golib.sh
+
+    - name: Check dependencies
+      run: |
+        cd ../golib
+        lastTag=$(git tag --list | tail -1)
+        echo "lastTag=$lastTag"
+        cd -
+
+        for pkg in $(ls -l ../golib | grep ^d | awk '{print $9}'); do
+          echo "go get github.com/CHESSComputing/golib/$pkg@$lastTag"
+        done | /bin/sh
+
     - name: Build
       run: make
 
