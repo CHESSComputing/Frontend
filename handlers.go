@@ -633,9 +633,8 @@ func SearchHandler(c *gin.Context) {
 	}
 	// proceed with processing the user query from web form
 	if query == "" {
-		msg := "Empty query"
-		handleError(c, http.StatusBadRequest, msg, err)
-		return
+		query = "{}"
+		log.Println("WARNING: user %s used empty query, substitue to {}", user)
 	}
 	dataTypes := []string{"STRING", "INT", "INTEGER", "FLOAT", "LIST", "BOOL"}
 	for _, key := range dataTypes {
