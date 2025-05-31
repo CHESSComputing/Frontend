@@ -116,11 +116,11 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 
 func findMetadataRecord(did string) (map[string]any, error) {
 	var record map[string]any
-	//query := fmt.Sprintf("{\"did\": \"%s\"}", did)
-	query := fmt.Sprintf("did:%s", did)
+	spec := make(map[string]any)
+	spec["did"] = did
 	rec := services.ServiceRequest{
 		Client:       "frontend",
-		ServiceQuery: services.ServiceQuery{Query: query},
+		ServiceQuery: services.ServiceQuery{Spec: spec},
 	}
 	data, err := json.Marshal(rec)
 	if err != nil {
@@ -129,33 +129,33 @@ func findMetadataRecord(did string) (map[string]any, error) {
 	}
 	// obtain valid token for read request
 	_httpReadRequest.GetToken()
-	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.MetaDataURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		msg := "unable to get meta-data from upstream server"
 		return record, errors.New(msg)
 	}
-	// parse data records from meta-data service
-	var response services.ServiceResponse
+	var records []map[string]any
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
+	log.Println("### data", string(data))
 	if err != nil {
 		msg := "unable to read response body"
 		return record, errors.New(msg)
 	}
-	err = json.Unmarshal(data, &response)
+	err = json.Unmarshal(data, &records)
 	if err != nil {
-		msg := "unable to unmarshal response"
+		msg := "unable to unmarshal response from Metadata service"
 		return record, errors.New(msg)
 	}
-	records := response.Results.Records
 	if len(records) > 1 {
-		msg := fmt.Sprintf("multiple records found for did=%s, response=%+v", did, response)
+		msg := fmt.Sprintf("multiple records found for did=%s, records=%+v", did, records)
 		return record, errors.New(msg)
 	} else if len(records) == 0 {
-		msg := fmt.Sprintf("no metadata record found for did=%s, response=%+v", did, response)
+		msg := fmt.Sprintf("no metadata record found for did=%s, records=%+v", did, records)
 		return record, errors.New(msg)
 	}
+
 	return records[0], nil
 }
 
