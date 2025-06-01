@@ -38,18 +38,6 @@ jobs:
 #         echo ${{ steps.branch_name.outputs.SOURCE_BRANCH }}
 #         echo ${{ steps.branch_name.outputs.SOURCE_TAG }}
 
-    - name: Check dependencies
-      run: |
-        ./get_golib.sh
-        cd ../golib
-        lastTag=$(git tag --list | tail -1)
-        echo "lastTag=$lastTag"
-        cd -
-
-        for pkg in $(ls -l ../golib | grep ^d | awk '{print $9}'); do
-          echo "go get github.com/CHESSComputing/golib/$pkg@$lastTag"
-        done | /bin/sh
-
     - name: Build
       env:
         GOPATH: /home/runner/go
