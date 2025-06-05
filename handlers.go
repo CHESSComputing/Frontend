@@ -706,6 +706,7 @@ func SearchHandler(c *gin.Context) {
 		ServiceQuery: services.ServiceQuery{Query: query, Idx: idx, Limit: limit, SortKeys: skeys, SortOrder: order},
 	}
 	// request only user's specific data (check user attributes)
+	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
 		attrs, err := chessAttributes(user)
 		if err == nil {
@@ -732,10 +733,11 @@ func SearchHandler(c *gin.Context) {
 					Limit:     limit,
 				},
 			}
+			btrs = attrs.Btrs
 		}
 	}
 	// based on user query process request from all FOXDEN services
-	processResults(c, rec, user, idx, limit)
+	processResults(c, rec, user, idx, limit, btrs)
 }
 
 // SpecScansHandler provides information about spec scan records

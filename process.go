@@ -35,7 +35,7 @@ func validJSON(query string) error {
 }
 
 // helper function to process service request
-func processResults(c *gin.Context, rec services.ServiceRequest, user string, idx, limit int) {
+func processResults(c *gin.Context, rec services.ServiceRequest, user string, idx, limit int, btrs []string) {
 	tmpl := server.MakeTmpl(StaticFs, "Search")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	log.Printf("service request record\n%s", rec.String())
@@ -104,7 +104,7 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	if rec.ServiceQuery.SortOrder == 1 {
 		sortOrder = "ascending"
 	}
-	pages := pagination(c, query, nrecords, idx, limit, sortKey, sortOrder)
+	pages := pagination(c, query, nrecords, idx, limit, sortKey, sortOrder, btrs)
 	tmpl["Pagination"] = template.HTML(pages)
 
 	page := server.TmplPage(StaticFs, "records.tmpl", tmpl)
