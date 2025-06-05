@@ -195,7 +195,7 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry, useCase string) map[stri
 		// this will restrict spec to btrs allowed by ldap entry btrs associated with user
 		if btrs, ok := ispec["btr"]; ok {
 			ispec["btr"] = map[string]any{"$in": finalBtrs(btrs, attrs.Btrs)}
-		} else {
+		} else if len(attrs.Btrs) != 0 {
 			ispec["btr"] = map[string]any{"$in": attrs.Btrs}
 		}
 		return ispec
