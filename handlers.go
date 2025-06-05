@@ -717,6 +717,12 @@ func SearchHandler(c *gin.Context) {
 				handleError(c, http.StatusBadRequest, msg, err)
 				return
 			}
+			// check user btrs and return error if user does not have any associations with Btrs
+			if len(attrs.Btrs) == 0 {
+				msg := fmt.Sprintf("User %s does not associated with any BTRs, search access is deined", user)
+				handleError(c, http.StatusBadRequest, msg, err)
+				return
+			}
 			// in search we only update spec with user's btrs
 			spec = updateSpec(spec, attrs, "search")
 			if data, err := json.Marshal(spec); err == nil {
