@@ -138,7 +138,6 @@ func findMetadataRecord(did string) (map[string]any, error) {
 	var records []map[string]any
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
-	log.Println("### data", string(data))
 	if err != nil {
 		msg := "unable to read response body"
 		return record, errors.New(msg)
@@ -172,9 +171,10 @@ func updateMetadataRecord(did string, rec map[string]any) error {
 	}
 	// place request to Metadata service
 	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
-	_, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		msg := "unable to get meta-data from upstream server"
+	resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil || resp.StatusCode != 200 {
+		msg := "unable to update metadata record in FOXDEN server"
+		log.Printf("ERROR: %s, response %+v, err %v", msg, resp, err)
 		return errors.New(msg)
 	}
 	return nil
