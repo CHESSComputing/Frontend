@@ -87,7 +87,7 @@ func getUser(c *gin.Context) (string, error) {
 	var user string
 	var err error
 	if srvConfig.Config.Frontend.TestMode {
-		user = "test"
+		user = "TestUser"
 	} else {
 		user, err = c.Cookie("user")
 	}
@@ -1535,18 +1535,23 @@ func AmendRecordHandler(c *gin.Context) {
 	did := r.FormValue("did")
 	recStr := r.FormValue("record")
 	var rec map[string]any
+	template := "success.tmpl"
 	content := fmt.Sprintf("Record %s is successfully updated", did)
+	status := http.StatusOK
 	if err := json.Unmarshal([]byte(recStr), &rec); err == nil {
 		// update meta-data record
 		err := updateMetadataRecord(did, rec)
 		if err != nil {
 			content = fmt.Sprintf("Record %s update fails with error=%v", did, err)
+			template = "error.tmpl"
+			status = http.StatusBadRequest
 		}
 	} else {
 		content = fmt.Sprintf("Record %s update fails with error=%v", did, err)
+		template = "error.tmpl"
+		status = http.StatusBadRequest
 	}
 
-	template := "success.tmpl"
 	httpCode := http.StatusOK
 	srvCode := services.OK
 	resp := services.Response("FrontendService", httpCode, srvCode, err)
@@ -1560,6 +1565,7 @@ func AmendRecordHandler(c *gin.Context) {
 	} else {
 		tmpl["Content"] = content
 		page := server.TmplPage(StaticFs, template, tmpl)
+		w.WriteHeader(status)
 		w.Write([]byte(header() + page + footer()))
 	}
 }
