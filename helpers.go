@@ -126,6 +126,10 @@ func records2html(user string, records []map[string]any) string {
 				break
 			}
 		}
+		if val, ok := rec["history"]; ok {
+			tmpl["RecordVersion"] = len(val.([]any)) + 1 // human counter, i.e. if one history record it is 2nd version
+		}
+
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
 	}
