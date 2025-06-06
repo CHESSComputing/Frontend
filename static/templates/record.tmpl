@@ -21,6 +21,9 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
     {{end}}
 {{end}}
 Date: {{.TimeStamp}}
+{{if .HistoryCount}}
+<span class="recVersion">version: {{.HistoryCount}}</span>
+{{end}}
 
 <div class="grid">
     <div class="column column-1">
