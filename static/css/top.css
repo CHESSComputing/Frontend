@@ -285,6 +285,12 @@ footer {
 }
 .doiDraft {
   background-color: #CBC9A8;
-  padding: 1px;
+  padding: 2px;
+  font-weight: 700;
+}
+.recVersion {
+  background-color: #009193;
+  color: white;
+  padding: 2px;
   font-weight: 700;
 }
