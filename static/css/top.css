@@ -294,3 +294,10 @@ footer {
   padding: 2px;
   font-weight: 700;
 }
+.add-btn {
+  margin-top: 0.5em;
+  display: inline-block;
+  cursor: pointer;
+  font-size: 1.2em;
+  color: green;
+}

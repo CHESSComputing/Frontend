@@ -1,0 +1,73 @@
+<h3>User metadata form</h3><br/>
+
+<fieldset id="User">
+<legend>User</legend>
+
+<div class="form-item">
+  <label class="hint hint-req">
+    Parent DID:
+    <input type="text" name="did" class="input column-9" placeholder="/beamline=bla/btr=foo/cycle=xyz/sample_name=abc"/>
+  </label>
+</div>
+
+<div class="form-item">
+  <label class="hint hint-req">
+    Application:
+    <input type="text" name="application" class="input column-9" placeholder="my-app"/>
+  </label>
+</div>
+
+<div class="form-item">
+  <label class="hint hint-req">
+    Input Files (one file per line):
+    <textarea name="input_files" class="input column-9" placeholder="file1.jpg
+file2.png
+file3.nxs"></textarea>
+  </label>
+</div>
+
+<div class="form-item">
+  <label class="hint hint-req">
+    Output Files (one file per line):
+    <textarea name="output_files" class="input column-9" placeholder="file1.jpg
+file2.png
+file3.nxs"></textarea>
+  </label>
+</div>
+
+<div class="form-item">
+  <label class="hint hint-req">Metadata (key:value pairs):</label>
+  <div id="meta-container">
+    <div class="meta-row grid">
+      <div class="column column-2">
+      <input class="input" type="text" name="meta_key[]" placeholder="Key" />
+      </div>
+      <div class="column column-10">
+      <input class="input" type="text" name="meta_value[]" placeholder="Value" />
+      </div>
+      </div>
+  </div>
+  <div class="add-btn" onclick="addMetaRow()">＋</div>
+</div>
+
+</fieldset>
+
+<script>
+  function addMetaRow() {
+    const container = document.getElementById("meta-container");
+    const row = document.createElement("div");
+    row.className = "meta-row";
+    row.innerHTML = `
+      <div class="meta-row grid">
+        <div class="column column-2">
+        <input class="input" type="text" name="meta_key[]" placeholder="Key" />
+        </div>
+        <div class="column column-10">
+        <input class="input" type="text" name="meta_value[]" placeholder="Value" />
+        </div>
+        </div>
+    </div>
+    `;
+    container.appendChild(row);
+  }
+</script>
