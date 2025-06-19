@@ -569,6 +569,48 @@ func ToolsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// RecordHandler provides access to GET /search endpoint
+func RecordHandler(c *gin.Context) {
+	r := c.Request
+	user, err := getUser(c)
+	log.Println("SearchHandler", user, err, c.Request.Method)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
+  spec := make(map[string]any)
+	spec["did"] = did
+	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{Spec: spec, Idx: 0, Limit: 1},
+	}
+	// request only user's specific data (check user attributes)
+	var btrs []string
+	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
+		attrs, err := chessAttributes(user)
+		if err == nil {
+			// check user btrs and return error if user does not have any associations with Btrs
+			if len(attrs.Btrs) == 0 {
+				msg := fmt.Sprintf("User %s does not associated with any BTRs, search access is deined", user)
+				handleError(c, http.StatusBadRequest, msg, err)
+				return
+			}
+			// in search we only update spec with user's btrs
+			spec = updateSpec(spec, attrs, "search")
+			rec = services.ServiceRequest{
+				Client: "frontend",
+				ServiceQuery: services.ServiceQuery{Spec: spec},
+			}
+			btrs = attrs.Btrs
+		}
+	}
+	// based on user query process request from all FOXDEN services
+	idx := 0
+	limit := 1
+	processResults(c, rec, user, idx, limit, btrs)
+}
+
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	r := c.Request
