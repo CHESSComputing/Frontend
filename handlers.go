@@ -103,6 +103,18 @@ func KAuthHandler(c *gin.Context) {
 	// get http request/writer
 	w := c.Writer
 	r := c.Request
+	redirectTo := c.GetHeader("Referer")
+	if redirectTo == "" {
+		redirectTo = DEFAULT_END_POINT
+	}
+	if Verbose > 1 {
+		for key, values := range c.Request.Header {
+			for _, value := range values {
+				log.Printf("Header: %s = %s\n", key, value)
+			}
+		}
+		log.Println("redirect HTTP request to:", redirectTo)
+	}
 
 	//     user, err := c.Cookie("user")
 	user, err := getUser(c)
@@ -156,7 +168,7 @@ func KAuthHandler(c *gin.Context) {
 	cookie := http.Cookie{Name: "user", Value: name, Expires: expiration}
 	http.SetCookie(w, &cookie)
 	log.Println("KAuthHandler set cookie user", name)
-	c.Redirect(http.StatusFound, DEFAULT_END_POINT)
+	c.Redirect(http.StatusFound, redirectTo)
 }
 
 // MainHandler provides access to GET / end-point
