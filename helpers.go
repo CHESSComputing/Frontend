@@ -560,3 +560,58 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 	log.Printf("ERROR: %s", msg)
 	return 0, errors.New(msg)
 }
+
+// helper function to retrieve files from web user record form
+func formFiles(val any) []string {
+	var out []string
+	switch files := val.(type) {
+	case []string:
+		for _, f := range files {
+			if strings.Contains(f, ",") {
+				for _, v := range strings.Split(f, ",") {
+					v = strings.Replace(v, "\n", "", -1)
+					v = strings.Replace(v, "\r", "", -1)
+					v = strings.Trim(v, " ")
+					out = append(out, v)
+				}
+			} else if strings.Contains(f, "\r") {
+				for _, v := range strings.Split(f, "\r") {
+					v = strings.Replace(v, "\n", "", -1)
+					v = strings.Replace(v, "\r", "", -1)
+					v = strings.Trim(v, " ")
+					out = append(out, v)
+				}
+			} else if strings.Contains(f, "\n") {
+				for _, v := range strings.Split(f, "\n") {
+					v = strings.Replace(v, "\n", "", -1)
+					v = strings.Replace(v, "\r", "", -1)
+					v = strings.Trim(v, " ")
+					out = append(out, v)
+				}
+			} else {
+				out = append(out, f)
+			}
+		}
+	}
+	return out
+}
+
+// helper function to extract beamline, btr, cycle, sample_name parts from did
+func extractParts(did string) (string, string, string, string) {
+	var beamline, btr, cycle, sample_name string
+	for _, part := range strings.Split(did, "/") {
+		if strings.HasPrefix(part, "beamline=") {
+			beamline = strings.Replace(part, "beamline=", "", -1)
+		}
+		if strings.HasPrefix(part, "btr=") {
+			btr = strings.Replace(part, "btr=", "", -1)
+		}
+		if strings.HasPrefix(part, "cycle=") {
+			cycle = strings.Replace(part, "cycle=", "", -1)
+		}
+		if strings.HasPrefix(part, "sample_name=") {
+			sample_name = strings.Replace(part, "sample_name=", "", -1)
+		}
+	}
+	return beamline, btr, cycle, sample_name
+}
