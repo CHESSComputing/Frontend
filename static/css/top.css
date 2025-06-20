@@ -27,6 +27,11 @@ header {
 .white {
   color: white;
 }
+.important {
+  color: #009193;
+  font-size: 1.0em;
+  font-weight: 700;
+}
 .margin-10 {
     margin-top: 10px;
 }
@@ -207,11 +212,19 @@ footer {
 }
 
 .srv-advance {
-    background-color: #F4BD8A;
+  border: 0px;
+  padding: 10px;
+  /*
+  background-color: #F4BD8A;
+  */
 }
 
 .srv-fair {
-    background-color: #F4E1D0;
+  border: 0px;
+  padding: 10px;
+  /*
+  background-color: #F4E1D0;
+  */
 }
 /*.sort-container {*/
 /*    display: flex;*/
