@@ -4,6 +4,13 @@
 <legend>User</legend>
 
 <div class="form-item">
+  <label class="">
+    Dataset IDentifier (DID):
+    <input type="text" name="did" class="input column-9" placeholder="/beamline=bla/btr=foo/cycle=xyz/sample_name=abc"/>
+  </label>
+</div>
+
+<div class="form-item">
   <label class="hint hint-req">
     Parent DID:
     <input type="text" name="parent_did" class="input column-9" placeholder="/beamline=bla/btr=foo/cycle=xyz/sample_name=abc"/>
@@ -40,10 +47,10 @@ file3.nxs"></textarea>
   <div id="meta-container">
     <div class="meta-row grid">
       <div class="column column-2">
-      <input class="input" type="text" name="meta_key[]" placeholder="Key" />
+      <input class="input" type="text" name="user_keys" placeholder="Key" />
       </div>
       <div class="column column-10">
-      <input class="input" type="text" name="meta_value[]" placeholder="Value" />
+      <input class="input" type="text" name="user_values" placeholder="Value" />
       </div>
       </div>
   </div>
@@ -60,10 +67,10 @@ file3.nxs"></textarea>
     row.innerHTML = `
       <div class="meta-row grid">
         <div class="column column-2">
-        <input class="input" type="text" name="meta_key[]" placeholder="Key" />
+        <input class="input" type="text" name="user_keys" placeholder="Key" />
         </div>
         <div class="column column-10">
-        <input class="input" type="text" name="meta_value[]" placeholder="Value" />
+        <input class="input" type="text" name="user_values" placeholder="Value" />
         </div>
         </div>
     </div>
