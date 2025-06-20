@@ -579,7 +579,7 @@ func RecordHandler(c *gin.Context) {
 		return
 	}
 	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
-  spec := make(map[string]any)
+	spec := make(map[string]any)
 	spec["did"] = did
 	rec := services.ServiceRequest{
 		Client:       "frontend",
@@ -599,7 +599,7 @@ func RecordHandler(c *gin.Context) {
 			// in search we only update spec with user's btrs
 			spec = updateSpec(spec, attrs, "search")
 			rec = services.ServiceRequest{
-				Client: "frontend",
+				Client:       "frontend",
 				ServiceQuery: services.ServiceQuery{Spec: spec},
 			}
 			btrs = attrs.Btrs
@@ -990,7 +990,86 @@ func MetaFileUploadHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
 		return
 	}
-	MetaUploadHandler(c, rec)
+	if rec.Schema == "user" {
+		UserUploadHandler(c, rec)
+	} else {
+		MetaUploadHandler(c, rec)
+	}
+}
+
+// UserUploadHandler manages upload of record to Metadata service
+func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	tmpl := server.MakeTmpl(StaticFs, "Upload")
+	mrec.Record["user"] = user
+	if Verbose > 0 {
+		log.Printf("user record %+v", mrec)
+	}
+		log.Printf("### user record %+v", mrec)
+
+	// prepare http writer
+	_httpWriteRequest.GetToken()
+
+	// insert provenance record
+	rurl := fmt.Sprintf("%s/provenance", srvConfig.Config.Services.DataBookkeepingURL)
+	data, err := json.MarshalIndent(mrec.Record, "", "  ")
+	if err != nil {
+		content := errorTmpl(c, "unable to marshal provenance record, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		log.Printf("ERROR: fail to insert provenance record, %v", err)
+	}
+
+	// place request to MetaData service
+	rurl = fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
+	data, err = json.MarshalIndent(mrec, "", "  ")
+	if err != nil {
+		content := errorTmpl(c, "unable to marshal meta data record, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	tmpl["JsonRecord"] = template.HTML(string(data))
+	resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	class := "alert alert-success"
+	msg := fmt.Sprintf("Your meta-data is inserted successfully")
+	if err != nil {
+		class = "alert alert-error"
+		msg = fmt.Sprintf("meta-data request processing error: %v", err)
+	}
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		class = "alert alert-error"
+		msg = fmt.Sprintf("read response error: %v", err)
+	}
+
+	var sresp services.ServiceResponse
+	err = json.Unmarshal(data, &sresp)
+	if err != nil {
+		class = "alert alert-error"
+		msg = fmt.Sprintf("read response error: %v", err)
+	}
+	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
+		msg = fmt.Sprintf("<pre>%s<pre>", sresp.String())
+	}
+
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["User"] = user
+	tmpl["Date"] = time.Now().Unix()
+	tmpl["Schema"] = mrec.Schema
+	tmpl["Message"] = msg
+	tmpl["Status"] = sresp.Status
+	tmpl["Class"] = class
+	tmpl["ResponseRecord"] = template.HTML(sresp.JsonString())
+	content := server.TmplPage(StaticFs, "upload_status.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // MetaUploadHandler manages upload of record to MetaData service
