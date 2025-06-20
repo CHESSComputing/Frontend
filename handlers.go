@@ -919,10 +919,24 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	// r.PostForm provides url.Values which is map[string][]string type
 	// we convert it to Record
 	rec := make(map[string]any)
+	userMetadata := make(map[string]any)
+	var userKeys, userValues []string
 	for k, vals := range r.PostForm {
 		items := utils.UniqueFormValues(vals)
 		if Verbose > 0 {
 			log.Printf("### PostForm key=%s items=%v type(items)=%T", k, items, items)
+		}
+		if k == "user_keys" {
+			for _, k := range vals {
+				userKeys = append(userKeys, k)
+			}
+			continue
+		}
+		if k == "user_values" {
+			for _, k := range vals {
+				userValues = append(userValues, k)
+			}
+			continue
 		}
 		if k == "SchemaName" {
 			continue
@@ -966,6 +980,12 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	}
 	rec["user"] = user
 	rec["description"] = desc
+	if len(userKeys) != 0 && len(userValues) != 0 && len(userKeys) == len(userValues) {
+		for i := 0; i < len(userKeys); i++ {
+			userMetadata[userKeys[i]] = userValues[i]
+		}
+		rec["user_metadata"] = userMetadata
+	}
 	if Verbose > 0 {
 		log.Printf("process form, record %v\n", rec)
 	}
@@ -980,7 +1000,11 @@ func MetaFormUploadHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
 		return
 	}
-	MetaUploadHandler(c, rec)
+	if rec.Schema == "user" {
+		UserUploadHandler(c, rec)
+	} else {
+		MetaUploadHandler(c, rec)
+	}
 }
 
 // MetaFileUploadHandler provides access to GET /meta/file/upload endpoint
@@ -999,6 +1023,7 @@ func MetaFileUploadHandler(c *gin.Context) {
 
 // UserUploadHandler manages upload of record to Metadata service
 func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
+	class := "alert alert-success"
 	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
@@ -1009,7 +1034,21 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	if Verbose > 0 {
 		log.Printf("user record %+v", mrec)
 	}
-		log.Printf("### user record %+v", mrec)
+	var did string
+	if val, ok := mrec.Record["parent_did"]; ok {
+		tstamp := time.Now().Format("20060102_150405")
+		did = fmt.Sprintf("%s/user=%s:%s", val, user, tstamp)
+		mrec.Record["did"] = did
+	}
+	mrec.Record["beamline"], mrec.Record["btr"], mrec.Record["cycle"], mrec.Record["sample_name"] = extractParts(did)
+	if mrec.Record["btr"] == "" {
+		class = "alert alert-error"
+		content := errorTmpl(c, "unable to extrac btr from did of the record", nil)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	mrec.Record["input_files"] = formFiles(mrec.Record["input_files"])
+	mrec.Record["output_files"] = formFiles(mrec.Record["output_files"])
 
 	// prepare http writer
 	_httpWriteRequest.GetToken()
@@ -1018,26 +1057,30 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	rurl := fmt.Sprintf("%s/provenance", srvConfig.Config.Services.DataBookkeepingURL)
 	data, err := json.MarshalIndent(mrec.Record, "", "  ")
 	if err != nil {
+		class = "alert alert-error"
 		content := errorTmpl(c, "unable to marshal provenance record, error", err)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
 	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		log.Printf("ERROR: fail to insert provenance record, %v", err)
+		class = "alert alert-error"
+		content := errorTmpl(c, "unable to insert provenance record, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
 	}
 
 	// place request to MetaData service
 	rurl = fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
 	data, err = json.MarshalIndent(mrec, "", "  ")
 	if err != nil {
+		class = "alert alert-error"
 		content := errorTmpl(c, "unable to marshal meta data record, error", err)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
 	tmpl["JsonRecord"] = template.HTML(string(data))
 	resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
-	class := "alert alert-success"
 	msg := fmt.Sprintf("Your meta-data is inserted successfully")
 	if err != nil {
 		class = "alert alert-error"
@@ -1057,6 +1100,7 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 		msg = fmt.Sprintf("read response error: %v", err)
 	}
 	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
+		class = "alert alert-error"
 		msg = fmt.Sprintf("<pre>%s<pre>", sresp.String())
 	}
 
