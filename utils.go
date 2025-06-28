@@ -67,29 +67,6 @@ func columnNames(attrs []string) []string {
 	return out
 }
 
-// helper function to get CHESS user attributes
-func chessAttributes(user string) (ldap.Entry, error) {
-	var attrs ldap.Entry
-
-	// obtain valid token
-	_httpReadRequest.GetToken()
-
-	// make call to Authz server to obtain user attributes
-	rurl := fmt.Sprintf("%s/attrs?user=%s", srvConfig.Config.Services.AuthzURL, user)
-	resp, err := _httpReadRequest.Get(rurl)
-	if err != nil {
-		return attrs, err
-	}
-	// parse data records from meta-data service
-	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return attrs, err
-	}
-	err = json.Unmarshal(data, &attrs)
-	return attrs, err
-}
-
 // helper function to obtain chunk of records for given service request
 func numberOfRecords(rec services.ServiceRequest) (int, error) {
 	var total int

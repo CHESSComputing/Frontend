@@ -600,7 +600,7 @@ func RecordHandler(c *gin.Context) {
 	// request only user's specific data (check user attributes)
 	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		attrs, err := chessAttributes(user)
+		attrs, err := services.UserAttributes(user)
 		if err == nil {
 			// check user btrs and return error if user does not have any associations with Btrs
 			if len(attrs.Btrs) == 0 {
@@ -762,7 +762,7 @@ func SearchHandler(c *gin.Context) {
 	// request only user's specific data (check user attributes)
 	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		attrs, err := chessAttributes(user)
+		attrs, err := services.UserAttributes(user)
 		if err == nil {
 			var spec map[string]any
 			err := json.Unmarshal([]byte(query), &spec)
@@ -1347,7 +1347,7 @@ func DatasetsHandler(c *gin.Context) {
 	}
 	// request only user's specific data (check user attributes)
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		attrs, err := chessAttributes(user)
+		attrs, err := services.UserAttributes(user)
 		if err == nil {
 			// in filters use-case we update spec with filters
 			spec = updateSpec(spec, attrs, "filter")
@@ -1422,7 +1422,7 @@ func DatasetsTableHandler(c *gin.Context) {
 	tmpl["DataAttributes"] = strings.Join(attrs, ",")
 	tmpl["User"] = user
 	if user != "test" {
-		if attrs, err := chessAttributes(user); err == nil {
+		if attrs, err := services.UserAttributes(user); err == nil {
 			tmpl["Btrs"] = attrs.Btrs
 		}
 	}
