@@ -615,3 +615,13 @@ func extractParts(did string) (string, string, string, string) {
 	}
 	return beamline, btr, cycle, sample_name
 }
+
+// helper function to make provenance links from a links of given dids
+func makeProvenanceLinks(dids []string) []string {
+	var out []string
+	for _, did := range dids {
+		link := fmt.Sprintf("<a href=\"/record?did=%s\">%s</a>", did, did)
+		out = append(out, link)
+	}
+	return out
+}
