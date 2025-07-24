@@ -371,12 +371,12 @@ func ProvenanceHandler(c *gin.Context) {
 	tmpl["InputFiles"] = strings.Join(inputFiles, "\n")
 	tmpl["OutputFiles"] = strings.Join(outputFiles, "\n")
 	if len(parents) > 0 {
-		tmpl["Parents"] = strings.Join(parents, "\n")
+		tmpl["Parents"] = strings.Join(makeProvenanceLinks(parents), "<br/>")
 	} else {
 		tmpl["Parents"] = "Not available"
 	}
 	if len(children) > 0 {
-		tmpl["Children"] = strings.Join(children, "\n")
+		tmpl["Children"] = strings.Join(makeProvenanceLinks(children), "<br/>")
 	} else {
 		tmpl["Children"] = "Not available"
 	}
