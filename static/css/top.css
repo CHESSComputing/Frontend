@@ -314,3 +314,16 @@ footer {
   font-size: 1.2em;
   color: green;
 }
+.prov-link {
+  color: #0077cc;           /* blueish color */
+  text-decoration: none;    /* remove underline */
+  cursor: pointer;          /* pointer cursor on hover */
+  font-family: monospace;   /* use monospace font like <pre> */
+}
+.prov-link:visited {
+  color: #5a4ca1;           /* purple-ish for visited links */
+}
+.prov-link:hover {
+  color: #005fa3;           /* slightly darker blue on hover */
+  text-decoration: underline;
+}
