@@ -147,6 +147,11 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		if doiAccessMetadata == "on" {
 			rec["doi_access_metadata"] = true
 		}
+		// if we run our own DOI Service we need to use our permanent doiLink
+		if srvConfig.Config.DOIServiceURL != "" {
+			foxdenDoiLink := fmt.Sprintf("%s/doi/%s", srvConfig.Config.DOIServiceURL, doi)
+			rec["doi_foxden_url"] = foxdenDoiLink
+		}
 
 		// create meta-data record for update
 		mrec := services.MetaRecord{Schema: schema, Record: rec}

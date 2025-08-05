@@ -108,7 +108,12 @@ func records2html(user string, records []map[string]any) string {
 		if val, ok := rec["schema"]; ok {
 			tmpl["Schema"] = val
 		}
+		// first check if there is doi_url
 		if val, ok := rec["doi_url"]; ok {
+			tmpl["DoiLink"] = val
+		}
+		// then, check if we created foxden_doi_url and use it instead for web UI link
+		if val, ok := rec["doi_foxden_url"]; ok {
 			tmpl["DoiLink"] = val
 		}
 		if val, ok := rec["doi_public"]; ok {
