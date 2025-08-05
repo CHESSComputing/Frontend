@@ -930,6 +930,21 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	desc := ""
 	// r.PostForm provides url.Values which is map[string][]string type
 	// we convert it to Record
+	err = r.ParseMultipartForm(10 << 20) // 10 MB max memory
+	if err != nil {
+		log.Println("ERROR", err)
+		return mrec, err
+	}
+	/*
+		log.Println("######## PostForm", r.PostForm)
+		for key, vals := range r.MultipartForm.Value {
+			log.Printf("Form field: %s = %v", key, vals)
+		}
+		for key, files := range r.MultipartForm.File {
+			log.Printf("File field: %s = %v", key, files)
+		}
+	*/
+
 	rec := make(map[string]any)
 	userMetadata := make(map[string]any)
 	var userKeys, userValues []string
@@ -980,6 +995,21 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 		}
 		rec[k] = val
 	}
+
+	// parse user metafile if it is provided
+	files := r.MultipartForm.File["metadata"]
+	if len(files) == 1 {
+		uploadedFile := files[0]
+		file, err := uploadedFile.Open()
+		defer file.Close()
+		body, err := io.ReadAll(file)
+		if err == nil {
+			userMetadata["metadata"] = fmt.Sprintf("%v", string(body))
+		} else {
+			log.Printf("ERROR: unable to load metadata %v, error %v", fname, err)
+		}
+	}
+
 	// create did from the form upload
 	attrs := srvConfig.Config.DID.Attributes
 	sep := srvConfig.Config.DID.Separator
@@ -1033,7 +1063,7 @@ func MetaFileUploadHandler(c *gin.Context) {
 	}
 }
 
-// UserUploadHandler manages upload of record to Metadata service
+// UserUploadHandler manages upload of user record to Metadata service
 func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	class := "alert alert-success"
 	user, err := getUser(c)
