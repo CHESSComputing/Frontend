@@ -146,6 +146,8 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		rec["doi_created_at"] = time.Now().Format(time.RFC3339)
 		if doiAccessMetadata == "on" {
 			rec["doi_access_metadata"] = true
+		} else {
+			rec["doi_access_metadata"] = false
 		}
 		// if we run our own DOI Service we need to use our permanent doiLink
 		if srvConfig.Config.DOIServiceURL != "" {
