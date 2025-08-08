@@ -31,9 +31,8 @@
             <div>
                 <form class="form-content" method="post" action="{{.Base}}/meta/file/upload" enctype="multipart/form-data">
                 <h3>Upload metadata</h3>
-                <br/>
                 <div class="form-item">
-                    <label> Provide your metadata JSON recod to upload to FOXDEN </label>
+                    <label style="color:#4F8F00"> Provide your metadata to upload </label>
                     <input class="input" name="file" type="file">
                 </div>
                 <div class="form-item flex">
@@ -48,12 +47,13 @@
             </form>
             </div>
 
+            <hr/>
+
             <div>
                 <form class="form-content" method="post" action="{{.Base}}/populateform" enctype="multipart/form-data">
                 <h3>Fill web form</h3>
-                <br/>
                 <div class="form-item">
-                    <label> Provided JSON file will fill the web form </label>
+                    <label style="color:#4F8F00"> Provided JSON file will fill the web form </label>
                     <input class="input" name="file" type="file">
                 </div>
                 <div class="form-item flex">
