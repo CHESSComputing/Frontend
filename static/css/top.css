@@ -327,3 +327,5 @@ footer {
   color: #005fa3;           /* slightly darker blue on hover */
   text-decoration: underline;
 }
+.parent-list { list-style: none; padding: 0; }
+.parent-list li { margin: 5px 0; }
