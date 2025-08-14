@@ -53,6 +53,45 @@ func getData(api, did string) ([]map[string]any, error) {
 	return records, err
 }
 
+// helper function to get immediate parents for given did
+func getParents(did string) []string {
+	var parents []string
+	records, err := getData("parents", did)
+	if err != nil {
+		log.Printf("ERROR: unable to lookup parents for did=%s, error=%v", did, err)
+		return parents
+	}
+	for _, rec := range records {
+		if val, ok := rec["parent_did"]; ok {
+			parents = append(parents, val.(string))
+		}
+	}
+	return parents
+}
+
+// helper function to get all (in-depth) parents for given did
+func getAllParents(did string) []string {
+	visited := make(map[string]bool) // to avoid cycles
+	var result []string
+
+	var dfs func(string)
+	dfs = func(curr string) {
+		// Get immediate parents
+		parents := getParents(curr)
+		for _, p := range parents {
+			if !visited[p] {
+				visited[p] = true
+				result = append(result, p)
+				dfs(p) // recurse into parent
+			}
+		}
+	}
+
+	// call recursively dfs function to acquire results
+	dfs(did)
+	return result
+}
+
 // columnNames converts JSON attributes to column names
 func columnNames(attrs []string) []string {
 	var out []string
