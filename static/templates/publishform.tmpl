@@ -25,6 +25,25 @@
         &nbsp; | &nbsp;
         <input type="checkbox" checked="" id="publishmetadata" name="publishmetadata">
         <span>Publish meta-data</span>
+{{if .Parents}}
+        <h3>Parent Datasets</h3>
+        <label>
+            <input type="checkbox" id="select-all" onclick="toggleAll(this)">
+            <strong>Select All</strong>
+        </label>
+        <ul class="parent-list">
+            {{range .Parents}}
+            <li>
+                <label>
+                    <input type="checkbox" class="parent-checkbox" name="parents" value="{{.}}">
+                    {{.}}
+                </label>
+            </li>
+            {{end}}
+        </ul>
+{{else}}
+    <p><em>No parents found for this dataset.</em></p>
+{{end}}
     </div>
     <div class="form-item">
         <label>Dataset description</label>
@@ -38,3 +57,12 @@
 
   </article>
 </section>
+
+<script>
+function toggleAll(source) {
+    const checkboxes = document.querySelectorAll('.parent-checkbox');
+    for (const cb of checkboxes) {
+        cb.checked = source.checked;
+    }
+}
+</script>
