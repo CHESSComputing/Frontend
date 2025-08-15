@@ -1488,9 +1488,13 @@ func PublishHandler(c *gin.Context) {
 	if draft == "" {
 		doiPublic = true
 	}
+	var parents []string
+	if err := r.ParseForm(); err == nil {
+		parents = r.Form["parents"]
+	}
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(user, doiprovider, did, description, doiPublic)
+	doi, doiLink, err := publishDataset(user, doiprovider, did, description, parents, doiPublic)
 	if Verbose > 0 {
 		log.Printf("### publish did=%s doiprovider=%s doi=%s doiLink=%s error=%v", did, doiprovider, doi, doiLink, err)
 	}

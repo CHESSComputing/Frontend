@@ -58,12 +58,15 @@ func getMetaData(user, did string) (map[string]any, error) {
 }
 
 // helper function to publish did with given provider
-func publishDataset(user, provider, did, description string, doiPublic bool) (string, string, error) {
+func publishDataset(user, provider, did, description string, parents []string, doiPublic bool) (string, string, error) {
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
 	if err != nil {
 		return "", "", err
+	}
+	if len(parents) > 0 {
+		record["doi_parents_dids"] = parents
 	}
 
 	if val, ok := record["doi"]; ok {
