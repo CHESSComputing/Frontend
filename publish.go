@@ -107,7 +107,7 @@ func publishDataset(user, provider, did, description string, parents []string, d
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
-func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiPublic bool, doiAccessMetadata string) error {
+func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiPublic bool, doiAccessMetadata string, doiParents []string) error {
 	var err error
 
 	if strings.Contains(schema, ",") {
@@ -147,6 +147,9 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		rec["doi_public"] = doiPublic
 		rec["doi_provider"] = doiProvider
 		rec["doi_created_at"] = time.Now().Format(time.RFC3339)
+		if len(doiParents) > 0 {
+			rec["doi_parents_dids"] = doiParents
+		}
 		if doiAccessMetadata == "on" {
 			rec["doi_access_metadata"] = true
 		} else {

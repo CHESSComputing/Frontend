@@ -1477,6 +1477,11 @@ func PublishHandler(c *gin.Context) {
 	httpCode := http.StatusOK
 	srvCode := services.OK
 
+	// parse input form
+	var parents []string
+	if err := r.ParseForm(); err == nil {
+		parents = r.Form["parents"]
+	}
 	// parse input form data
 	did := r.FormValue("did")
 	doiprovider := r.FormValue("doiprovider")
@@ -1487,10 +1492,6 @@ func PublishHandler(c *gin.Context) {
 	doiPublic := false
 	if draft == "" {
 		doiPublic = true
-	}
-	var parents []string
-	if err := r.ParseForm(); err == nil {
-		parents = r.Form["parents"]
 	}
 
 	// publish our dataset
@@ -1509,7 +1510,7 @@ func PublishHandler(c *gin.Context) {
 		content = fmt.Sprintf("ERROR:<br/>unable to get DOI info for <br/>did=%s<br/> from %s DOI provider", did, doiprovider)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, publishmetadata)
+		err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, publishmetadata, parents)
 		if err != nil {
 			template = "error.tmpl"
 			httpCode = http.StatusBadRequest
@@ -1578,7 +1579,8 @@ func DoiPublicHandler(c *gin.Context) {
 	if err := makePublic(doi, doiprovider); err == nil {
 		// update DOI info in MetaData service to make it public
 		doiPublic := true
-		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, ""); err != nil {
+		doiParents := []string{}
+		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "", doiParents); err != nil {
 			template = "error.tmpl"
 			content = fmt.Sprintf("ERROR:<br/>fail to update Metadata DOI information<br/>DOI=%s<br/>error=%v", doi, err)
 		}
