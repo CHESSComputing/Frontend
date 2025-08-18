@@ -1,8 +1,7 @@
 <hr />
 
 <h3>DatasetID (DID): {{.Did}}</h3>
-Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, Sample: {{.Sample}}
-<br/>
+Schema: <b>{{.Schema}}</b>
 {{if .SpecScanLink}}
 <a href="{{.SpecScanLink}}">SpecScan record(s)</a>,
 {{end}}
@@ -15,17 +14,18 @@ Schema: {{.Schema}}, Cycle: {{.Cycle}}, Beamline: {{.Beamline}}, BTR: {{.Btr}}, 
 {{if .ReducedDataLink}}
 <a href="{{.ReducedDataLink}}">Reduced data</a>,
 {{end}}
+Date: {{.TimeStamp}}
+{{if .RecordVersion}}
+<span class="recVersion">version: {{.RecordVersion}}</span>
+{{end}}
 {{if and .DoiLink .Doi}}
+    <br/>
     DOI: <a href="{{.DoiLink}}">{{.Doi}}</a>,
     {{if .DoiPublic}}
         <span class="doiPublic">(Public)</span>
     {{else}}
         <span class="doiDraft">(Draft)</span>
     {{end}}
-{{end}}
-Date: {{.TimeStamp}}
-{{if .RecordVersion}}
-<span class="recVersion">version: {{.RecordVersion}}</span>
 {{end}}
 
 <div class="grid">
