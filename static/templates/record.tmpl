@@ -18,6 +18,12 @@ Date: {{.TimeStamp}}
 {{if .RecordVersion}}
 <span class="recVersion">version: {{.RecordVersion}}</span>
 {{end}}
+{{if .AttributesMap}}
+<br/>
+{{range $key, $value := .AttributesMap}}
+   <b><em>{{$key}}:</em></b> {{$value}}
+{{end}}
+{{end}}
 {{if and .DoiLink .Doi}}
     <br/>
     DOI: <a href="{{.DoiLink}}">{{.Doi}}</a>,

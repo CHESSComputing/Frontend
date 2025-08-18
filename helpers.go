@@ -71,7 +71,7 @@ func recValue(rec map[string]any, attr string) string {
 }
 
 // helper function to prepare HTML page for given services records
-func records2html(user string, records []map[string]any) string {
+func records2html(user string, records []map[string]any, attrs2show []string) string {
 	var out []string
 	for _, rec := range records {
 		tmpl := server.MakeTmpl(StaticFs, "Record")
@@ -161,6 +161,13 @@ func records2html(user string, records []map[string]any) string {
 		if val, ok := rec["history"]; ok {
 			tmpl["RecordVersion"] = len(val.([]any)) + 1 // human counter, i.e. if one history record it is 2nd version
 		}
+		amap := make(map[string]any)
+		for _, attr := range attrs2show {
+			if val, ok := rec[attr]; ok {
+				amap[attr] = val
+			}
+		}
+		tmpl["AttributesMap"] = amap
 
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
