@@ -122,7 +122,25 @@ func records2html(user string, records []map[string]any) string {
 		if val, ok := rec["doi_provider"]; ok {
 			tmpl["DoiProvider"] = val
 		}
-		tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", url.QueryEscape(recValue(rec, "did")))
+		if val, ok := rec["beamline"]; ok {
+			var beamlines []string
+			switch vvv := val.(type) {
+			case []any:
+				for _, v := range vvv {
+					beamlines = append(beamlines, fmt.Sprintf("%v", v))
+				}
+			case string:
+				beamlines = append(beamlines, vvv)
+			case any:
+				beamlines = append(beamlines, fmt.Sprintf("%v", vvv))
+			}
+			for _, b := range beamlines {
+				if utils.InList(b, srvConfig.Config.CHESSMetaData.SpecScanBeamlines) {
+					tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", url.QueryEscape(recValue(rec, "did")))
+					break
+				}
+			}
+		}
 
 		// look for data location attributes, if found create Data Management link
 		/*
@@ -231,7 +249,7 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey
 	tmpl["Query"] = query
 	tmpl["Btrs"] = btrs
 	page := server.TmplPage(StaticFs, "pagination.tmpl", tmpl)
-	return fmt.Sprintf("%s<br>", page)
+	return fmt.Sprintf("%s", page)
 }
 
 // helper function to make URL
