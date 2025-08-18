@@ -510,9 +510,13 @@ func DataManagementHandler(c *gin.Context) {
 			return
 		}
 		did = url.QueryEscape(did)
+		attr := c.Query("attr")
 
 		// Prepare redirection URL
 		targetURL := fmt.Sprintf("%s/data?did=%s", srvConfig.Config.DataManagementURL, did)
+		if attr != "" {
+			targetURL = fmt.Sprintf("%s&attr=%s", targetURL, url.QueryEscape(attr))
+		}
 		if path != "" {
 			targetURL = fmt.Sprintf("%s&path=%s", targetURL, url.QueryEscape(path))
 		}
