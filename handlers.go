@@ -1089,7 +1089,7 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	mrec.Record["beamline"], mrec.Record["btr"], mrec.Record["cycle"], mrec.Record["sample_name"] = extractParts(did)
 	if mrec.Record["btr"] == "" {
 		class = "alert alert-error"
-		content := errorTmpl(c, "unable to extrac btr from did of the record", nil)
+		content := errorTmpl(c, "unable to extract btr from did of the record", nil)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
