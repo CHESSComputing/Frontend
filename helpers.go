@@ -125,12 +125,21 @@ func records2html(user string, records []map[string]any) string {
 		tmpl["SpecScanLink"] = fmt.Sprintf("/specscans?did=%s", url.QueryEscape(recValue(rec, "did")))
 
 		// look for data location attributes, if found create Data Management link
-		for _, loc := range srvConfig.Config.CHESSMetaData.DataLocationAttributes {
-			if _, ok := rec[loc]; ok {
-				tmpl["DMLink"] = fmt.Sprintf("/dm?did=%s", recValue(rec, "did"))
-				break
+		/*
+			for _, loc := range srvConfig.Config.CHESSMetaData.DataLocationAttributes {
+				if _, ok := rec[loc]; ok {
+					tmpl["RawDataLink"] = fmt.Sprintf("/dm?did=%s&attr=data_location_raw", recValue(rec, "did"))
+					break
+				}
 			}
+		*/
+		if val, ok := rec["data_location_raw"]; ok && val != "" {
+			tmpl["RawDataLink"] = fmt.Sprintf("/dm?did=%s&attr=data_location_raw", recValue(rec, "did"))
 		}
+		if val, ok := rec["data_location_reduced"]; ok && val != "" {
+			tmpl["ReducedDataLink"] = fmt.Sprintf("/dm?did=%s&attr=data_location_reduced", recValue(rec, "did"))
+		}
+
 		if val, ok := rec["history"]; ok {
 			tmpl["RecordVersion"] = len(val.([]any)) + 1 // human counter, i.e. if one history record it is 2nd version
 		}
