@@ -252,6 +252,36 @@ func ServicesHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// SyncHandler provides access to GET /sync endpoint
+func SyncHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	tmpl := server.MakeTmpl(StaticFs, "Sync")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	tmpl["User"] = user
+	// request only user's specific data (check user attributes)
+	var btrs []string
+	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
+		attrs, err := services.UserAttributes(user)
+		if err == nil {
+			// check user btrs and return error if user does not have any associations with Btrs
+			if len(attrs.Btrs) == 0 {
+				msg := fmt.Sprintf("User %s does not associated with any BTRs, search access is deined", user)
+				handleError(c, http.StatusBadRequest, msg, err)
+				return
+			}
+			btrs = attrs.Btrs
+		}
+	}
+	tmpl["Btrs"] = btrs
+	content := server.TmplPage(StaticFs, "syncform.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
 // DocsHandler provides access to GET /docs end-point
 func DocsHandler(c *gin.Context) {
 	if srvConfig.Config.Frontend.DocUrl != "" {
@@ -1538,7 +1568,6 @@ func PublishHandler(c *gin.Context) {
 
 // PublishFormHandler handles publish request for did
 func PublishFormHandler(c *gin.Context) {
-
 	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
@@ -1786,4 +1815,31 @@ func AmendRecordHandler(c *gin.Context) {
 		w.WriteHeader(status)
 		w.Write([]byte(header() + page + footer()))
 	}
+}
+
+// SyncFormHandler provides access to POST /sync endpoint
+func SyncFormHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	r := c.Request
+	w := c.Writer
+	// Always parse the form first
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	// get beamline value from the form
+	// did := r.FormValue("did")
+	btrs := r.Form["btrs"]
+	tmpl := server.MakeTmpl(StaticFs, "Sync")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	content := fmt.Sprintf("User: %s BTRs: %s<br/>ERROR: synchronization of FOXDEN instances is not yet implemented", user, btrs)
+	tmpl["Content"] = content
+	page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
+	w.Write([]byte(header() + page + footer()))
 }

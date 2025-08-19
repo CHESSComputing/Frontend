@@ -82,6 +82,8 @@ func setupRouter() *gin.Engine {
 		server.Route{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/dm", Handler: DataManagementHandler, Authorized: false},
 		server.Route{Method: "GET", Path: "/amend", Handler: AmendFormHandler, Authorized: false},
+		server.Route{Method: "GET", Path: "/sync", Handler: SyncHandler, Authorized: false},
+		server.Route{Method: "POST", Path: "/sync", Handler: SyncFormHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/amendrecord", Handler: AmendRecordHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/dmfiles", Handler: DMFilesHandler, Authorized: false},
 		server.Route{Method: "POST", Path: "/login", Handler: KAuthHandler, Authorized: false},
