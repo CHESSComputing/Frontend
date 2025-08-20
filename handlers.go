@@ -278,6 +278,10 @@ func SyncHandler(c *gin.Context) {
 		}
 	}
 	tmpl["Btrs"] = btrs
+	if token, err := newToken(user, "read+write"); err == nil {
+		tmpl["SourceToken"] = token
+	}
+	tmpl["SourceUrl"] = srvConfig.Config.Services.FrontendURL
 	content := server.TmplPage(StaticFs, "syncform.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
