@@ -74,12 +74,24 @@ article {
   float: left;
   padding-top: 10px;
   padding-bottom: 10px;
-  padding-left: 100px;
-  padding-right: 100px;
+  padding-left: 300px;
+  padding-right: 300px;
   background-color: #ffffff;
   width:100%;
   min-height: 700px;
-/*  height: 800px;*/
+}
+article.wide {
+  padding-left: 100px;
+  padding-right: 100px;
+}
+
+article.narrow {
+  padding-left: 300px;
+  padding-right: 300px;
+}
+.records {
+  padding-left: 100px;
+  padding-right: 100px;
 }
 .notebook {
   float: left;
