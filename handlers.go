@@ -1837,12 +1837,19 @@ func SyncFormHandler(c *gin.Context) {
 	}
 
 	// get beamline value from the form
-	// did := r.FormValue("did")
+	did := r.FormValue("did")
 	btrs := r.Form["btrs"]
+	pushAction := r.FormValue("pushAction")
+	pullAction := r.FormValue("pullAction")
+	sourceUrl := r.FormValue("sourceUrl")
+	targetUrl := r.FormValue("targetUrl")
+	sourceToken := r.FormValue("sourceToken")
+	targetToken := r.FormValue("targetToken")
 	tmpl := server.MakeTmpl(StaticFs, "Sync")
 	base := srvConfig.Config.Frontend.WebServer.Base
 	tmpl["Base"] = base
-	content := fmt.Sprintf("User: %s BTRs: %s<br/>ERROR: synchronization of FOXDEN instances is not yet implemented", user, btrs)
+	content := fmt.Sprintf("User: %s<br/>BTRs: %s<br/>did: %s<br/>push action: %v<br/>pull action: %v<br/>sourceUrl: %s<br/>sourceToken: %s<br/>targetUrl: %s<br/>targetToken: %s<br/>ERROR: synchronization of FOXDEN instances is not yet implemented",
+		user, btrs, did, pushAction, pullAction, sourceUrl, sourceToken, targetUrl, targetToken)
 	tmpl["Content"] = content
 	page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))

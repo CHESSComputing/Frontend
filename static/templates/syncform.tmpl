@@ -7,11 +7,56 @@
 <br/>
 
 <form action="{{.Base}}/sync" method="post" name="sync" id="sync" class="form">
-  <fieldset id="User">
-  <legend>User</legend>
+  <fieldset id="SyncAction">
+  <legend>Sync action</legend>
     <div class="form-item">
-        <label>User</label>
-        <input class="input" type="text" name="user" value="{{.User}}" readonly>
+        <input type="hidden" name="user" value="{{.User}}">
+        <div class="alert alert-info">
+          <img src="https://cdn.onlinewebfonts.com/svg/img_559210.png" alt="Home" style="width:20px">
+          FOXDEN synchronizataion will be performed under {{.User}} user name.
+          Please obtain source and target tokens based on your synchronizataion needs.
+          <h3>Tokens</h3>
+          <ul>
+          <li>
+          <input type="checkbox" id="pushAction" name="pushAction">
+          <b>Push records from source to target FOXDEN instance</b> requires
+          source token with read permission and target token with write
+          permission
+          </li>
+          <li>
+          <input type="checkbox" id="pullAction" name="pullAction">
+          <b>Pull records from target to source FOXDEN instances</b> requires
+          source token with write permission and target token with read
+          permission
+          </li>
+          </ul>
+          Tokens can be obtained using <a href="https://chesscomputing.github.io/FOXDEN/docs/cli.html">foxden CLI</a>
+          via the following set of commands:
+          <pre>
+# get token with specified permission (read, write or read+write), e.g. generate read token
+foxden token create read
+# view your token for cut-and-paste
+foxden token view</pre>
+          <h3>BTRs</h3>
+{{if .Btrs}}
+          <label>
+              <input type="checkbox" id="select-all" onclick="toggleAll(this)">
+              <strong>Select All</strong>
+          </label>
+          <ul class="btr-list">
+              {{range .Btrs}}
+              <li>
+                  <label>
+                      <input type="checkbox" class="btr-checkbox" name="btrs" value="{{.}}">
+                      {{.}}
+                  </label>
+              </li>
+              {{end}}
+          </ul>
+{{else}}
+          <p><em>No BTRs is provided, will use all DIDs associated with this user</em></p>
+{{end}}
+        </div>
     </div>
   </fieldset>
   <fieldset id="FoxdenSource">
@@ -21,8 +66,8 @@
         <input class="input" type="text" name="sourceUrl" value="{{.SourceUrl}}" readonly>
     </div>
     <div class="form-item">
-        <label>Token<span class="hint hint-req">*</span></label>
-        <input class="input" type="text" name="sourceToken" value="{{.SourceToken}}" readonly>
+        <label>Token for source FOXDEN instance<span class="hint hint-req">*</span></label>
+        <input class="input" type="text" name="sourceToken" placeholder="token with read, write or read+write permission">
     </div>
   </fieldset>
   <fieldset id="FoxdenTarget">
@@ -32,42 +77,10 @@
         <input class="input" type="text" name="targetUrl" placeholder="target URL">
     </div>
     <div class="form-item">
-        <label>Token<span class="hint hint-req">*</span></label>
-        <input class="input" type="text" name="targetToken" placeholder="{{.TargetToken}}">
+        <label>Token for target FOXDEN instance<span class="hint hint-req">*</span></label>
+        <input class="input" type="text" name="targetToken" placeholder="token with read, write or read+write permission">
     </div>
   </fieldset>
-  <fieldset id="FoxdenAction">
-  <legend>Synchronizataion actions</legend>
-    <div class="form-item">
-        <input type="checkbox" id="pushAction" name="pushAction">
-        <span>Push records</span>
-        &nbsp; | &nbsp;
-        <input type="checkbox" id="pullAction" name="pullAction">
-        <span>Pull records</span>
-    </div>
-  </fieldset>
-    <div class="form-item alert alert-info">
-        <input type="checkbox" checked="" id="publishmetadata" name="publishmetadata">
-        <span>BTRs</span>
-{{if .Btrs}}
-        <label>
-            <input type="checkbox" id="select-all" onclick="toggleAll(this)">
-            <strong>Select All</strong>
-        </label>
-        <ul class="btr-list">
-            {{range .Btrs}}
-            <li>
-                <label>
-                    <input type="checkbox" class="btr-checkbox" name="btrs" value="{{.}}">
-                    {{.}}
-                </label>
-            </li>
-            {{end}}
-        </ul>
-{{else}}
-    <p><em>No BTRs is provided, will use all DIDs associated with this user</em></p>
-{{end}}
-    </div>
     <div class="form-item">
         <button class="button button-small button-dark">Submit</button>
         <button class="button button-small">Cancel</button>
