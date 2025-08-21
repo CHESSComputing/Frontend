@@ -175,11 +175,11 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 			return err
 		}
 		resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
-		defer resp.Body.Close()
 		if err != nil {
 			log.Println("ERROR: unable to POST to MetaData service, error", err)
 			return err
 		}
+		defer resp.Body.Close()
 		data, err = io.ReadAll(resp.Body)
 		if err != nil {
 			log.Println("ERROR: unable to read response body, error", err)
