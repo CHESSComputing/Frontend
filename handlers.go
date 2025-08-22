@@ -1023,7 +1023,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 				}
 			} else {
 				if !utils.InList(k, beamlines.SkipKeys) {
-					log.Printf("ERROR: no key=%s found in schema=%+v, error", k, schema, err)
+					log.Printf("ERROR: no key=%s found in schema=%+v, error %v", k, schema, err)
 					return mrec, err
 				}
 			}
