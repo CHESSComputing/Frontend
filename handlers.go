@@ -1059,7 +1059,9 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	rec["description"] = desc
 	if len(userKeys) != 0 && len(userValues) != 0 && len(userKeys) == len(userValues) {
 		for i := 0; i < len(userKeys); i++ {
-			userMetadata[userKeys[i]] = userValues[i]
+			if userKeys[i] != "" && userValues[i] != "" {
+				userMetadata[userKeys[i]] = userValues[i]
+			}
 		}
 		rec["user_metadata"] = userMetadata
 	}
