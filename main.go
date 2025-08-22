@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(fmt.Sprintf("Unable to parse config='%s'", config))
 	}
 	if srvConfig.Config.Frontend.WebServer.Verbose > 0 {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
+		log.SetFlags(log.Llongfile)
 	}
 	Server()
 }
