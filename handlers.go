@@ -1003,14 +1003,11 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 			}
 			continue
 		}
-		if k == "SchemaName" {
+		if k == "SchemaName" || k == "User" || k == "user_metadata" {
 			continue
 		}
 		if k == "Description" {
 			desc = strings.Join(items, " ")
-			continue
-		}
-		if k == "User" {
 			continue
 		}
 		val, err := parseValue(schema, k, items)
@@ -1026,7 +1023,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 				}
 			} else {
 				if !utils.InList(k, beamlines.SkipKeys) {
-					log.Println("ERROR: no key", k, "found in schema map, error", err)
+					log.Printf("ERROR: no key=%s found in schema=%+v, error", k, schema, err)
 					return mrec, err
 				}
 			}
@@ -1035,7 +1032,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	}
 
 	// parse user metafile if it is provided
-	files := r.MultipartForm.File["metadata"]
+	files := r.MultipartForm.File["user_metadata"]
 	if len(files) == 1 {
 		uploadedFile := files[0]
 		file, err := uploadedFile.Open()
