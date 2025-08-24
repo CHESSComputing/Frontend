@@ -49,7 +49,14 @@ file3.nxs"></textarea>
 <div class="form-item">
   <label class="hint hint-req">
     metadata (metadata in ASCII format, e.g. JSON):
-    <input class="input" name="user_metadata" type="file"/>
+    <div class="grid">
+      <div class="column column-2">
+        <button id="openOverlay" class="button button-small">Example</button>
+      </div>
+      <div class="column column-10">
+        <input class="input" name="user_metadata" type="file"/>
+      </div>
+    </div>
   </label>
 </div>
 
@@ -71,22 +78,121 @@ file3.nxs"></textarea>
 
 </fieldset>
 
-<script>
-  function addMetaRow() {
-    const container = document.getElementById("meta-container");
-    const row = document.createElement("div");
-    row.className = "meta-row";
-    row.innerHTML = `
-      <div class="meta-row grid">
-        <div class="column column-2">
-        <input class="input" type="text" name="user_keys" placeholder="Key" />
-        </div>
-        <div class="column column-10">
-        <input class="input" type="text" name="user_values" placeholder="Value" />
-        </div>
-        </div>
+<div id="example" class="overlay-example">
+<div id="user_meta_example" class="overlay-content">
+  <div id="meta-container">
+    <div class="meta-row grid">
+      <div class="column column-10">
+      </div>
+      <div class="column column-1 push-right">
+        <button id="copyContent" class="button button-small button-primary">Copy</button>
+      </div>
+      <div class="column column-1 push-right">
+        <button id="closeOverlay" class="button button-small">Close</button>
+      </div>
     </div>
-    `;
-    container.appendChild(row);
+  </div>
+You may supply any metadata in JSON data-format. For instance, here is an
+example of FOXDEN user-based provenance.
+<pre id="user_metadata_json">
+{
+  "input_files": [
+    {"name": "/tmp/file1.png"},
+    {"name": "/tmp/file2.png"}
+  ],
+  "output_files": [
+    {"name": "/tmp/file1.png"}
+  ],
+  "environments": [
+    {
+      "details": "details",
+      "name": "galaxy",
+      "os_name": "conda-123",
+      "parent_environment": "conda-123",
+      "version": "version"
+    }
+  ],
+  "osinfo": {
+    "kernel": "1-2-3",
+    "name": "linux-cc7",
+    "version": "cc7-123"
+  },
+  "processing": "my favorite application",
+  "scripts": [
+    {
+      "name": "reader",
+      "options": "-reader_options",
+      "order_idx": 1,
+      "parent_script": ""
+    }
+  ],
+  "site": "Cornell"
+}
+</pre>
+</div>
+</div>
+
+<script>
+function addMetaRow() {
+  const container = document.getElementById("meta-container");
+  const row = document.createElement("div");
+  row.className = "meta-row";
+  row.innerHTML = `
+    <div class="meta-row grid">
+      <div class="column column-2">
+      <input class="input" type="text" name="user_keys" placeholder="Key" />
+      </div>
+      <div class="column column-10">
+      <input class="input" type="text" name="user_values" placeholder="Value" />
+      </div>
+      </div>
+  </div>
+  `;
+  container.appendChild(row);
+}
+function openPopup() {
+    $('#example').show();
+    $('#user_meta_example').show();
   }
+// helper function to close popup window
+window.closePopup = function() {
+    $('#example').hide();
+    $('#user_meta_example').hide();
+}
+
+
+const openBtn = document.getElementById("openOverlay");
+const copyBtn = document.getElementById("copyContent");
+const closeBtn = document.getElementById("closeOverlay");
+const overlay = document.getElementById("example");
+const overlayContent = document.getElementById("user_metadata_json");
+
+// Show overlay
+openBtn.addEventListener("click", () => {
+  openPopup();
+  overlay.style.display = "flex";
+});
+closeBtn.addEventListener("click", () => {
+  closePopup();
+});
+/*
+// Also close if user clicks outside content
+overlay.addEventListener("click", (e) => {
+  if (e.target === overlay) {
+    overlay.style.display = "none";
+    closePopup();
+  }
+});
+*/
+copyBtn.addEventListener("click", async () => {
+    try {
+      const textToCopy = overlayContent.innerHTML;
+      await navigator.clipboard.writeText(textToCopy);
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => (copyBtn.textContent = "Copy"), 3000);
+    } catch (err) {
+      alert("Failed to copy: " + err);
+    }
+});
+closePopup();
 </script>

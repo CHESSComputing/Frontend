@@ -340,3 +340,27 @@ footer {
 }
 .parent-list { list-style: none; padding: 0; }
 .parent-list li { margin: 5px 0; }
+
+.overlay-example {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none; /* hidden by default */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Overlay content window */
+.overlay-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 800px;
+  max-height: 90vh;        /* Limit height to 90% of viewport */
+  overflow-y: auto;        /* Enable scrolling if content is too tall */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  position: relative;
+}
