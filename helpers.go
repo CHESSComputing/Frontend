@@ -613,24 +613,32 @@ func formFiles(val any) []string {
 					v = strings.Replace(v, "\n", "", -1)
 					v = strings.Replace(v, "\r", "", -1)
 					v = strings.Trim(v, " ")
-					out = append(out, v)
+					if v != "" {
+						out = append(out, v)
+					}
 				}
 			} else if strings.Contains(f, "\r") {
 				for _, v := range strings.Split(f, "\r") {
 					v = strings.Replace(v, "\n", "", -1)
 					v = strings.Replace(v, "\r", "", -1)
 					v = strings.Trim(v, " ")
-					out = append(out, v)
+					if v != "" {
+						out = append(out, v)
+					}
 				}
 			} else if strings.Contains(f, "\n") {
 				for _, v := range strings.Split(f, "\n") {
 					v = strings.Replace(v, "\n", "", -1)
 					v = strings.Replace(v, "\r", "", -1)
 					v = strings.Trim(v, " ")
-					out = append(out, v)
+					if v != "" {
+						out = append(out, v)
+					}
 				}
 			} else {
-				out = append(out, f)
+				if f != "" {
+					out = append(out, f)
+				}
 			}
 		}
 	}
