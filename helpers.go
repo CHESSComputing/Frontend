@@ -479,28 +479,16 @@ func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, req
 				if r.Value != nil {
 					switch values := r.Value.(type) {
 					case []any:
+						tmpl["List"] = true
 						var vals []string
-						if defaultValue != "" {
-							vals = append(vals, defaultValue)
-						}
 						for _, v := range values {
-							vstr := fmt.Sprintf("%v", v)
-							for _, vvv := range strings.Split(vstr, ",") {
-								vals = append(vals, vvv)
-							}
+							strVal := fmt.Sprintf("%v", v)
+							vals = append(vals, strVal)
 						}
-						var out []string
-						vstr := strings.Join(vals, ",")
-						for _, vvv := range strings.Split(vstr, ",") {
-							out = append(out, vvv)
-						}
-						vals = utils.List2Set[string](out)
-						tmpl["Value"] = strings.Join(vals, ",")
+						vals = utils.List2Set[string](vals)
+						tmpl["Value"] = vals
 					default:
 						tmpl["Value"] = fmt.Sprintf("%v", r.Value)
-						if defaultValue != "" {
-							tmpl["Value"] = fmt.Sprintf("%v", defaultValue)
-						}
 					}
 				}
 			}
@@ -550,7 +538,7 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 		var vals []float64
 		for _, values := range items {
 			for _, val := range strings.Split(values, " ") {
-				v, err := strconv.ParseFloat(val, 32)
+				v, err := strconv.ParseFloat(val, 64)
 				if err == nil {
 					vals = append(vals, v)
 				} else {
