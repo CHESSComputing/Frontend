@@ -838,7 +838,7 @@ func SearchHandler(c *gin.Context) {
 	processResults(c, rec, user, idx, limit, btrs)
 }
 
-// SpecScansHandler provides information about spec scan records
+// SpecScansTableHandler provides access to GET /specscans endpoint
 func SpecScansHandler(c *gin.Context) {
 	_, err := getUser(c)
 	if err != nil {
@@ -876,9 +876,47 @@ func SpecScansHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	//         var response services.ServiceResponse
-	//         err = json.Unmarshal(data, &response)
-	c.Data(http.StatusOK, "application/json", data)
+
+	var response services.ServiceResponse
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		rec := services.Response("Frontend", http.StatusBadRequest, services.BindError, err)
+		c.JSON(http.StatusBadRequest, rec)
+		return
+	}
+	log.Printf("response: %+v\n", response)
+	scans := response.Results.Records
+	log.Printf("scans: %+v\n", scans)
+	// Get column headers from matching scan records
+	colsSet := make(map[string]struct{})
+	for _, s := range scans {
+		log.Printf("s: %+v\n", s)
+    for k, _ := range s {
+			   log.Print("k: %+v\n", k)
+        colsSet[k] = struct{}{}
+    }
+	}
+	cols := make([]string, 0, len(colsSet))
+	for k := range colsSet {
+    cols = append(cols, k)
+	}
+	log.Printf("colsSet: %+v", colsSet)
+	log.Printf("cols: %+v", cols)
+
+	// Make table
+	tmpl := server.MakeTmpl(StaticFs, "scantable.tmpl")
+	tmpl["Title"] = fmt.Sprintf("Scans for DID: %s", did)
+	tmpl["Columns"] = cols
+	tmpl["Selected"] = map[string]bool{
+		"start_time": true,
+		"spec_file": true,
+		"scan_number":true,
+		"command":true,
+	}
+	tmpl["Rows"] = scans
+	log.Printf("tmpl: %+v\n", tmpl)
+	content := server.TmplPage(StaticFs, "scantable.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
 // MetaDataHandler provides access to GET /meta endpoint
