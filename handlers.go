@@ -1129,12 +1129,15 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	mrec.Record["input_files"] = formFiles(mrec.Record["input_files"])
 	mrec.Record["output_files"] = formFiles(mrec.Record["output_files"])
 
+	// fill out required provenance info in services.MetaRecord
+	provRecord := provenanceRecord(mrec)
+
 	// prepare http writer
 	_httpWriteRequest.GetToken()
 
 	// insert provenance record
 	rurl := fmt.Sprintf("%s/provenance", srvConfig.Config.Services.DataBookkeepingURL)
-	data, err := json.MarshalIndent(mrec.Record, "", "  ")
+	data, err := json.MarshalIndent(provRecord, "", "  ")
 	if err != nil {
 		class = "alert alert-error"
 		content := errorTmpl(c, "unable to marshal provenance record, error", err)
@@ -1616,7 +1619,7 @@ func DoiPublicHandler(c *gin.Context) {
 		// update DOI info in MetaData service to make it public
 		doiPublic := true
 		doiParents := []string{}
-		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "", doiParents); err != nil {
+		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "preserve", doiParents); err != nil {
 			template = "error.tmpl"
 			content = fmt.Sprintf("ERROR:<br/>fail to update Metadata DOI information<br/>DOI=%s<br/>error=%v", doi, err)
 		}
