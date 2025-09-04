@@ -891,14 +891,14 @@ func SpecScansHandler(c *gin.Context) {
 	colsSet := make(map[string]struct{})
 	for _, s := range scans {
 		log.Printf("s: %+v\n", s)
-    for k, _ := range s {
-			   log.Print("k: %+v\n", k)
-        colsSet[k] = struct{}{}
-    }
+		for k, _ := range s {
+			log.Printf("k: %+v\n", k)
+			colsSet[k] = struct{}{}
+		}
 	}
 	cols := make([]string, 0, len(colsSet))
 	for k := range colsSet {
-    cols = append(cols, k)
+		cols = append(cols, k)
 	}
 	log.Printf("colsSet: %+v", colsSet)
 	log.Printf("cols: %+v", cols)
@@ -908,10 +908,10 @@ func SpecScansHandler(c *gin.Context) {
 	tmpl["Title"] = fmt.Sprintf("Scans for DID: %s", did)
 	tmpl["Columns"] = cols
 	tmpl["Selected"] = map[string]bool{
-		"start_time": true,
-		"spec_file": true,
-		"scan_number":true,
-		"command":true,
+		"start_time":  true,
+		"spec_file":   true,
+		"scan_number": true,
+		"command":     true,
 	}
 	tmpl["Rows"] = scans
 	log.Printf("tmpl: %+v\n", tmpl)
