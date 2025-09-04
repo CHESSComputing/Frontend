@@ -152,6 +152,8 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		}
 		if doiAccessMetadata == "on" {
 			rec["doi_access_metadata"] = true
+		} else if doiAccessMetadata == "preserve" {
+			// do nothing as in case when we make DOI public
 		} else {
 			rec["doi_access_metadata"] = false
 		}
