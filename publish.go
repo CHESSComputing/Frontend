@@ -159,7 +159,7 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		}
 		// if we run our own DOI Service we need to use our permanent doiLink
 		if srvConfig.Config.DOIServiceURL != "" {
-			foxdenDoiLink := fmt.Sprintf("%s/doi/%s", srvConfig.Config.DOIServiceURL, doi)
+			foxdenDoiLink := fmt.Sprintf("%s/dois/%s", srvConfig.Config.DOIServiceURL, doi)
 			rec["doi_foxden_url"] = foxdenDoiLink
 		}
 
