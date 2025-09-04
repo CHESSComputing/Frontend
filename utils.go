@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"regexp"
 	"sort"
@@ -301,4 +302,41 @@ func finalBtrs(btrs any, attrBtrs []string) []string {
 	}
 	sort.Strings(result)
 	return result
+}
+
+// Return provenance record from given web UI record
+func provenanceRecord(mrec services.MetaRecord) map[string]any {
+	prov := make(map[string]any)
+	maps.Copy(prov, mrec.Record)
+	/*
+	if _, ok := mrec.Record["osinfo"]; !ok {
+		orec := make(map[string]string)
+		orec["name"] = "N/A"
+		orec["kernel"] = "N/A"
+		orec["version"] = "N/A"
+		prov["osinfo"] = orec
+	}
+	if _, ok := mrec.Record["environments"]; !ok {
+		erec := make(map[string]string)
+		erec["name"] = "N/A"
+		erec["version"] = "N/A"
+		erec["details"] = "N/A"
+		erec["os_name"] = "N/A"
+		var envs []map[string]string
+		envs = append(envs, erec)
+		prov["environments"] = envs
+	}
+	if _, ok := mrec.Record["processing"]; !ok {
+		prov["processing"] = "N/A"
+	}
+	if _, ok := mrec.Record["scripts"]; !ok {
+		erec := make(map[string]string)
+		erec["name"] = "N/A"
+		erec["options"] = "N/A"
+		var scripts []map[string]string
+		scripts = append(scripts, erec)
+		prov["scripts"] = scripts
+	}
+	*/
+	return prov
 }
