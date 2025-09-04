@@ -45,12 +45,15 @@ Date: {{.TimeStamp}}
         <a href="javascript:FlipRecJson('{{.Id}}')" class="button button-small">JSON</a>
     </div>
     <div class="column column-1">
+      <!--
         <form class="form-content" method="post" action="{{.Base}}/provenance">
             <input type="hidden" name="_id" value="{{.Id}}">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="User" value="{{.User}}"/>
             <button class="button button-small">Provenance</button>
         </form>
+        -->
+        <a href="/provenance?did={{.DidEncoded}}" class="button button-small">Provenance</a>
     </div>
     <div class="column column-1">
         <a href="javascript:SaveRecord('json-record-{{.Id}}')" class="button button-small">Save</a>
