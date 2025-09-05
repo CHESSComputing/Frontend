@@ -84,6 +84,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/dm", Handler: DataManagementHandler, Authorized: false},
 		{Method: "GET", Path: "/amend", Handler: AmendFormHandler, Authorized: false},
 		{Method: "GET", Path: "/sync", Handler: SyncHandler, Authorized: false},
+		{Method: "GET", Path: "/sync/status", Handler: SyncStatusHandler, Authorized: false},
 		{Method: "POST", Path: "/sync", Handler: SyncFormHandler, Authorized: false},
 		{Method: "POST", Path: "/amendrecord", Handler: AmendRecordHandler, Authorized: false},
 		{Method: "POST", Path: "/record", Handler: PostRecordHandler, Authorized: false},

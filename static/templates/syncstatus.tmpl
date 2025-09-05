@@ -1,0 +1,27 @@
+<section>
+    <article id="article">
+<div class="alert alert-success">
+  <h1 class="text-large">Sync records</h1>
+
+  <table>
+    <thead>
+      <tr>
+        {{- range .Columns }}
+          <th>{{ . }}</th>
+        {{- end }}
+      </tr>
+    </thead>
+    <tbody>
+      {{- range $i, $row := .Rows }}
+        <tr>
+          {{- range $col := $.Columns }}
+            <td>{{ with $v := index $row $col }}{{ $v }}{{ else }}<span class="muted">—</span>{{ end }}</td>
+          {{- end }}
+        </tr>
+      {{- end }}
+    </tbody>
+  </table>
+
+</div>
+    </article>
+</section>

@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -293,6 +294,45 @@ func SyncHandler(c *gin.Context) {
 	}
 	tmpl["SourceUrl"] = srvConfig.Config.Services.FrontendURL
 	content := server.TmplPage(StaticFs, "syncform.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// SyncStatusHandler provides access to GET /sync endpoint
+func SyncStatusHandler(c *gin.Context) {
+	_, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	tmpl := server.MakeTmpl(StaticFs, "Sync")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	records, err := getSyncRecords()
+	if err != nil {
+		tmpl["content"] = err.Error()
+		page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
+		msg := string(template.HTML(page))
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	colsSet := map[string]struct{}{}
+	for _, r := range records {
+		for k := range r {
+			if k == "source_token" || k == "target_token" {
+				continue
+			}
+			colsSet[k] = struct{}{}
+		}
+	}
+	cols := make([]string, 0, len(colsSet))
+	for k := range colsSet {
+		cols = append(cols, k)
+	}
+	sort.Strings(cols)
+	tmpl["Columns"] = cols
+	tmpl["Rows"] = records
+
+	content := server.TmplPage(StaticFs, "syncstatus.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
