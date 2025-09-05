@@ -1074,10 +1074,19 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	if len(files) == 1 {
 		uploadedFile := files[0]
 		file, err := uploadedFile.Open()
+		if err != nil {
+			log.Printf("ERROR: unable to load metadata file error %v", err)
+		}
 		defer file.Close()
 		body, err := io.ReadAll(file)
 		if err == nil {
-			userMetadata["metadata"] = fmt.Sprintf("%v", string(body))
+			// try to load it as JSON
+			var record map[string]any
+			if e := json.Unmarshal(body, &record); e == nil {
+				userMetadata["metadata"] = record
+			} else {
+				userMetadata["metadata"] = fmt.Sprintf("%v", string(body))
+			}
 		} else {
 			log.Printf("ERROR: unable to load metadata %v, error %v", fname, err)
 		}
