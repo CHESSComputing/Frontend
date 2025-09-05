@@ -331,6 +331,8 @@ func SyncStatusHandler(c *gin.Context) {
 	sort.Strings(cols)
 	tmpl["Columns"] = cols
 	tmpl["Rows"] = records
+	log.Println("### sync records", records)
+	log.Println("### cols", cols)
 
 	content := server.TmplPage(StaticFs, "syncstatus.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))

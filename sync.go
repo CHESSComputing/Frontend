@@ -14,7 +14,7 @@ func getSyncRecords() ([]map[string]any, error) {
 	var records []map[string]any
 	// fetch records matching our did
 	_httpReadRequest.GetToken()
-	rurl := fmt.Sprintf("%s/sync/records", srvConfig.Config.Services.SyncServiceURL)
+	rurl := fmt.Sprintf("%s/records", srvConfig.Config.Services.SyncServiceURL)
 	resp, err := _httpReadRequest.Get(rurl)
 	defer resp.Body.Close()
 	if err != nil {
