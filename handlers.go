@@ -670,15 +670,13 @@ func DidsHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, records)
 		return
 	}
-	tmpl := server.MakeTmpl(StaticFs, "dids")
 	var dids []string
 	for _, rec := range records {
-		for did := range rec {
+		for _, did := range rec {
 			dids = append(dids, did)
 		}
 	}
-	tmpl["Content"] = strings.Join(dids, "<br/>")
-	page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
+	page := fmt.Sprintf("<pre>%s</pre>", strings.Join(dids, "\n"))
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
