@@ -86,12 +86,22 @@ func FacebookCallBackHandler(c *gin.Context) {
 func getUser(c *gin.Context) (string, error) {
 	var user string
 	var err error
+	token := authz.BearerToken(c.Request)
+	if token != "" {
+		// if we received HTTP request with token
+		claims, e := authz.TokenClaims(token, srvConfig.Config.Authz.ClientID)
+		user = claims.CustomClaims.User
+		log.Printf("Token=%s user=%s, error=%v", token, user, e)
+		log.Println("Claims", claims)
+		return user, e
+	}
 	if srvConfig.Config.Frontend.TestMode {
 		user = "TestUser"
 	} else {
 		user, err = c.Cookie("user")
 	}
 	return user, err
+
 }
 
 //
@@ -623,7 +633,7 @@ func ToolsHandler(c *gin.Context) {
 func RecordHandler(c *gin.Context) {
 	r := c.Request
 	user, err := getUser(c)
-	log.Println("SearchHandler", user, err, c.Request.Method)
+	log.Printf("RecordHandler %s user=%s error=%v", c.Request.Method, user, err)
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -665,7 +675,7 @@ func RecordHandler(c *gin.Context) {
 func SearchHandler(c *gin.Context) {
 	r := c.Request
 	user, err := getUser(c)
-	log.Println("SearchHandler", user, err, c.Request.Method)
+	log.Printf("SearchHandler %s user=%s error=%v", c.Request.Method, user, err)
 	if err != nil {
 		LoginHandler(c)
 		return
