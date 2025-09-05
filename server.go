@@ -67,6 +67,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/record", Handler: RecordHandler, Authorized: false},
 		{Method: "GET", Path: "/tools", Handler: ToolsHandler, Authorized: false},
 		{Method: "GET", Path: "/meta", Handler: MetaDataHandler, Authorized: false},
+		{Method: "GET", Path: "/dids", Handler: DidsHandler, Authorized: false},
 		{Method: "GET", Path: "/specscans", Handler: SpecScansHandler, Authorized: false},
 		{Method: "GET", Path: "/notebook", Handler: NotebookHandler, Authorized: false},
 		{Method: "GET", Path: "/publish", Handler: PublishSrvHandler, Authorized: false},
