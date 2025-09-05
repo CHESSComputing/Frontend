@@ -60,6 +60,7 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 		return
 	}
 	// search request to DataDiscovery service
+	_httpReadRequest.GetToken()
 	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
@@ -73,18 +74,26 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		content := errorTmpl(c, "unable to read response body, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		handleError(c, http.StatusBadRequest, content, err)
 		return
 	}
+
 	err = json.Unmarshal(data, &response)
 	if err != nil {
 		content := errorTmpl(c, "unable to unmarshal response, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		handleError(c, http.StatusBadRequest, content, err)
 		return
 	}
 	if Verbose > 1 {
 		log.Printf("meta-data response\n%+v", response)
 	}
+	// return respose JSON if requested
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	// otherwise create proper HTML
 	if response.Results.NRecords == 0 {
 		tmpl["Content"] = fmt.Sprintf("No records found for your query:\n<pre>%s</pre>", query)
 		page := server.TmplPage(StaticFs, "noresults.tmpl", tmpl)
@@ -119,7 +128,6 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	// we will not use footer() on handlers since user may expand records
 	// instead we'll use footerEmpty() function
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footerEmpty()))
-	// c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 func findMetadataRecord(did string) (map[string]any, error) {
