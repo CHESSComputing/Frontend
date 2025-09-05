@@ -629,6 +629,59 @@ func ToolsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// DidsHandler provides access to GET /dids endpoint
+func DidsHandler(c *gin.Context) {
+	user, err := getUser(c)
+	log.Printf("RecordHandler %s user=%s error=%v", c.Request.Method, user, err)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	// get all dids from Metadata service
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/records?projection=did", srvConfig.Config.Services.MetaDataURL)
+	resp, err := _httpReadRequest.Get(rurl)
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		handleError(c, http.StatusInternalServerError, msg, err)
+		return
+	}
+	// parse data records from meta-data service
+	var records []map[string]string
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		content := errorTmpl(c, "unable to read response body, error", err)
+		handleError(c, http.StatusBadRequest, content, err)
+		return
+	}
+
+	err = json.Unmarshal(data, &records)
+	if err != nil {
+		content := errorTmpl(c, "unable to unmarshal response, error", err)
+		handleError(c, http.StatusBadRequest, content, err)
+		return
+	}
+	if Verbose > 1 {
+		log.Printf("metadata response\n%+v", records)
+	}
+	// return respose JSON if requested
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, records)
+		return
+	}
+	tmpl := server.MakeTmpl(StaticFs, "dids")
+	var dids []string
+	for _, rec := range records {
+		for did := range rec {
+			dids = append(dids, did)
+		}
+	}
+	tmpl["Content"] = strings.Join(dids, "<br/>")
+	page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+}
+
 // RecordHandler provides access to GET /search endpoint
 func RecordHandler(c *gin.Context) {
 	r := c.Request
