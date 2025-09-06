@@ -274,39 +274,6 @@ func SyncHandler(c *gin.Context) {
 	tmpl["Base"] = base
 	tmpl["User"] = user
 
-	// process POST request
-	if c.Request.Method == http.MethodPost {
-		rec := make(map[string]string)
-		rec["sourceUrl"] = c.Request.FormValue("sourceUrl")
-		rec["sourceToken"] = c.Request.FormValue("sourceToken")
-		rec["targetUrl"] = c.Request.FormValue("targetUrl")
-		rec["targetToken"] = c.Request.FormValue("targetToken")
-		data, err := json.Marshal(rec)
-		if err != nil {
-			handleError(c, http.StatusBadRequest, "unable to process sync request form", err)
-			return
-		}
-		// insert sync record
-		_httpWriteRequest.GetToken()
-		rurl := fmt.Sprintf("%s", srvConfig.Config.Services.SyncServiceURL)
-		resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
-		if err != nil {
-			msg := fmt.Sprintf("unable to process sync request, status %s", resp.Status)
-			handleError(c, http.StatusBadRequest, msg, err)
-			return
-		}
-		if c.Request.Header.Get("Accept") == "application/json" {
-			c.JSON(http.StatusOK, nil)
-			return
-		}
-		content := fmt.Sprintf("Sync record successfully created")
-		tmpl["Content"] = content
-		page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
-		c.Writer.Write([]byte(header() + page + footer()))
-		return
-	}
-
-	// process GET request
 	// request only user's specific data (check user attributes)
 	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
@@ -325,7 +292,8 @@ func SyncHandler(c *gin.Context) {
 	if token, err := newToken(user, "read+write"); err == nil {
 		tmpl["SourceToken"] = token
 	}
-	tmpl["SourceUrl"] = srvConfig.Config.Services.FrontendURL
+	tmpl["SourceUrl"] = "https://foxden...."
+	tmpl["TargetUrl"] = srvConfig.Config.Services.FrontendURL
 
 	// create part for status dashboard
 	records, err := getSyncRecords()
@@ -2037,29 +2005,45 @@ func SyncFormHandler(c *gin.Context) {
 		LoginHandler(c)
 		return
 	}
-	r := c.Request
-	w := c.Writer
-	// Always parse the form first
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Error parsing form", http.StatusBadRequest)
-		return
-	}
-
-	// get beamline value from the form
-	did := r.FormValue("did")
-	btrs := r.Form["btrs"]
-	pushAction := r.FormValue("pushAction")
-	pullAction := r.FormValue("pullAction")
-	sourceUrl := r.FormValue("sourceUrl")
-	targetUrl := r.FormValue("targetUrl")
-	sourceToken := r.FormValue("sourceToken")
-	targetToken := r.FormValue("targetToken")
+	// prepare our data
 	tmpl := server.MakeTmpl(StaticFs, "Sync")
 	base := srvConfig.Config.Frontend.WebServer.Base
 	tmpl["Base"] = base
-	content := fmt.Sprintf("User: %s<br/>BTRs: %s<br/>did: %s<br/>push action: %v<br/>pull action: %v<br/>sourceUrl: %s<br/>sourceToken: %s<br/>targetUrl: %s<br/>targetToken: %s<br/>ERROR: synchronization of FOXDEN instances is not yet implemented",
-		user, btrs, did, pushAction, pullAction, sourceUrl, sourceToken, targetUrl, targetToken)
+	tmpl["User"] = user
+	rec := make(map[string]any)
+	rec["source_url"] = c.Request.FormValue("sourceUrl")
+	rec["source_token"] = c.Request.FormValue("sourceToken")
+	rec["target_url"] = c.Request.FormValue("targetUrl")
+	rec["target_token"] = c.Request.FormValue("targetToken")
+
+	// optional parameters
+	rec["did"] = c.Request.FormValue("did")
+	if err := c.Request.ParseForm(); err == nil {
+		rec["btrs"] = c.Request.Form["btrs"]
+	}
+
+	// serialize sync record
+	data, err := json.Marshal(rec)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to process sync request form", err)
+		return
+	}
+	log.Println("### sync record", string(data))
+	// insert sync record
+	_httpWriteRequest.GetToken()
+	rurl := fmt.Sprintf("%s/request", srvConfig.Config.Services.SyncServiceURL)
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil || resp.StatusCode != 200 {
+		msg := fmt.Sprintf("unable to process sync request, status %s", resp.Status)
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, nil)
+		return
+	}
+	content := fmt.Sprintf("Sync record successfully created")
 	tmpl["Content"] = content
-	page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
-	w.Write([]byte(header() + page + footer()))
+	page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
+	c.Writer.Write([]byte(header() + page + footer()))
 }
