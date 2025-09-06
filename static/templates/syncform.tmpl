@@ -23,6 +23,7 @@
       </tr>
     </thead>
     <tbody style="padding:10px;">
+    {{- if .Rows }}
       {{- range $i, $row := .Rows }}
         <tr>
           {{- range $col := $.Columns }}
@@ -30,6 +31,14 @@
           {{- end }}
         </tr>
       {{- end }}
+    {{- else }}
+      <tr>
+        <td colspan="{{len .Columns}}" style="text-align:center; font-style:italic; color:#666;">
+          No sync records found
+        </td>
+      </tr>
+    {{- end }}
+
     </tbody>
   </table>
 
@@ -86,7 +95,7 @@ foxden token view</pre>
   <legend>FOXDEN source</legend>
     <div class="form-item">
         <label>Source FOXDEN URL<span class="hint hint-req">*</span></label>
-        <input class="input" type="text" name="sourceUrl" value="{{.SourceUrl}}" readonly>
+        <input class="input" type="text" name="sourceUrl" placeholder="{{.SourceUrl}}">
     </div>
     <div class="form-item">
         <label>Token for source FOXDEN instance<span class="hint hint-req">*</span></label>
@@ -97,7 +106,7 @@ foxden token view</pre>
   <legend>FOXDEN target</legend>
     <div class="form-item">
         <label>Target FOXDEN URL<span class="hint hint-req">*</span></label>
-        <input class="input" type="text" name="targetUrl" placeholder="target URL">
+        <input class="input" type="text" name="targetUrl" placeholder="{{.TargetUrl}}">
     </div>
     <div class="form-item">
         <label>Token for target FOXDEN instance<span class="hint hint-req">*</span></label>
