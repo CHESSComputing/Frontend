@@ -14,7 +14,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -337,21 +336,11 @@ func SyncHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
-	colsSet := map[string]struct{}{}
-	for _, r := range records {
-		for k := range r {
-			if k == "source_token" || k == "target_token" {
-				continue
-			}
-			colsSet[k] = struct{}{}
-		}
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, records)
+		return
 	}
-	cols := make([]string, 0, len(colsSet))
-	for k := range colsSet {
-		cols = append(cols, k)
-	}
-	sort.Strings(cols)
-	tmpl["Columns"] = cols
+	tmpl["Columns"] = []string{"uuid", "source_url", "target_url", "status"}
 	tmpl["Rows"] = records
 
 	// fill out template content
