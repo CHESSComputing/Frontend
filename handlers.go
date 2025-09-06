@@ -293,20 +293,8 @@ func SyncHandler(c *gin.Context) {
 		tmpl["SourceToken"] = token
 	}
 	tmpl["SourceUrl"] = srvConfig.Config.Services.FrontendURL
-	content := server.TmplPage(StaticFs, "syncform.tmpl", tmpl)
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
-}
 
-// SyncStatusHandler provides access to GET /sync endpoint
-func SyncStatusHandler(c *gin.Context) {
-	_, err := getUser(c)
-	if err != nil {
-		LoginHandler(c)
-		return
-	}
-	tmpl := server.MakeTmpl(StaticFs, "Sync")
-	base := srvConfig.Config.Frontend.WebServer.Base
-	tmpl["Base"] = base
+	// create part for status dashboard
 	records, err := getSyncRecords()
 	if err != nil {
 		tmpl["content"] = err.Error()
@@ -331,10 +319,9 @@ func SyncStatusHandler(c *gin.Context) {
 	sort.Strings(cols)
 	tmpl["Columns"] = cols
 	tmpl["Rows"] = records
-	log.Println("### sync records", records)
-	log.Println("### cols", cols)
 
-	content := server.TmplPage(StaticFs, "syncstatus.tmpl", tmpl)
+	// fill out template content
+	content := server.TmplPage(StaticFs, "syncform.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 

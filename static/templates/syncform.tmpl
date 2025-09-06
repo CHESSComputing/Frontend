@@ -4,8 +4,46 @@
      FOXDEN: synchronization request form
 </div>
 
-<br/>
 
+<div id="dashboard">
+  <div class="grid">
+    <div class="column column-11">
+    </div>
+    <div class="column column-1">
+      <button onclick="ShowTag('submit');HideTag('dashboard')" class="button button-small button-dark push-right">Sync request</button>
+    </div>
+  </div>
+  <br/>
+  <table>
+    <thead style="background:#C0C0C0;padding:10px">
+      <tr>
+        {{- range .Columns }}
+          <th>{{ . }}</th>
+        {{- end }}
+      </tr>
+    </thead>
+    <tbody style="padding:10px;">
+      {{- range $i, $row := .Rows }}
+        <tr>
+          {{- range $col := $.Columns }}
+            <td>{{ with $v := index $row $col }}{{ $v }}{{ else }}<span class="muted">—</span>{{ end }}</td>
+          {{- end }}
+        </tr>
+      {{- end }}
+    </tbody>
+  </table>
+
+</div>
+
+<div id="submit" class="hide">
+  <div class="grid">
+    <div class="column column-11">
+    </div>
+    <div class="column column-1">
+      <button onclick="ShowTag('dashboard');HideTag('submit')" class="button button-small button-dark push-right">Sync dashboard</button>
+    </div>
+  </div>
+  <br/>
 <form action="{{.Base}}/sync" method="post" name="sync" id="sync" class="form">
   <fieldset id="SyncAction">
   <legend>Sync action</legend>
@@ -13,28 +51,13 @@
         <input type="hidden" name="user" value="{{.User}}">
         <div class="alert alert-info">
           <img src="https://cdn.onlinewebfonts.com/svg/img_559210.png" alt="Home" style="width:20px">
-          FOXDEN synchronization will be performed under {{.User}} user name.
-          Please obtain source and target tokens based on your synchronizataion needs.
-          <h3>Tokens</h3>
-          <ul>
-          <li>
-          <input type="checkbox" id="pushAction" name="pushAction">
-          <b>Push records from source to target FOXDEN instance</b> requires
-          source token with read permission and target token with write
-          permission
-          </li>
-          <li>
-          <input type="checkbox" id="pullAction" name="pullAction">
-          <b>Pull records from target to source FOXDEN instances</b> requires
-          source token with write permission and target token with read
-          permission
-          </li>
-          </ul>
-          Tokens can be obtained using <a href="https://chesscomputing.github.io/FOXDEN/docs/cli.html">foxden CLI</a>
+          FOXDEN synchronization form.
+          Please obtain source and target tokens with
+          <a href="https://chesscomputing.github.io/FOXDEN/docs/cli.html">foxden CLI</a>
           via the following set of commands:
           <pre>
-# get token with specified permission (read, write or read+write), e.g. generate read token
-foxden token create read
+# get token with read+write scope and long duration, e.g. 6 hours = 3600 seconds
+foxden token create read+write --expires=21600
 # view your token for cut-and-paste
 foxden token view</pre>
           <h3>BTRs</h3>
@@ -86,6 +109,8 @@ foxden token view</pre>
         <button class="button button-small">Cancel</button>
     </div>
 </form>
+
+</div>
 
   </article>
 </section>
