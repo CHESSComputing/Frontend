@@ -364,3 +364,15 @@ footer {
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   position: relative;
 }
+table.table-sync {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table.table-sync th,
+table.table-sync td {
+  padding: 10px;
+  border: 1px solid #ddd; /* optional */
+  text-align: left;       /* optional */
+}
+
