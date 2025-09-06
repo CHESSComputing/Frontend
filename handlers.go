@@ -274,6 +274,40 @@ func SyncHandler(c *gin.Context) {
 	base := srvConfig.Config.Frontend.WebServer.Base
 	tmpl["Base"] = base
 	tmpl["User"] = user
+
+	// process POST request
+	if c.Request.Method == http.MethodPost {
+		rec := make(map[string]string)
+		rec["sourceUrl"] = c.Request.FormValue("sourceUrl")
+		rec["sourceToken"] = c.Request.FormValue("sourceToken")
+		rec["targetUrl"] = c.Request.FormValue("targetUrl")
+		rec["targetToken"] = c.Request.FormValue("targetToken")
+		data, err := json.Marshal(rec)
+		if err != nil {
+			handleError(c, http.StatusBadRequest, "unable to process sync request form", err)
+			return
+		}
+		// insert sync record
+		_httpWriteRequest.GetToken()
+		rurl := fmt.Sprintf("%s", srvConfig.Config.Services.SyncServiceURL)
+		resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+		if err != nil {
+			msg := fmt.Sprintf("unable to process sync request, status %s", resp.Status)
+			handleError(c, http.StatusBadRequest, msg, err)
+			return
+		}
+		if c.Request.Header.Get("Accept") == "application/json" {
+			c.JSON(http.StatusOK, nil)
+			return
+		}
+		content := fmt.Sprintf("Sync record successfully created")
+		tmpl["Content"] = content
+		page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
+		c.Writer.Write([]byte(header() + page + footer()))
+		return
+	}
+
+	// process GET request
 	// request only user's specific data (check user attributes)
 	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
