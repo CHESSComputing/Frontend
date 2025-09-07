@@ -29,7 +29,7 @@ var StaticFs embed.FS
 // global variables
 var _beamlines []string
 var _smgr beamlines.SchemaManager
-var _httpReadRequest, _httpWriteRequest *services.HttpRequest
+var _httpReadRequest, _httpWriteRequest, _httpDeleteRequest *services.HttpRequest
 var _header, _footer, _footerEmpty string
 var Verbose int
 
@@ -84,6 +84,8 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/dm", Handler: DataManagementHandler, Authorized: false},
 		{Method: "GET", Path: "/amend", Handler: AmendFormHandler, Authorized: false},
 		{Method: "GET", Path: "/sync", Handler: SyncHandler, Authorized: false},
+		{Method: "GET", Path: "/sync/status/:uuid", Handler: SyncStatusHandler, Authorized: false},
+		{Method: "DELETE", Path: "/sync/delete/:uuid", Handler: SyncDeleteHandler, Authorized: false},
 		{Method: "POST", Path: "/sync", Handler: SyncFormHandler, Authorized: false},
 		{Method: "POST", Path: "/amendrecord", Handler: AmendRecordHandler, Authorized: false},
 		{Method: "POST", Path: "/record", Handler: PostRecordHandler, Authorized: false},
@@ -146,6 +148,7 @@ func Server() {
 	// initialize http request
 	_httpReadRequest = services.NewHttpRequest("read", Verbose)
 	_httpWriteRequest = services.NewHttpRequest("write", Verbose)
+	_httpDeleteRequest = services.NewHttpRequest("delete", Verbose)
 
 	// setup web router and start the service
 	r := setupRouter()

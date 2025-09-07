@@ -14,33 +14,43 @@
     </div>
   </div>
   <br/>
-  <table class="table-sync">
-    <thead style="background:#C0C0C0">
-      <tr>
-        {{- range .Columns }}
-          <th>{{ . }}</th>
-        {{- end }}
-      </tr>
-    </thead>
-    <tbody style="padding:10px;">
-    {{- if .Rows }}
-      {{- range $i, $row := .Rows }}
-        <tr>
-          {{- range $col := $.Columns }}
-            <td>{{ with $v := index $row $col }}{{ $v }}{{ else }}<span class="muted">—</span>{{ end }}</td>
-          {{- end }}
-        </tr>
+<table class="table-sync">
+  <thead style="background:#C0C0C0">
+    <tr>
+      {{- range .Columns }}
+        <th>{{ . }}</th>
       {{- end }}
-    {{- else }}
-      <tr>
-        <td colspan="{{len .Columns}}" style="text-align:center; font-style:italic; color:#666;">
-          No sync records found
-        </td>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody style="padding:10px;">
+  {{- if .Rows }}
+    {{- range $i, $row := .Rows }}
+      <tr data-uuid="{{ index $row "uuid" }}">
+        {{- range $j, $col := $.Columns }}
+          <td
+            {{- if eq $col "status" }}
+              id="status-{{ index $row "uuid" }}"
+            {{- end }}
+          >
+            {{ with $v := index $row $col }}{{ $v }}{{ else }}<span class="muted">—</span>{{ end }}
+          </td>
+        {{- end }}
+          <td id="delete-{{ index $row "uuid" }}">
+            <button onclick="deleteRecord('{{ index $row "uuid" }}')" class="button button-small push-right">Delete</button>
+          </td>
       </tr>
     {{- end }}
+  {{- else }}
+    <tr>
+      <td colspan="{{.NColumns}}" style="text-align:center; font-style:italic; color:#666;">
+        No sync records found
+      </td>
+    </tr>
+  {{- end }}
+  </tbody>
+</table>
 
-    </tbody>
-  </table>
 
 </div>
 
@@ -131,4 +141,68 @@ function toggleAll(source) {
         cb.checked = source.checked;
     }
 }
+
+function updateRowStatus(uuid) {
+  fetch("/sync/status/" + uuid)
+    .then(resp => {
+      if (!resp.ok) throw new Error("Network error: " + resp.status);
+      return resp.json();
+    })
+    .then(data => {
+      const cell = document.getElementById("status-" + data.uuid);
+      if (cell) {
+        cell.textContent = data.status;
+      }
+    })
+    .catch(err => {
+      const cell = document.getElementById("status-" + uuid);
+      if (cell) {
+        cell.textContent = "Error";
+        cell.style.color = "red";
+      }
+      console.error("Update failed:", err);
+    });
+}
+
+// helper function to delete sync record
+function deleteRecord(uuid) {
+  if (!confirm("Are you sure you want to delete record " + uuid + "?")) {
+    return;
+  }
+
+  fetch("/sync/delete/" + uuid, {
+    method: "DELETE"
+  })
+  .then(resp => {
+    if (!resp.ok) {
+      throw new Error("Failed to delete: " + resp.status);
+    }
+    return resp.json();
+  })
+  .then(data => {
+    const row = document.getElementById("row-" + data.uuid);
+    if (row) {
+      row.remove();
+    }
+  })
+  .catch(err => {
+    alert("Error deleting record: " + err);
+  });
+}
+
+
+// Option 1: Update all rows periodically
+function refreshAllStatuses() {
+  document.querySelectorAll("tr[data-uuid]").forEach(row => {
+    const uuid = row.getAttribute("data-uuid");
+    updateRowStatus(uuid);
+  });
+}
+
+// Refresh every 2s
+setInterval(refreshAllStatuses, 2000);
+
+// Initial load
+refreshAllStatuses();
+
 </script>

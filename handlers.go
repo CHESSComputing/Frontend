@@ -296,7 +296,7 @@ func SyncHandler(c *gin.Context) {
 	tmpl["TargetUrl"] = srvConfig.Config.Services.FrontendURL
 
 	// create part for status dashboard
-	records, err := getSyncRecords()
+	records, err := getSyncRecords("")
 	if err != nil {
 		tmpl["content"] = err.Error()
 		page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
@@ -308,12 +308,61 @@ func SyncHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, records)
 		return
 	}
-	tmpl["Columns"] = []string{"uuid", "source_url", "target_url", "status"}
+	cols := []string{"uuid", "source_url", "target_url", "status"}
+	tmpl["Columns"] = cols
+	tmpl["NColumns"] = len(cols) + 1
 	tmpl["Rows"] = records
 
 	// fill out template content
 	content := server.TmplPage(StaticFs, "syncform.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// SyncStatusHandler provides access to GET /sync/status/:uuid endpoint
+func SyncStatusHandler(c *gin.Context) {
+	_, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	suuid := c.Param("uuid")
+	// create part for status dashboard
+	records, err := getSyncRecords(suuid)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": err})
+		return
+	}
+	if len(records) == 0 {
+		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": "removed"})
+		return
+	}
+	if len(records) != 1 {
+		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": fmt.Sprintf("too many records for uuid=%s", suuid)})
+		return
+	}
+	record := records[0]
+	if status, ok := record["status"]; ok {
+		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": status})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": "unknown"})
+}
+
+// SyncDeleteHandler provides access to DELETE /sync/delete/:uuid endpoint
+func SyncDeleteHandler(c *gin.Context) {
+	_, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	suuid := c.Param("uuid")
+	err = deleteSyncRecord(suuid)
+	if err != nil {
+		log.Println("ERROR: unable to delete sync record", suuid, err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": "deleted"})
 }
 
 // DocsHandler provides access to GET /docs end-point
@@ -2028,10 +2077,9 @@ func SyncFormHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, "unable to process sync request form", err)
 		return
 	}
-	log.Println("### sync record", string(data))
 	// insert sync record
 	_httpWriteRequest.GetToken()
-	rurl := fmt.Sprintf("%s/request", srvConfig.Config.Services.SyncServiceURL)
+	rurl := fmt.Sprintf("%s/record", srvConfig.Config.Services.SyncServiceURL)
 	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil || resp.StatusCode != 200 {
 		msg := fmt.Sprintf("unable to process sync request, status %s", resp.Status)
