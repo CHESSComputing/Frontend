@@ -432,7 +432,7 @@ func PostProvenanceHandler(c *gin.Context) {
 	_httpWriteRequest.GetToken()
 
 	// insert provenance record
-	rurl := fmt.Sprintf("%s/provenance", srvConfig.Config.Services.DataBookkeepingURL)
+	rurl := fmt.Sprintf("%s/dataset", srvConfig.Config.Services.DataBookkeepingURL)
 	data, err := json.Marshal(record)
 	if err != nil {
 		msg := "unable to marshal input record"
