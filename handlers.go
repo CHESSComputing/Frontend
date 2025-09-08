@@ -411,6 +411,53 @@ func DocsLocalHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// PostProvenanceHandler provides access to GET /provenance endpoint
+func PostProvenanceHandler(c *gin.Context) {
+	user, err := getUser(c)
+	log.Printf("PostProvenanceHandler %s user=%s error=%v", c.Request.Method, user, err)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	// read HTTP POST payload for this API
+	var record map[string]any
+	if err := c.ShouldBindJSON(&record); err != nil {
+		msg := "unable to load HTTP payload"
+		log.Println("ERROR: unable to load HTTP record payload", err)
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+
+	// prepare http writer
+	_httpWriteRequest.GetToken()
+
+	// insert provenance record
+	rurl := fmt.Sprintf("%s/provenance", srvConfig.Config.Services.DataBookkeepingURL)
+	data, err := json.Marshal(record)
+	if err != nil {
+		msg := "unable to marshal input record"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	if Verbose > 0 {
+		log.Println("INFO: submit provenance record", rurl, string(data))
+	}
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		msg := "unable to submit record to FOXDEN metadata service"
+		log.Println("ERROR:", msg, err)
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	if Verbose > 0 {
+		log.Println("INFO: response", resp.StatusCode)
+	}
+	if resp.StatusCode != 200 {
+		c.JSON(resp.StatusCode, nil)
+	}
+	c.JSON(http.StatusOK, nil)
+}
+
 // ProvenanceHandler provides access to GET /provenance endpoint
 func ProvenanceHandler(c *gin.Context) {
 	r := c.Request

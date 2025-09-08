@@ -92,7 +92,7 @@ func setupRouter() *gin.Engine {
 		{Method: "POST", Path: "/dmfiles", Handler: DMFilesHandler, Authorized: false},
 		{Method: "POST", Path: "/login", Handler: KAuthHandler, Authorized: false},
 		{Method: "POST", Path: "/search", Handler: SearchHandler, Authorized: false},
-		{Method: "POST", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
+		{Method: "POST", Path: "/provenance", Handler: PostProvenanceHandler, Authorized: false},
 		{Method: "POST", Path: "/meta/form/upload", Handler: MetaFormUploadHandler, Authorized: false},
 		{Method: "POST", Path: "/meta/file/upload", Handler: MetaFileUploadHandler, Authorized: false},
 		{Method: "POST", Path: "/publish", Handler: PublishHandler, Authorized: false},
