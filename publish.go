@@ -141,8 +141,14 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		// drop _id as it does not belong to the meta-data schema
 		delete(rec, "_id")
 		// and add doi attributes
-		rec["doi"] = doi
-		rec["doi_url"] = doiLink
+		_doi, ok := rec["doi"]
+		if _doi == "" || !ok {
+			rec["doi"] = doi
+		}
+		_doiLink, ok := rec["doi_url"]
+		if _doiLink == "" || !ok {
+			rec["doi_url"] = doiLink
+		}
 		rec["doi_user"] = user
 		rec["doi_public"] = doiPublic
 		rec["doi_provider"] = doiProvider
