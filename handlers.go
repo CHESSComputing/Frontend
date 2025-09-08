@@ -905,7 +905,9 @@ func SearchHandler(c *gin.Context) {
 	// proceed with processing the user query from web form
 	if query == "" {
 		query = "{}"
-		log.Printf("WARNING: user %s used empty query, substitue to {}\n", user)
+		if Verbose > 1 {
+			log.Printf("WARNING: user %s used empty query, substitue to {}\n", user)
+		}
 	}
 	dataTypes := []string{"STRING", "INT", "INTEGER", "FLOAT", "LIST", "BOOL"}
 	for _, key := range dataTypes {
@@ -1602,7 +1604,7 @@ func DatasetsHandler(c *gin.Context) {
 	} else if sorder == "desc" {
 		sortOrder = -1
 	}
-	if Verbose > 0 {
+	if Verbose > 1 {
 		log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v", user, query, searchFilter, attrs, idx, limit, skey, sorder)
 	}
 
