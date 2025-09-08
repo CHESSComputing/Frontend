@@ -135,6 +135,7 @@ func Server() {
 	}
 
 	// initialize schema manager
+	beamlines.Verbose = Verbose
 	_smgr = beamlines.SchemaManager{}
 	for _, fname := range srvConfig.Config.CHESSMetaData.SchemaFiles {
 		_, err := _smgr.Load(fname)
