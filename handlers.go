@@ -481,6 +481,11 @@ func ProvenanceHandler(c *gin.Context) {
 		return
 	}
 
+	// return JSON if requested
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, provenance)
+		return
+	}
 	// construct output record
 	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
 	tmpl["InputFiles"] = strings.Join(inputFiles, "\n")
