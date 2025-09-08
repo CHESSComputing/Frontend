@@ -91,8 +91,10 @@ func getUser(c *gin.Context) (string, error) {
 		// if we received HTTP request with token
 		claims, e := authz.TokenClaims(token, srvConfig.Config.Authz.ClientID)
 		user = claims.CustomClaims.User
-		log.Printf("Token=%s user=%s, error=%v", token, user, e)
-		log.Println("Claims", claims)
+		if Verbose > 1 {
+			log.Printf("Token=%s user=%s, error=%v", token, user, e)
+			log.Println("Claims", claims)
+		}
 		return user, e
 	}
 	if srvConfig.Config.Frontend.TestMode {
