@@ -18,7 +18,6 @@ import (
 
 	authz "github.com/CHESSComputing/golib/authz"
 	srvConfig "github.com/CHESSComputing/golib/config"
-	ldap "github.com/CHESSComputing/golib/ldap"
 	services "github.com/CHESSComputing/golib/services"
 )
 
@@ -199,8 +198,8 @@ func makeSpec(searchFilter string, attrs []string) map[string]any {
 // helper function to update spec with ldap attributes. It has the following logic
 // - in case of search spec we only update input spec with btrs limited to user ldap attributes
 // - in case of filter spec we make a new spec based on filter conditions
-func updateSpec(ispec map[string]any, attrs ldap.Entry, useCase string) map[string]any {
-	if (len(attrs.Foxdens) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
+func updateSpec(ispec map[string]any, scopes, groups []string, useCase string) map[string]any {
+	if (len(scopes) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
 		srvConfig.Config.Frontend.AllowAllRecords {
 		// foxden attributes allows to see all btrs
 		return ispec
@@ -211,9 +210,9 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry, useCase string) map[stri
 		// check if ispec contains btrs and make final list from attrs.Btrs
 		// this will restrict spec to btrs allowed by ldap entry btrs associated with user
 		if btrs, ok := ispec["btr"]; ok {
-			ispec["btr"] = map[string]any{"$in": finalBtrs(btrs, attrs.Btrs)}
-		} else if len(attrs.Btrs) != 0 {
-			ispec["btr"] = map[string]any{"$in": attrs.Btrs}
+			ispec["btr"] = map[string]any{"$in": finalBtrs(btrs, groups)}
+		} else if len(groups) != 0 {
+			ispec["btr"] = map[string]any{"$in": groups}
 		}
 		return ispec
 	}
@@ -242,13 +241,13 @@ func updateSpec(ispec map[string]any, attrs ldap.Entry, useCase string) map[stri
 		}
 	}
 	// default spec will contain only btrs
-	spec := map[string]any{"btr": map[string]any{"$in": attrs.Btrs}}
+	spec := map[string]any{"btr": map[string]any{"$in": groups}}
 	if len(filters) > 0 {
 		// if we had other filters we will construct "$and" query with them
 		spec = map[string]any{
 			"$and": []map[string]any{
 				map[string]any{"$or": filters},
-				map[string]any{"btr": map[string]any{"$in": attrs.Btrs}},
+				map[string]any{"btr": map[string]any{"$in": groups}},
 			},
 		}
 	}
@@ -308,7 +307,6 @@ func finalBtrs(btrs any, attrBtrs []string) []string {
 func provenanceRecord(mrec services.MetaRecord) map[string]any {
 	prov := make(map[string]any)
 	maps.Copy(prov, mrec.Record)
-	/*
 	if _, ok := mrec.Record["osinfo"]; !ok {
 		orec := make(map[string]string)
 		orec["name"] = "N/A"
@@ -337,6 +335,5 @@ func provenanceRecord(mrec services.MetaRecord) map[string]any {
 		scripts = append(scripts, erec)
 		prov["scripts"] = scripts
 	}
-	*/
 	return prov
 }
