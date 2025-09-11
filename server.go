@@ -31,6 +31,7 @@ var _beamlines []string
 var _smgr beamlines.SchemaManager
 var _httpReadRequest, _httpWriteRequest, _httpDeleteRequest *services.HttpRequest
 var _header, _footer, _footerEmpty string
+var _foxdenUser services.UserAttributes
 var Verbose int
 
 // helper function to define our header
@@ -150,6 +151,17 @@ func Server() {
 	_httpReadRequest = services.NewHttpRequest("read", Verbose)
 	_httpWriteRequest = services.NewHttpRequest("write", Verbose)
 	_httpDeleteRequest = services.NewHttpRequest("delete", Verbose)
+
+	// make a choice of foxden user
+	switch srvConfig.Config.CHESSMetaData.FoxdenUser.User {
+	case "Maglab":
+		_foxdenUser = &services.MaglabUser{}
+	case "CHESS":
+		_foxdenUser = &services.CHESSUser{}
+	default:
+		_foxdenUser = &services.CHESSUser{}
+	}
+	_foxdenUser.Init()
 
 	// setup web router and start the service
 	r := setupRouter()
