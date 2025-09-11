@@ -279,15 +279,15 @@ func SyncHandler(c *gin.Context) {
 	// request only user's specific data (check user attributes)
 	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		attrs, err := services.UserAttributes(user)
+		fuser, err := _foxdenUser.Get(user)
+		btrs = fuser.Btrs
 		if err == nil {
 			// check user btrs and return error if user does not have any associations with Btrs
-			if len(attrs.Btrs) == 0 {
+			if len(btrs) == 0 {
 				msg := fmt.Sprintf("User %s does not associated with any BTRs, search access is deined", user)
 				handleError(c, http.StatusBadRequest, msg, err)
 				return
 			}
-			btrs = attrs.Btrs
 		}
 	}
 	tmpl["Btrs"] = btrs
@@ -869,21 +869,21 @@ func RecordHandler(c *gin.Context) {
 	// request only user's specific data (check user attributes)
 	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		attrs, err := services.UserAttributes(user)
+		fuser, err := _foxdenUser.Get(user)
+		btrs = fuser.Btrs
 		if err == nil {
 			// check user btrs and return error if user does not have any associations with Btrs
-			if len(attrs.Btrs) == 0 {
+			if len(btrs) == 0 {
 				msg := fmt.Sprintf("User %s does not associated with any BTRs, search access is deined", user)
 				handleError(c, http.StatusBadRequest, msg, err)
 				return
 			}
 			// in search we only update spec with user's btrs
-			spec = updateSpec(spec, attrs, "search")
+			spec = updateSpec(spec, fuser.Scopes, fuser.Btrs, "search")
 			rec = services.ServiceRequest{
 				Client:       "frontend",
 				ServiceQuery: services.ServiceQuery{Spec: spec},
 			}
-			btrs = attrs.Btrs
 		}
 	}
 	// based on user query process request from all FOXDEN services
@@ -1033,7 +1033,8 @@ func SearchHandler(c *gin.Context) {
 	// request only user's specific data (check user attributes)
 	var btrs []string
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		attrs, err := services.UserAttributes(user)
+		fuser, err := _foxdenUser.Get(user)
+		btrs = fuser.Btrs
 		if err == nil {
 			var spec map[string]any
 			err := json.Unmarshal([]byte(query), &spec)
@@ -1043,13 +1044,13 @@ func SearchHandler(c *gin.Context) {
 				return
 			}
 			// check user btrs and return error if user does not have any associations with Btrs
-			if len(attrs.Btrs) == 0 {
+			if len(btrs) == 0 {
 				msg := fmt.Sprintf("User %s does not associated with any BTRs, search access is deined", user)
 				handleError(c, http.StatusBadRequest, msg, err)
 				return
 			}
 			// in search we only update spec with user's btrs
-			spec = updateSpec(spec, attrs, "search")
+			spec = updateSpec(spec, fuser.Scopes, fuser.Btrs, "search")
 			if data, err := json.Marshal(spec); err == nil {
 				query = string(data)
 			}
@@ -1064,7 +1065,6 @@ func SearchHandler(c *gin.Context) {
 					Limit:     limit,
 				},
 			}
-			btrs = attrs.Btrs
 		}
 	}
 	// based on user query process request from all FOXDEN services
@@ -1697,10 +1697,10 @@ func DatasetsHandler(c *gin.Context) {
 	}
 	// request only user's specific data (check user attributes)
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		attrs, err := services.UserAttributes(user)
+		fuser, err := _foxdenUser.Get(user)
 		if err == nil {
 			// in filters use-case we update spec with filters
-			spec = updateSpec(spec, attrs, "filter")
+			spec = updateSpec(spec, fuser.Scopes, fuser.Btrs, "filter")
 			if data, err := json.Marshal(spec); err == nil {
 				query = string(data)
 			}
@@ -1772,8 +1772,8 @@ func DatasetsTableHandler(c *gin.Context) {
 	tmpl["DataAttributes"] = strings.Join(attrs, ",")
 	tmpl["User"] = user
 	if user != "test" {
-		if attrs, err := services.UserAttributes(user); err == nil {
-			tmpl["Btrs"] = attrs.Btrs
+		if fuser, err := _foxdenUser.Get(user); err == nil {
+			tmpl["Btrs"] = fuser.Btrs
 		}
 	}
 	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
