@@ -195,11 +195,28 @@ func makeSpec(searchFilter string, attrs []string) map[string]any {
 	return spec
 }
 
+// wrapper function to update spec for given foxden user and use case
+// it is deployment specific, i.e. at CHESS we use BTRs, at MagLab we may use something else
+func updateSpec(ispec map[string]any, foxdenUser services.User, useCase string) map[string]any {
+	fuser := strings.ToLower(srvConfig.Config.Frontend.FoxdenUser.User)
+	if strings.Contains(fuser, "maglab") {
+		return maglabUpdateSpec(ispec, foxdenUser, useCase)
+	}
+	// by default we'll use CHESS method
+	return chessUpdateSpec(ispec, foxdenUser.FoxdenGroups, foxdenUser.Btrs, useCase)
+}
+
+// helper function to update query spec for maglab user
+func maglabUpdateSpec(ispec map[string]any, foxdenUser services.User, useCase string) map[string]any {
+	// TODO: implement logic here
+	return ispec
+}
+
 // helper function to update spec with ldap attributes. It has the following logic
 // - in case of search spec we only update input spec with btrs limited to user ldap attributes
 // - in case of filter spec we make a new spec based on filter conditions
-func updateSpec(ispec map[string]any, scopes, groups []string, useCase string) map[string]any {
-	if (len(scopes) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
+func chessUpdateSpec(ispec map[string]any, userFoxdenGroups, userBtrs []string, useCase string) map[string]any {
+	if (len(userFoxdenGroups) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
 		srvConfig.Config.Frontend.AllowAllRecords {
 		// foxden attributes allows to see all btrs
 		return ispec
@@ -207,12 +224,12 @@ func updateSpec(ispec map[string]any, scopes, groups []string, useCase string) m
 
 	// search use-case
 	if useCase == "search" {
-		// check if ispec contains btrs and make final list from attrs.Btrs
+		// check if ispec contains btrs and make final list from userBtrs
 		// this will restrict spec to btrs allowed by ldap entry btrs associated with user
 		if btrs, ok := ispec["btr"]; ok {
-			ispec["btr"] = map[string]any{"$in": finalBtrs(btrs, groups)}
-		} else if len(groups) != 0 {
-			ispec["btr"] = map[string]any{"$in": groups}
+			ispec["btr"] = map[string]any{"$in": finalBtrs(btrs, userBtrs)}
+		} else if len(userBtrs) != 0 {
+			ispec["btr"] = map[string]any{"$in": userBtrs}
 		}
 		return ispec
 	}
@@ -241,13 +258,13 @@ func updateSpec(ispec map[string]any, scopes, groups []string, useCase string) m
 		}
 	}
 	// default spec will contain only btrs
-	spec := map[string]any{"btr": map[string]any{"$in": groups}}
+	spec := map[string]any{"btr": map[string]any{"$in": userBtrs}}
 	if len(filters) > 0 {
 		// if we had other filters we will construct "$and" query with them
 		spec = map[string]any{
 			"$and": []map[string]any{
 				map[string]any{"$or": filters},
-				map[string]any{"btr": map[string]any{"$in": groups}},
+				map[string]any{"btr": map[string]any{"$in": userBtrs}},
 			},
 		}
 	}

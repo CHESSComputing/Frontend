@@ -879,7 +879,7 @@ func RecordHandler(c *gin.Context) {
 				return
 			}
 			// in search we only update spec with user's btrs
-			spec = updateSpec(spec, fuser.Scopes, fuser.Btrs, "search")
+			spec = updateSpec(spec, fuser, "search")
 			rec = services.ServiceRequest{
 				Client:       "frontend",
 				ServiceQuery: services.ServiceQuery{Spec: spec},
@@ -1050,7 +1050,7 @@ func SearchHandler(c *gin.Context) {
 				return
 			}
 			// in search we only update spec with user's btrs
-			spec = updateSpec(spec, fuser.Scopes, fuser.Btrs, "search")
+			spec = updateSpec(spec, fuser, "search")
 			if data, err := json.Marshal(spec); err == nil {
 				query = string(data)
 			}
@@ -1402,7 +1402,9 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	mrec.Record["beamline"], mrec.Record["btr"], mrec.Record["cycle"], mrec.Record["sample_name"] = extractParts(did)
 	if mrec.Record["btr"] == "" {
 		class = "alert alert-error"
-		content := errorTmpl(c, "unable to extract btr from did of the record", nil)
+		msg := "unable to extract btr from did of the record"
+		log.Printf("ERROR: %s %+v", msg, mrec)
+		content := errorTmpl(c, msg, nil)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
@@ -1700,7 +1702,7 @@ func DatasetsHandler(c *gin.Context) {
 		fuser, err := _foxdenUser.Get(user)
 		if err == nil {
 			// in filters use-case we update spec with filters
-			spec = updateSpec(spec, fuser.Scopes, fuser.Btrs, "filter")
+			spec = updateSpec(spec, fuser, "filter")
 			if data, err := json.Marshal(spec); err == nil {
 				query = string(data)
 			}
