@@ -449,11 +449,18 @@ func PostProvenanceHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
-	if Verbose > 0 {
-		log.Println("INFO: response", resp.StatusCode)
-	}
 	if resp.StatusCode != 200 {
+		defer resp.Body.Close()
+		if data, err = io.ReadAll(resp.Body); err == nil {
+			log.Printf("WARNING: unable to successfully submit provenance record, response=%+v, payload data=%v", resp, string(data))
+		} else {
+			log.Printf("WARNING: unable to successfully submit provenance record, response=%+v", resp)
+		}
 		c.JSON(resp.StatusCode, nil)
+		return
+	}
+	if Verbose > 0 {
+		log.Printf("INFO: response=%s", resp.Status)
 	}
 	c.JSON(http.StatusOK, nil)
 }
@@ -527,12 +534,6 @@ func ProvenanceHandler(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-
-	// return JSON if requested
-	if c.Request.Header.Get("Accept") == "application/json" {
-		c.JSON(http.StatusOK, provenance)
-		return
-	}
 	// construct output record
 	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
 	tmpl["InputFiles"] = strings.Join(inputFiles, "\n")
@@ -556,17 +557,28 @@ func ProvenanceHandler(c *gin.Context) {
 		}
 	}
 	tmpl["Did"] = did
+	provRecord := provenance[0]
 	// fill out necessary aux info
 	for _, key := range []string{"osinfo", "environments", "scripts", "packages"} {
-		records, err = getData(key, did)
-		if err != nil {
-			content := errorTmpl(c, fmt.Sprintf("unable to get %s data from provenance service, error", key), err)
-			c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-			return
-		}
+		/*
+			// no need to look-up individual pieces since we have provenance record
+			records, err = getData(key, did)
+			if err != nil {
+				content := errorTmpl(c, fmt.Sprintf("unable to get %s data from provenance service, error", key), err)
+				c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+				return
+			}
+		*/
+		records, _ := provRecord[key]
 		if data, err := json.MarshalIndent(records, "", "  "); err == nil {
 			tmpl[key] = string(data)
 		}
+	}
+
+	// return JSON if requested
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, provenance)
+		return
 	}
 
 	page := server.TmplPage(StaticFs, "provenance.tmpl", tmpl)
@@ -841,11 +853,18 @@ func PostRecordHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
-	if Verbose > 0 {
-		log.Println("INFO: response", resp.StatusCode)
-	}
 	if resp.StatusCode != 200 {
+		defer resp.Body.Close()
+		if data, err = io.ReadAll(resp.Body); err == nil {
+			log.Printf("WARNING: unable to successfully submit metadata record, response=%+v, payload data=%v", resp, string(data))
+		} else {
+			log.Printf("WARNING: unable to successfully submit metadata record, response=%+v", resp)
+		}
 		c.JSON(resp.StatusCode, nil)
+		return
+	}
+	if Verbose > 0 {
+		log.Printf("INFO: response=%s", resp.Status)
 	}
 	c.JSON(http.StatusOK, nil)
 }
