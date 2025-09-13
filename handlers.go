@@ -414,7 +414,9 @@ func DocsLocalHandler(c *gin.Context) {
 // PostProvenanceHandler provides access to GET /provenance endpoint
 func PostProvenanceHandler(c *gin.Context) {
 	user, err := getUser(c)
-	log.Printf("PostProvenanceHandler %s user=%s error=%v", c.Request.Method, user, err)
+	if Verbose > 1 {
+		log.Printf("PostProvenanceHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -467,6 +469,14 @@ func PostProvenanceHandler(c *gin.Context) {
 
 // ProvenanceHandler provides access to GET /provenance endpoint
 func ProvenanceHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("ProvenanceHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
 	r := c.Request
 	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
 
@@ -767,7 +777,9 @@ func ToolsHandler(c *gin.Context) {
 // DidsHandler provides access to GET /dids endpoint
 func DidsHandler(c *gin.Context) {
 	user, err := getUser(c)
-	log.Printf("RecordHandler %s user=%s error=%v", c.Request.Method, user, err)
+	if Verbose > 1 {
+		log.Printf("DidsHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -818,7 +830,9 @@ func DidsHandler(c *gin.Context) {
 // PostRecordHandler provides access to POST /record endpoint
 func PostRecordHandler(c *gin.Context) {
 	user, err := getUser(c)
-	log.Printf("PostRecordHandler %s user=%s error=%v", c.Request.Method, user, err)
+	if Verbose > 1 {
+		log.Printf("PostRecordHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -873,7 +887,9 @@ func PostRecordHandler(c *gin.Context) {
 func RecordHandler(c *gin.Context) {
 	r := c.Request
 	user, err := getUser(c)
-	log.Printf("RecordHandler %s user=%s error=%v", c.Request.Method, user, err)
+	if Verbose > 1 {
+		log.Printf("RecordHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -915,7 +931,9 @@ func RecordHandler(c *gin.Context) {
 func SearchHandler(c *gin.Context) {
 	r := c.Request
 	user, err := getUser(c)
-	log.Printf("SearchHandler %s user=%s error=%v", c.Request.Method, user, err)
+	if Verbose > 1 {
+		log.Printf("SearchHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -1136,15 +1154,23 @@ func SpecScansHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	log.Printf("response: %+v\n", response)
+	if Verbose > 0 {
+		log.Printf("response: %+v\n", response)
+	}
 	scans := response.Results.Records
-	log.Printf("scans: %+v\n", scans)
+	if Verbose > 0 {
+		log.Printf("scans: %+v\n", scans)
+	}
 	// Get column headers from matching scan records
 	colsSet := make(map[string]struct{})
 	for _, s := range scans {
-		log.Printf("s: %+v\n", s)
+		if Verbose > 2 {
+			log.Printf("s: %+v\n", s)
+		}
 		for k, _ := range s {
-			log.Printf("k: %+v\n", k)
+			if Verbose > 2 {
+				log.Printf("k: %+v\n", k)
+			}
 			colsSet[k] = struct{}{}
 		}
 	}
@@ -1152,8 +1178,10 @@ func SpecScansHandler(c *gin.Context) {
 	for k := range colsSet {
 		cols = append(cols, k)
 	}
-	log.Printf("colsSet: %+v", colsSet)
-	log.Printf("cols: %+v", cols)
+	if Verbose > 1 {
+		log.Printf("colsSet: %+v", colsSet)
+		log.Printf("cols: %+v", cols)
+	}
 
 	// Make table
 	tmpl := server.MakeTmpl(StaticFs, "scantable.tmpl")
@@ -1166,7 +1194,9 @@ func SpecScansHandler(c *gin.Context) {
 		"command":     true,
 	}
 	tmpl["Rows"] = scans
-	log.Printf("tmpl: %+v\n", tmpl)
+	if Verbose > 2 {
+		log.Printf("tmpl: %+v\n", tmpl)
+	}
 	content := server.TmplPage(StaticFs, "scantable.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
