@@ -467,6 +467,32 @@ func PostProvenanceHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+// ParentsHandler provides access to GET /parents endpoint
+func ParentsHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("ProvenanceHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	r := c.Request
+	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
+
+	// obtain valid token
+	_httpReadRequest.GetToken()
+
+	// get files from provenance service
+	records, err := getData("parens", did)
+	if err != nil {
+		msg := fmt.Sprintf("unable to find parents for did=%s", did)
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	c.JSON(http.StatusOK, records)
+}
+
 // ProvenanceHandler provides access to GET /provenance endpoint
 func ProvenanceHandler(c *gin.Context) {
 	user, err := getUser(c)

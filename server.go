@@ -82,6 +82,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/info/specscans", Handler: SpecScansInfoHandler, Authorized: false},
 		{Method: "GET", Path: "/info/datamanagement", Handler: DataManagementInfoHandler, Authorized: false},
 		{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
+		{Method: "GET", Path: "/parents", Handler: ParentsHandler, Authorized: false},
 		{Method: "GET", Path: "/dm", Handler: DataManagementHandler, Authorized: false},
 		{Method: "GET", Path: "/amend", Handler: AmendFormHandler, Authorized: false},
 		{Method: "GET", Path: "/sync", Handler: SyncHandler, Authorized: false},
