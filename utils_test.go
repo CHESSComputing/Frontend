@@ -7,6 +7,7 @@ import (
 
 	srvConfig "github.com/CHESSComputing/golib/config"
 	ldap "github.com/CHESSComputing/golib/ldap"
+	services "github.com/CHESSComputing/golib/services"
 )
 
 // TestFinalBtrs tests finalBtrs function
@@ -135,7 +136,9 @@ func TestUpdateSpec(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result := updateSpec(test.ispec, test.attrs, test.useCase)
+			foxdenUser := services.User{}
+			foxdenUser.Btrs = test.attrs.Btrs
+			result := updateSpec(test.ispec, foxdenUser, test.useCase)
 			if !reflect.DeepEqual(result, test.expected) {
 				t.Errorf("Test %s failed. Expected %v, got %v", test.name, test.expected, result)
 			}
