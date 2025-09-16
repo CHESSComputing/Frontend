@@ -1,0 +1,43 @@
+<h3>User metadata form</h3>
+<div class="important">
+Users are required to fill out all inputs listed in red color and bold font:
+</div>
+<br/>
+
+<fieldset id="User">
+<legend>User</legend>
+
+<div class="form-item">
+  <label class="hint hint-req">
+    Dataset IDentifier (DID)
+    <input type="text" name="did" class="input column-9" placeholder="/beamline=bla/btr=foo/composition=abc"/>
+  </label>
+</div>
+
+<div class="form-item">
+  <label class="hint hint-req">
+    Parent DID:
+  </label>
+  <div id="meta-parent-container">
+    <div class="meta-row">
+      <input class="input" type="text" name="parent_dids" placeholder="/beamline=bla/btr=foo/..." />
+    </div>
+  </div>
+  <div class="add-btn" onclick="addParentDidRow()">＋</div>
+</div>
+
+</fieldset>
+
+<script>
+function addParentDidRow() {
+  const container = document.getElementById("meta-parent-container");
+  const row = document.createElement("div");
+  row.className = "meta-row";
+  row.innerHTML = `
+    <input class="input" type="text" name="parent_dids" placeholder="/beamline=bla/btr=foo/..." />
+  `;
+  container.appendChild(row);
+  console.log("add new parent");
+  console.log(container);
+}
+</script>

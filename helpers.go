@@ -306,6 +306,14 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 		tmpl["Form"] = template.HTML(form)
 		return server.TmplPage(StaticFs, "form_beamline.tmpl", tmpl), nil
 	}
+	if strings.Contains(fname, "composed") {
+		tmpl := server.MakeTmpl(StaticFs, "Form")
+		form := server.TmplPage(StaticFs, "composed.tmpl", tmpl)
+		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+		tmpl["Beamline"] = beamline
+		tmpl["Form"] = template.HTML(form)
+		return server.TmplPage(StaticFs, "form_beamline.tmpl", tmpl), nil
+	}
 	val = fmt.Sprintf("<input class=\"input\" name=\"beamline\" type=\"hidden\" value=\"\"/>%s", beamline)
 	schema, err := _smgr.Load(fname)
 	if err != nil {
