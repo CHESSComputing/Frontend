@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -365,6 +366,23 @@ func SyncDeleteHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": "deleted"})
+}
+
+// SchemasHandler provides access to GET /schemas end-point
+func SchemasHandler(c *gin.Context) {
+	var records []map[string]any
+	for _, fname := range srvConfig.Config.CHESSMetaData.SchemaFiles {
+		fileName := filepath.Base(fname)
+		schemaName := strings.ReplaceAll(fileName, ".json", "")
+		if schema, err := _smgr.Load(fname); err == nil {
+			rec := make(map[string]any)
+			rec[schemaName] = schema.Map
+			records = append(records, rec)
+		} else {
+			log.Println("ERROR: unable to read schema file %s, error=%v", fname, err)
+		}
+	}
+	c.JSON(http.StatusOK, records)
 }
 
 // DocsHandler provides access to GET /docs end-point
