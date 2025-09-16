@@ -379,7 +379,7 @@ func SchemasHandler(c *gin.Context) {
 			rec[schemaName] = schema.Map
 			records = append(records, rec)
 		} else {
-			log.Println("ERROR: unable to read schema file %s, error=%v", fname, err)
+			log.Printf("ERROR: unable to read schema file %s, error=%v", fname, err)
 		}
 	}
 	c.JSON(http.StatusOK, records)
