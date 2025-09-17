@@ -306,9 +306,9 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 		tmpl["Form"] = template.HTML(form)
 		return server.TmplPage(StaticFs, "form_beamline.tmpl", tmpl), nil
 	}
-	if strings.Contains(fname, "composed") {
+	if strings.Contains(fname, "composite") {
 		tmpl := server.MakeTmpl(StaticFs, "Form")
-		form := server.TmplPage(StaticFs, "composed.tmpl", tmpl)
+		form := server.TmplPage(StaticFs, "composite.tmpl", tmpl)
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 		tmpl["Beamline"] = beamline
 		tmpl["Form"] = template.HTML(form)
