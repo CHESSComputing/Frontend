@@ -159,7 +159,10 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		}
 
 		if val, ok := rec["history"]; ok {
-			tmpl["RecordVersion"] = len(val.([]any)) + 1 // human counter, i.e. if one history record it is 2nd version
+			switch t := val.(type) {
+			case []any:
+				tmpl["RecordVersion"] = len(t) + 1 // human counter, i.e. if one history record it is 2nd version
+			}
 		}
 		amap := make(map[string]any)
 		for _, attr := range attrs2show {
