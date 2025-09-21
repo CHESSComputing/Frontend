@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	authz "github.com/CHESSComputing/golib/authz"
 	srvConfig "github.com/CHESSComputing/golib/config"
@@ -353,4 +354,34 @@ func provenanceRecord(mrec services.MetaRecord) map[string]any {
 		prov["scripts"] = scripts
 	}
 	return prov
+}
+
+// helper function to extract last modified timestamp
+func lastModified(m map[string]any) (string, error) {
+	// fallback to date
+	ts, ok := m["date"].(int64)
+	if !ok {
+		// sometimes MongoDB unmarshals numbers as float64
+		if f, ok := m["date"].(float64); ok {
+			ts = int64(f)
+		} else {
+			return "", fmt.Errorf("no valid date field found")
+		}
+	}
+
+	// check history
+	if hist, ok := m["history"].([]any); ok && len(hist) > 0 {
+		// pick last element
+		last := hist[len(hist)-1]
+		if hm, ok := last.(map[string]any); ok {
+			if t, ok := hm["timestamp"].(int64); ok {
+				ts = t
+			} else if f, ok := hm["timestamp"].(float64); ok {
+				ts = int64(f)
+			}
+		}
+	}
+
+	// convert to RFC3339
+	return time.Unix(ts, 0).UTC().Format(time.RFC822), nil
 }
