@@ -383,5 +383,5 @@ func lastModified(m map[string]any) (string, error) {
 	}
 
 	// convert to RFC3339
-	return time.Unix(ts, 0).UTC().Format(time.RFC822), nil
+	return time.Unix(ts, 0).UTC().Format(time.RFC1123), nil
 }
