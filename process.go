@@ -190,6 +190,11 @@ func updateMetadataRecord(did string, rec map[string]any) error {
 	resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil || resp.StatusCode != 200 {
 		msg := "unable to update metadata record in FOXDEN server"
+		// read response body and add it to the message
+		defer resp.Body.Close()
+		if data, err = io.ReadAll(resp.Body); err == nil {
+			msg = fmt.Sprintf("%s, %s", msg, string(data))
+		}
 		log.Printf("ERROR: %s, response %+v, err %v", msg, resp, err)
 		return errors.New(msg)
 	}
