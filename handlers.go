@@ -2130,6 +2130,11 @@ func AIChatHandler(c *gin.Context) {
 
 // AmendFormHandler provides access to GET /amend endpoint
 func AmendFormHandler(c *gin.Context) {
+	_, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
 	w := c.Writer
 	tmpl := server.MakeTmpl(StaticFs, "Amend")
 	base := srvConfig.Config.Frontend.WebServer.Base
@@ -2156,10 +2161,14 @@ func AmendFormHandler(c *gin.Context) {
 
 // AmendRecordHandler provides access to GET /amend endpoint
 func AmendRecordHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
 	tmpl := server.MakeTmpl(StaticFs, "AmendForm")
 	r := c.Request
 	w := c.Writer
-	var err error
 	did := r.FormValue("did")
 	recStr := r.FormValue("record")
 	var rec map[string]any
@@ -2167,6 +2176,9 @@ func AmendRecordHandler(c *gin.Context) {
 	content := fmt.Sprintf("Record %s is successfully updated", did)
 	status := http.StatusOK
 	if err := json.Unmarshal([]byte(recStr), &rec); err == nil {
+		if _, ok := rec["user"]; !ok {
+			rec["user"] = user
+		}
 		// update meta-data record
 		err := updateMetadataRecord(did, rec)
 		if err != nil {

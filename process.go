@@ -195,6 +195,7 @@ func updateMetadataRecord(did string, rec map[string]any) error {
 		if data, err = io.ReadAll(resp.Body); err == nil {
 			msg = fmt.Sprintf("%s, %s", msg, string(data))
 		}
+
 		log.Printf("ERROR: %s, response %+v, err %v", msg, resp, err)
 		return errors.New(msg)
 	}
