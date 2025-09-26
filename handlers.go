@@ -370,13 +370,17 @@ func SyncDeleteHandler(c *gin.Context) {
 
 // SchemasHandler provides access to GET /schemas end-point
 func SchemasHandler(c *gin.Context) {
-	var records []map[string]any
+	var records []map[string][]beamlines.SchemaRecord
 	for _, fname := range srvConfig.Config.CHESSMetaData.SchemaFiles {
 		fileName := filepath.Base(fname)
 		schemaName := strings.ReplaceAll(fileName, ".json", "")
 		if schema, err := _smgr.Load(fname); err == nil {
-			rec := make(map[string]any)
-			rec[schemaName] = schema.Map
+			rec := make(map[string][]beamlines.SchemaRecord)
+			var schemaRecords []beamlines.SchemaRecord
+			for _, r := range schema.Map {
+				schemaRecords = append(schemaRecords, r)
+			}
+			rec[schemaName] = schemaRecords
 			records = append(records, rec)
 		} else {
 			log.Printf("ERROR: unable to read schema file %s, error=%v", fname, err)
