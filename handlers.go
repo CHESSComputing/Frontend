@@ -1319,7 +1319,8 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 }
 
 // helper function to parse meta upload web form
-func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
+func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
+	var updateMetadata bool
 	r := c.Request
 	mrec := services.MetaRecord{}
 	user, _ := getUser(c)
@@ -1331,7 +1332,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	schema, err := _smgr.Load(fname)
 	if err != nil {
 		log.Println("ERROR", err)
-		return mrec, err
+		return mrec, updateMetadata, err
 	}
 	desc := ""
 	// r.PostForm provides url.Values which is map[string][]string type
@@ -1339,7 +1340,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	err = r.ParseMultipartForm(10 << 20) // 10 MB max memory
 	if err != nil {
 		log.Println("ERROR", err)
-		return mrec, err
+		return mrec, updateMetadata, err
 	}
 	/*
 		log.Println("######## PostForm", r.PostForm)
@@ -1378,6 +1379,15 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 			desc = strings.Join(items, " ")
 			continue
 		}
+		if k == "UpdateMetadata" {
+			for _, k := range vals {
+				log.Println("### checkbox UpdateMetadata", k)
+				if k == "on" {
+					updateMetadata = true
+				}
+			}
+			continue
+		}
 		val, err := parseValue(schema, k, items)
 		if err != nil {
 			// check if given key is mandatory or optional
@@ -1387,12 +1397,12 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 					log.Println("WARNING: unable to parse optional key", k)
 				} else {
 					log.Println("ERROR: unable to parse mandatory key", k, "error", err)
-					return mrec, err
+					return mrec, updateMetadata, err
 				}
 			} else {
 				if !utils.InList(k, beamlines.SkipKeys) {
 					log.Printf("ERROR: no key=%s found in schema=%+v, error %v", k, schema, err)
-					return mrec, err
+					return mrec, updateMetadata, err
 				}
 			}
 		}
@@ -1446,20 +1456,20 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, error) {
 		log.Printf("process form, record %v\n", rec)
 	}
 	mrec.Record = rec
-	return mrec, nil
+	return mrec, updateMetadata, nil
 }
 
 // MetaFormUploadHandler provides access to GET /meta/form/upload endpoint
 func MetaFormUploadHandler(c *gin.Context) {
-	rec, err := parseFormUploadForm(c)
+	rec, updateMetadata, err := parseFormUploadForm(c)
 	if err != nil {
 		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
 		return
 	}
 	if rec.Schema == "user" {
-		UserUploadHandler(c, rec)
+		UserUploadHandler(c, rec, updateMetadata)
 	} else {
-		MetaUploadHandler(c, rec)
+		MetaUploadHandler(c, rec, updateMetadata)
 	}
 }
 
@@ -1471,14 +1481,14 @@ func MetaFileUploadHandler(c *gin.Context) {
 		return
 	}
 	if rec.Schema == "user" {
-		UserUploadHandler(c, rec)
+		UserUploadHandler(c, rec, false)
 	} else {
-		MetaUploadHandler(c, rec)
+		MetaUploadHandler(c, rec, false)
 	}
 }
 
 // UserUploadHandler manages upload of user record to Metadata service
-func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
+func UserUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata bool) {
 	class := "alert alert-success"
 	user, err := getUser(c)
 	if err != nil {
@@ -1523,7 +1533,12 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	var resp *http.Response
+	if updateMetadata {
+		resp, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	} else {
+		resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	}
 	if err != nil {
 		class = "alert alert-error"
 		content := errorTmpl(c, "unable to insert provenance record, error", err)
@@ -1578,7 +1593,7 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 }
 
 // MetaUploadHandler manages upload of record to MetaData service
-func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
+func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata bool) {
 	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
@@ -1598,7 +1613,12 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 		return
 	}
 	tmpl["JsonRecord"] = template.HTML(string(data))
-	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	var resp *http.Response
+	if updateMetadata {
+		resp, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	} else {
+		resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	}
 	class := "alert alert-success"
 	msg := fmt.Sprintf("Your meta-data is inserted successfully")
 	if err != nil {
@@ -1629,6 +1649,9 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord) {
 	tmpl["Message"] = msg
 	tmpl["Status"] = sresp.Status
 	tmpl["Class"] = class
+	if sresp.Status == "error" || sresp.SrvCode != 0 {
+		tmpl["Class"] = "alert alert-error"
+	}
 	tmpl["ResponseRecord"] = template.HTML(sresp.JsonString())
 	content := server.TmplPage(StaticFs, "upload_status.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))

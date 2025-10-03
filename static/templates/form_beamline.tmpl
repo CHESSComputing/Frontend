@@ -4,12 +4,21 @@
     {{.Form}}
 
     <fieldset id="Final" class="">
-        <legend>Description meta-data ({{.User}})</legend>
+        <legend>metadata description</legend>
         <div class="form-item">
             <label class="hint hint-req is-req">Beamline Notes (&#42;)</label>
             <textarea name="Description" rows="3" class="input column-9" required placeholder="some notes about your metadata (required)"></textarea>
         </div>
+    </fieldset>
 
+    <fieldset id="Action" class="">
+        <legend>action</legend>
+        <div class="form-item">
+          <label>
+            <input type="checkbox" id="UpdateMetadata" name="UpdateMetadata">
+            <strong>Update metadata record</strong>
+          </label>
+        </div>
         <div class="form-item">
             <div class="is-append is-push-right is-right">
                 <div class="is-80">
