@@ -7,7 +7,11 @@
         <legend>metadata description</legend>
         <div class="form-item">
             <label class="hint hint-req is-req">Beamline Notes (&#42;)</label>
+{{if .Description}}
+            <textarea name="Description" rows="3" class="input column-9" required>{{.Description}}</textarea>
+{{else}}
             <textarea name="Description" rows="3" class="input column-9" required placeholder="some notes about your metadata (required)"></textarea>
+{{end}}
         </div>
     </fieldset>
 
