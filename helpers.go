@@ -367,11 +367,11 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 				out = append(out, fmt.Sprintf("<legend>%s</legend>", s))
 			}
 			for _, k := range skeys {
+				required := true
 				if utils.InList[string](k, optKeys) {
-					rec = formEntry(c, schema.Map, k, s, "", record)
-				} else {
-					rec = formEntry(c, schema.Map, k, s, "required", record)
+					required = false
 				}
+				rec = formEntry(c, schema.Map, k, s, required, record)
 				out = append(out, rec)
 			}
 			if showSection {
@@ -393,11 +393,11 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 			out = append(out, fmt.Sprintf("<legend>%s</legend>", s))
 		}
 		for _, k := range skeys {
+			required := true
 			if utils.InList[string](k, optKeys) {
-				rec = formEntry(c, schema.Map, k, s, "required", record)
-			} else {
-				rec = formEntry(c, schema.Map, k, s, "", record)
+				required = false
 			}
+			rec = formEntry(c, schema.Map, k, s, required, record)
 			out = append(out, rec)
 		}
 		if showSection {
@@ -409,11 +409,11 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 	for _, k := range allKeys {
 		if r, ok := schema.Map[k]; ok {
 			if r.Section == "" {
+				required := true
 				if utils.InList[string](k, optKeys) {
-					rec = formEntry(c, schema.Map, k, "", "", record)
-				} else {
-					rec = formEntry(c, schema.Map, k, "", "required", record)
+					required = false
 				}
+				rec = formEntry(c, schema.Map, k, "", required, record)
 				nOut = append(nOut, rec)
 			}
 		}
@@ -441,7 +441,7 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 }
 
 // helper function to create form entry
-func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, required string, record *map[string]any) string {
+func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s string, required bool, record *map[string]any) string {
 	// check if provided record has value
 	var defaultValue string
 	if record != nil {
@@ -449,16 +449,19 @@ func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, req
 		if v, ok := rmap[k]; ok {
 			defaultValue = fmt.Sprintf("%v", v)
 		}
-		defaultValue = strings.Replace(defaultValue, "[", "", -1)
-		defaultValue = strings.Replace(defaultValue, "]", "", -1)
+		defaultValue = strings.ReplaceAll(defaultValue, "[", "")
+		defaultValue = strings.ReplaceAll(defaultValue, "]", "")
 	}
 	tmpl := server.MakeTmpl(StaticFs, "FormEntry")
 	tmpl["Key"] = k
 	tmpl["Value"] = defaultValue
 	tmpl["Placeholder"] = ""
 	tmpl["Description"] = ""
-	tmpl["Required"] = required
-	if required != "" {
+	tmpl["Required"] = ""
+	if required {
+		tmpl["Required"] = "required"
+	}
+	if required {
 		tmpl["Class"] = "hint hint-req"
 	}
 	tmpl["Type"] = "text"
@@ -484,6 +487,12 @@ func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, req
 						}
 					}
 					vals = utils.List2Set[string](vals)
+					// for list data types, e.g. array of strings
+					// we can clearly define empty default value. And if attribute is not required
+					// we should use empty value first
+					if !required && defaultValue == "" {
+						vals = append([]string{""}, vals...)
+					}
 					tmpl["Value"] = vals
 				default:
 					tmpl["Value"] = []string{}
@@ -513,6 +522,9 @@ func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s, req
 							vals = append(vals, strVal)
 						}
 						vals = utils.List2Set[string](vals)
+						// for non list data types, e.g. array of floats
+						// we cannot clearly define empty default value as it should come from
+						// schema itself, and tehrefire we do not update vals with first empty value
 						tmpl["Value"] = vals
 					default:
 						tmpl["Value"] = fmt.Sprintf("%v", r.Value)
