@@ -1555,7 +1555,6 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	tmpl["JsonRecord"] = template.HTML(string(data))
 	resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	msg := fmt.Sprintf("Your meta-data is inserted successfully")
 	if err != nil {
@@ -1580,6 +1579,14 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 		msg = fmt.Sprintf("<pre>%s<pre>", sresp.String())
 	}
 
+	// we should use metadata json record instead of services.MetaRecord for web form
+	if data, err := json.MarshalIndent(mrec.Record, "", "  "); err == nil {
+		tmpl["JsonRecord"] = template.HTML(string(data))
+	} else {
+		erec := make(map[string]any)
+		erec["error"] = err
+		tmpl["JsonRecord"] = erec
+	}
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	tmpl["User"] = user
 	tmpl["Date"] = time.Now().Unix()
@@ -1612,7 +1619,6 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
-	tmpl["JsonRecord"] = template.HTML(string(data))
 	var resp *http.Response
 	if updateMetadata {
 		resp, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
@@ -1642,6 +1648,14 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 		msg = fmt.Sprintf("<pre>%s<pre>", sresp.String())
 	}
 
+	// we should use metadata json record instead of services.MetaRecord for web form
+	if data, err := json.MarshalIndent(mrec.Record, "", "  "); err == nil {
+		tmpl["JsonRecord"] = template.HTML(string(data))
+	} else {
+		erec := make(map[string]any)
+		erec["error"] = err
+		tmpl["JsonRecord"] = erec
+	}
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	tmpl["User"] = user
 	tmpl["Date"] = time.Now().Unix()
