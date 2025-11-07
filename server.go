@@ -65,6 +65,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/logout", Handler: LogoutHandler, Authorized: false},
 		{Method: "GET", Path: "/services", Handler: ServicesHandler, Authorized: false},
 		{Method: "GET", Path: "/search", Handler: SearchHandler, Authorized: false},
+		{Method: "GET", Path: "/advancedsearch", Handler: AdvancedSearchHandler, Authorized: false},
 		{Method: "GET", Path: "/schemas", Handler: SchemasHandler, Authorized: false},
 		{Method: "GET", Path: "/record", Handler: RecordHandler, Authorized: false},
 		{Method: "GET", Path: "/tools", Handler: ToolsHandler, Authorized: false},

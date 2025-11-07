@@ -1,0 +1,260 @@
+<!-- advanced_searchform.tmpl -->
+<section>
+    <article id="article">
+
+<h2>Advanced query builder</h2>
+<hr/>
+<div class="grid">
+    <div class="column column-4">
+        <select class="input" id="schema" name="schema">
+            {{ range $schema, $keys := .Schemas }}
+                <option value="{{ $schema }}">{{ $schema }}</option>
+            {{ end }}
+        </select>
+    </div>
+    <div class="column column-8">
+    FOXDEN schema
+    </div>
+</div>
+
+<hr/>
+
+<div class="grid">
+    <div class="column column-2">
+        <button class="button button-small" id="and_group" name="and_group">AND group</button>
+    </div>
+    <div class="column column-2">
+        <button class="button button-small" id="or_group" name="or_group">OR group</button>
+    </div>
+    <div class="column column-8">
+    Condition group defines how <b style="color:blue;">(key-op-value)</b> triplets will
+    be placed to the final query
+    </div>
+</div>
+<hr/>
+
+Select key, operator, value triplet and click add conditions button:
+<br/>
+<div class="grid">
+    <div class="column column-4">
+        <select class="input" id="key" name="key">
+            {{ $first := true }}
+            {{ range $schema, $keys := .Schemas }}
+                {{ if $first }}
+                    {{ range $keys }}
+                        <option value="{{ . }}">{{ . }}</option>
+                    {{ end }}
+                    {{ $first = false }}
+                {{ end }}
+            {{ end }}
+        </select>
+    </div>
+    <div class="column column-2">
+        <select class="input" id="operator" name="operator">
+            <option value="=">equal</option>
+            <option value="$regex">regular expression</option>
+            <option value="$gt">greater then</option>
+            <option value="$lt">less then</option>
+            <option value="$in">in values</option>
+            <option value="$between">between values</option>
+        </select>
+    </div>
+    <div class="column column-4">
+        <input class="input" type="text" name="value" placeholder="Value" />
+    </div>
+    <div class="column column-2">
+          <button class="button">Add condition</button>
+    </div>
+</div>
+<hr/>
+
+Resulting query will appear below:
+<form action="{{.Base}}/search" method="post" name="web_search" id="web_search" class="form" autocomplete="off">
+<div class="grid">
+    <div class="column column-10" id="query">
+    <pre>{}</pre>
+    </div>
+    <div class="column column-1">
+        <button class="button button-primary">Search</button>
+    </div>
+    <div class="column column-1">
+        <a href="javascript:ClearTextarea();" class="button">Clear</a>
+    </div>
+</div>
+</form>
+
+    </article>
+</section>
+
+<script>
+$(document).ready(function() {
+
+    // Internal state of the query
+    let query = {};
+    let currentGroup = []; // holds current group of conditions
+    let currentLogicalOp = "$and"; // default
+
+    // --- schema-to-keys mapping (injected from Go) ---
+    const schemaKeys = {{ .SchemasJSON }};
+
+    // --- UI Helpers ---
+    function highlightActiveGroup() {
+        $("#and_group, #or_group").removeClass("active");
+        if (currentLogicalOp === "$and") {
+            $("#and_group").addClass("active");
+        } else if (currentLogicalOp === "$or") {
+            $("#or_group").addClass("active");
+        }
+    }
+
+    // When schema changes, populate key dropdown
+    $("#schema").on("change", function() {
+        const schema = $(this).val();
+        const keys = schemaKeys[schema] || [];
+        const $key = $("#key");
+        $key.empty();
+        keys.forEach(k => $key.append(`<option value="${k}">${k}</option>`));
+    });
+
+    // Add condition button handler
+    $(".button-primary:contains('Add condition')").click(function(e) {
+        e.preventDefault();
+
+        const key = $("#key").val();
+        const op = $("#operator[name='operator']").first().val();
+        const valRaw = $("input[name='value']").val().trim();
+
+        if (!key || !op || valRaw === "") {
+            alert("Please fill all fields before adding a condition.");
+            return;
+        }
+
+        let val;
+        // Parse numbers if possible
+        if (!isNaN(valRaw)) {
+            val = Number(valRaw);
+        } else {
+            val = valRaw;
+        }
+
+        let condition = {};
+
+        if (op === "=") {
+            condition[key] = val;
+        } else if (op === "$between") {
+            const parts = valRaw.split(",").map(v => v.trim());
+            if (parts.length !== 2) {
+                alert("Provide two comma-separated values for 'between'.");
+                return;
+            }
+
+            // Convert to numbers if both look numeric
+            const n1 = Number(parts[0]);
+            const n2 = Number(parts[1]);
+            const bothNumeric = !isNaN(n1) && !isNaN(n2);
+            condition[key] = bothNumeric
+                ? { "$gte": n1, "$lte": n2 }
+                : { "$gte": parts[0], "$lte": parts[1] };
+
+        } else if (op === "$int") {
+            const parts = valRaw.split(",").map(v => v.trim());
+            condition[key] = parts.map(v => {
+                if ((v.startsWith('"') && v.endsWith('"')) ||
+                    (v.startsWith("'") && v.endsWith("'"))) {
+                    return v.slice(1, -1);
+                }
+                if (!isNaN(v)) {
+                    return Number(v);
+                }
+                return v;
+            });
+
+        } else if (op === "$in") {
+            const parts = valRaw.split(",").map(v => v.trim());
+            const parsed = parts.map(v => {
+                if ((v.startsWith('"') && v.endsWith('"')) ||
+                    (v.startsWith("'") && v.endsWith("'"))) {
+                    return v.slice(1, -1);
+                }
+                return isNaN(v) ? v : Number(v);
+            });
+            condition[key] = { "$in": parsed };
+
+        } else {
+            condition[key] = {};
+            condition[key][op] = val;
+        }
+
+        currentGroup.push(condition);
+        renderQuery();
+    });
+
+    // AND / OR group button handlers
+    $("#and_group").click(function(e) {
+        e.preventDefault();
+        flushCurrentGroup();
+        currentLogicalOp = "$and";
+        $("#and_group").addClass("button-success");
+        $("#or_group").removeClass("button-success");
+        highlightActiveGroup();
+        renderQuery();
+    });
+
+    $("#or_group").click(function(e) {
+        e.preventDefault();
+        flushCurrentGroup();
+        currentLogicalOp = "$or";
+        $("#or_group").addClass("button-success");
+        $("#and_group").removeClass("button-success");
+        highlightActiveGroup();
+        renderQuery();
+    });
+
+    // Helper to merge current group into main query
+    function flushCurrentGroup() {
+        if (currentGroup.length === 0) return;
+        if (!query[currentLogicalOp]) {
+            query[currentLogicalOp] = [];
+        }
+        query[currentLogicalOp] = query[currentLogicalOp].concat(currentGroup);
+        currentGroup = [];
+    }
+
+    // Display query in the UI
+    function renderQuery() {
+        let tempQuery = JSON.parse(JSON.stringify(query)); // deep copy
+        if (currentGroup.length > 0) {
+            if (!tempQuery[currentLogicalOp]) tempQuery[currentLogicalOp] = [];
+            tempQuery[currentLogicalOp] = tempQuery[currentLogicalOp].concat(currentGroup);
+        }
+
+        const formatted = JSON.stringify(tempQuery, null, 4);
+        $("#query").html("<pre>" + formatted + "</pre>");
+
+        if ($("#web_search input[name='query']").length === 0) {
+            $("#web_search").append('<input type="hidden" name="query" />');
+        }
+        $("#web_search input[name='query']").val(formatted);
+    }
+
+    // Clear all
+    window.ClearTextarea = function() {
+        query = {};
+        currentGroup = [];
+        currentLogicalOp = "$and";
+        $("#query").empty();
+        $("input[name='value']").val("");
+        $("#and_group, #or_group").removeClass("button-success");
+    };
+
+    highlightActiveGroup();
+});
+</script>
+<style>
+#and_group.active, #or_group.active {
+    background-color: #007bff;
+    color: #fff;
+}
+</style>
+
+<!-- end of advanced_searchform.tmpl -->

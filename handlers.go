@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -973,6 +974,44 @@ func RecordHandler(c *gin.Context) {
 	idx := 0
 	limit := 1
 	processResults(c, rec, user, idx, limit, btrs)
+}
+
+// AdvancedSearchHandler provides access to GET /search endpoint
+func AdvancedSearchHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("AdvancedSearchHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	// create map of schema names vs its keys
+	smap := make(map[string][]string)
+	for _, fname := range srvConfig.Config.CHESSMetaData.SchemaFiles {
+		fileName := filepath.Base(fname)
+		schemaName := strings.ReplaceAll(fileName, ".json", "")
+		if schema, err := _smgr.Load(fname); err == nil {
+			var keys []string
+			for _, r := range schema.Map {
+				keys = append(keys, r.Key)
+			}
+			sort.Strings(keys)
+			smap[schemaName] = keys
+		} else {
+			log.Printf("ERROR: unable to read schema file %s, error=%v", fname, err)
+		}
+	}
+
+	// create search template form
+	tmpl := server.MakeTmpl(StaticFs, "AdvancedSearch")
+	tmpl["User"] = user
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Schemas"] = smap
+	b, _ := json.Marshal(smap)
+	tmpl["SchemasJSON"] = template.JS(b)
+	page := server.TmplPage(StaticFs, "advanced_searchform.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
 // SearchHandler provides access to GET /search endpoint
