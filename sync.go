@@ -21,11 +21,11 @@ func getSyncRecords(suuid string) ([]map[string]any, error) {
 		rurl = fmt.Sprintf("%s/record/%s", srvConfig.Config.Services.SyncServiceURL, suuid)
 	}
 	resp, err := _httpReadRequest.Get(rurl)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Println("ERROR: unable to GET to MetaData service, error", err)
 		return records, err
 	}
+	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("ERROR: unable to read response body, error", err)
