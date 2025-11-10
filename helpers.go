@@ -237,7 +237,7 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey
 		tmpl["DataAttributes"] = strings.Join(attrs, ",")
 	}
 	eQuery := url.QueryEscape(query)
-	url := fmt.Sprintf("/search?query=%s", eQuery)
+	url := fmt.Sprintf("/search?query=%s&sort_keys=%s&sort_order=%s", eQuery, sortKey, sortOrder)
 	if nres > 0 {
 		tmpl["StartIndex"] = fmt.Sprintf("%d", startIdx+1)
 	} else {
