@@ -197,7 +197,7 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		sum := md5.Sum([]byte(did))
 		didhash := hex.EncodeToString(sum[:])
 		if utils.InList(didhash, didhashes) {
-			tmpl["DataHubLink"] = fmt.Sprintf("%s/datahub/%s", srvConfig.Config.DataHubURL, didhash)
+			tmpl["AuxDataLink"] = fmt.Sprintf("%s/datahub/%s", srvConfig.Config.DataHubURL, didhash)
 		}
 
 		if val, ok := rec["history"]; ok {
