@@ -93,6 +93,7 @@ func setupRouter() *gin.Engine {
 		{Method: "DELETE", Path: "/sync/delete/:uuid", Handler: SyncDeleteHandler, Authorized: false},
 		{Method: "POST", Path: "/sync", Handler: SyncFormHandler, Authorized: false},
 		{Method: "POST", Path: "/amendrecord", Handler: AmendRecordHandler, Authorized: false},
+		{Method: "POST", Path: "/addauxdata", Handler: AddAuxDataHandler, Authorized: false},
 		{Method: "POST", Path: "/record", Handler: PostRecordHandler, Authorized: false},
 		{Method: "POST", Path: "/dmfiles", Handler: DMFilesHandler, Authorized: false},
 		{Method: "POST", Path: "/login", Handler: KAuthHandler, Authorized: false},
