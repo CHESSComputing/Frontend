@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -2311,7 +2312,101 @@ func AmendFormHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// AmendRecordHandler provides access to GET /amend endpoint
+// AddAuxDataHandler provides access to POST /addauxdata endpoint
+func AddAuxDataHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	tmpl := server.MakeTmpl(StaticFs, "AmendForm")
+	r := c.Request
+	did := r.FormValue("did")
+
+	// use user data
+	file, fheader, err := r.FormFile("file")
+	if err != nil {
+		msg := "unable to obtain user file"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	defer file.Close()
+	body, err := io.ReadAll(file)
+
+	// create temp file with user data and the same user's file name
+	path := filepath.Join(os.TempDir(), fheader.Filename)
+	tmpFile, err := os.Create(path)
+	if err != nil {
+		msg := "unable to obtain temp file"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	defer os.Remove(tmpFile.Name())
+	_, err = tmpFile.Write(body)
+	if err != nil {
+		msg := "unable to write to temp file"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	if err := tmpFile.Close(); err != nil {
+		msg := "unable to close temp file"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+
+	rec := make(map[string]string)
+	rec["did"] = did
+	rec["file"] = tmpFile.Name()
+
+	// compose request to DataHub service
+	targetURL := fmt.Sprintf("%s/datahub", srvConfig.Config.DataHubURL)
+
+	// get new read token
+	token, err := newToken(user, "write")
+	if err != nil {
+		msg := "failed to obtain write token"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		msg := "failed to marshal request data"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+
+	// Create a new HTTP request to the target URL
+	req, err := http.NewRequest(http.MethodPost, targetURL, bytes.NewBuffer(data))
+	if err != nil {
+		msg := "failed to place HTTP request to DataHub"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+
+	// Set custom headers
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("X-Custom-Header", "DataHubRequest")
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		msg := "failed to upload data to DataHub"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	content := fmt.Sprintf("record with did=%s has been successfully uploaded new aux data", did)
+	template := "success.tmpl"
+	if resp.StatusCode != 200 {
+		content = fmt.Sprintf("record with did=%s failed to upload aux data", did)
+		template = "error.tmpl"
+	}
+	tmpl["Content"] = content
+	page := server.TmplPage(StaticFs, template, tmpl)
+	c.Writer.Write([]byte(header() + page + footer()))
+}
+
+// AmendRecordHandler provides access to POST /amend endpoint
 func AmendRecordHandler(c *gin.Context) {
 	user, err := getUser(c)
 	if err != nil {
