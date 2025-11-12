@@ -1,7 +1,22 @@
 <section>
     <article id="article">
+      <form class="form-content" method="post" action="{{.Base}}/addauxdata" enctype="multipart/form-data">
+        <h1 class="text-large">Add auxilary data</h1>
+          <div class="form-item">
+            <input class="hidden" type="text" value="{{.Did}}" id="did" name="did">
+          </div>
+          <div class="form-item">
+            You may provide any file or file archive (in tar.gz or zip data-format)
+            to enrich your metadata record.
+            <input class="input" name="file" type="file"/>
+          </div>
+          <div class="form-item">
+            <button class="button button-primary">Add</button>
+          </div>
+      </form>
+      <hr/>
       <form class="form" action="{{.Base}}/amendrecord" method="post">
-        <h1 class="text-large">Metadata record</h1>
+        <h1 class="text-large">Amend existing metadata record</h1>
           <div class="form-item">
             <input class="hidden" type="text" value="{{.Did}}" id="did" name="did">
           </div>
