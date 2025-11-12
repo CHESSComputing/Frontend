@@ -5,10 +5,13 @@ package main
 // Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
 //
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/url"
 	"sort"
@@ -69,9 +72,43 @@ func recValue(rec map[string]any, attr string) string {
 	return "Not available"
 }
 
+// helper function to get dids from DataHub service
+func datahubDidHashes() []string {
+	var didHashes []string
+	if srvConfig.Config.DataHubURL == "" {
+		return didHashes
+	}
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/datahub", srvConfig.Config.DataHubURL)
+	resp, err := _httpReadRequest.Get(rurl)
+	if err != nil {
+		log.Println("ERROR: unable to get datahub didHashes, error:", err)
+		return didHashes
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("ERROR: unable to get datahub didHashes, error:", err)
+		return didHashes
+	}
+	var arr []string
+	err = json.Unmarshal(data, &arr)
+	if err != nil {
+		log.Println("ERROR: unable to get datahub didHashes, error:", err)
+		return didHashes
+	}
+	for _, entry := range arr {
+		if did, err := url.QueryUnescape(entry); err == nil {
+			didHashes = append(didHashes, did)
+		}
+	}
+	return didHashes
+}
+
 // helper function to prepare HTML page for given services records
 func records2html(user string, records []map[string]any, attrs2show []string) string {
 	var out []string
+	didhashes := datahubDidHashes()
 	for _, rec := range records {
 		tmpl := server.MakeTmpl(StaticFs, "Record")
 		tmpl["User"] = user
@@ -154,6 +191,13 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		}
 		if val, ok := rec["data_location_reduced"]; ok && val != "" {
 			tmpl["ReducedDataLink"] = fmt.Sprintf("/dm?did=%s&attr=data_location_reduced", recValue(rec, "did"))
+		}
+
+		// check if did hash exists in DataHub
+		sum := md5.Sum([]byte(did))
+		didhash := hex.EncodeToString(sum[:])
+		if utils.InList(didhash, didhashes) {
+			tmpl["DataHubLink"] = fmt.Sprintf("%s/datahub/%s", srvConfig.Config.DataHubURL, didhash)
 		}
 
 		if val, ok := rec["history"]; ok {

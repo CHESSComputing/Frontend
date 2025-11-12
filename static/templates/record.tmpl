@@ -14,6 +14,9 @@ Schema: <b>{{.Schema}}</b>
 {{if .ReducedDataLink}}
 <a href="{{.ReducedDataLink}}">Reduced data</a>,
 {{end}}
+{{if .DataHubLink}}
+<a href="{{.DataHubLink}}">Data hub</a>,
+{{end}}
 Date: {{.TimeStamp}}
 {{if .RecordVersion}}
 <span class="recVersion">version: {{.RecordVersion}}</span>

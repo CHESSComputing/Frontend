@@ -6,6 +6,8 @@ package main
 //
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -812,6 +814,76 @@ func DataManagementHandler(c *gin.Context) {
 	} else {
 		LoginHandler(c)
 	}
+}
+
+// DataHubHandler provides access to GET /datahub end-point
+func DataHubHandler(c *gin.Context) {
+	// check if user cookie is set, this is necessary as we do not
+	// use authorization handler for / end-point
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	c.Set("user", user)
+
+	did := c.Query("did")
+	if did == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing 'did' parameter"})
+		return
+	}
+	sum := md5.Sum([]byte(did))
+	didhash := hex.EncodeToString(sum[:])
+
+	// Prepare redirection URL
+	targetURL := fmt.Sprintf("%s/datahub/%s", srvConfig.Config.DataHubURL, didhash)
+
+	// get new read token
+	token, err := newToken(user, "read")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create a new HTTP request to the target URL
+	req, err := http.NewRequest(http.MethodGet, targetURL, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+		return
+	}
+
+	// Set custom headers
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("X-Custom-Header", "DataHubRequest")
+
+	// Copy headers from the original request
+	for key, values := range c.Request.Header {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to forward request"})
+		return
+	}
+	defer resp.Body.Close()
+
+	// Copy response headers
+	for key, values := range resp.Header {
+		for _, value := range values {
+			c.Writer.Header().Add(key, value)
+		}
+	}
+
+	// Set response status code
+	c.Status(resp.StatusCode)
+
+	// Copy response body to Gin's response writer
+	io.Copy(c.Writer, resp.Body)
 }
 
 // ToolsHandler provides access to GET /tools endpoint

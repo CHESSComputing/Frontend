@@ -86,6 +86,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
 		{Method: "GET", Path: "/parents", Handler: ParentsHandler, Authorized: false},
 		{Method: "GET", Path: "/dm", Handler: DataManagementHandler, Authorized: false},
+		{Method: "GET", Path: "/datahub", Handler: DataHubHandler, Authorized: false},
 		{Method: "GET", Path: "/amend", Handler: AmendFormHandler, Authorized: false},
 		{Method: "GET", Path: "/sync", Handler: SyncHandler, Authorized: false},
 		{Method: "GET", Path: "/sync/status/:uuid", Handler: SyncStatusHandler, Authorized: false},
