@@ -53,8 +53,8 @@ Select key, operator, value triplet and click add conditions button:
         <select class="input" id="operator" name="operator">
             <option value="=">equal</option>
             <option value="$regex">regular expression</option>
-            <option value="$gt">greater then</option>
-            <option value="$lt">less then</option>
+            <option value="$gt">greater than</option>
+            <option value="$lt">less than</option>
             <option value="$in">in values</option>
             <option value="$between">between values</option>
         </select>
@@ -141,6 +141,8 @@ $(document).ready(function() {
 
         if (op === "=") {
             condition[key] = { "$regex": val, "$options": "i"};
+        } else if (op === "$regex") {
+            condition[key] = { "$regex": val, "$options": "i"};
         } else if (op === "$between") {
             const parts = valRaw.split(",").map(v => v.trim());
             if (parts.length !== 2) {
@@ -181,7 +183,7 @@ $(document).ready(function() {
             condition[key] = { "$in": parsed };
 
         } else {
-            condition[key] = {"$options": "i"};
+            condition[key] = {};
             condition[key][op] = val;
         }
 
