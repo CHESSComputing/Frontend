@@ -62,11 +62,9 @@ func (o *TichyClient) Chat(prompt string) (string, error) {
 
 func aichat(prompt string) (string, error) {
 	if srvConfig.Config.AIChat.Client == "ollama" {
-		log.Println("call ollama client", prompt)
 		client := OllamaClient{}
 		return client.Chat(prompt)
 	} else if srvConfig.Config.AIChat.Client == "tichy" {
-		log.Println("call tichy client", prompt)
 		client := TichyClient{}
 		return client.Chat(prompt)
 	}

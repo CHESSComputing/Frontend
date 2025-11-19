@@ -52,7 +52,6 @@ func aitichy(ctx context.Context, query string) (string, error) {
 	rurl := fmt.Sprintf("http://%s:%v/v1/chat/completions",
 		srvConfig.Config.AIChat.Host,
 		srvConfig.Config.AIChat.Port)
-	log.Println("### call tichy server", rurl, string(data))
 	req, err := http.NewRequestWithContext(ctx, "POST", rurl, bytes.NewReader(data))
 	if err != nil {
 		log.Println("ERROR:", err)
