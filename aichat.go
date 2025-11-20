@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -143,8 +144,9 @@ func aitichy(ctx context.Context, query string) (string, error) {
 	}
 
 	md := chatResp.Choices[0].Message.Content
-	answer := server.MDStringToHTML(md)
-	return answer, nil
+	htmlReply := server.MDStringToHTML(md)
+	safeReply := template.HTMLEscapeString(htmlReply)
+	return safeReply, nil
 }
 
 // wrapper AI chat function to use different AI backend engine
