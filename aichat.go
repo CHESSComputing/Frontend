@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -15,6 +14,7 @@ import (
 	srvConfig "github.com/CHESSComputing/golib/config"
 	"github.com/CHESSComputing/golib/ollama"
 	server "github.com/CHESSComputing/golib/server"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // AIChat represents generic AI chat interface
@@ -145,7 +145,8 @@ func aitichy(ctx context.Context, query string) (string, error) {
 
 	md := chatResp.Choices[0].Message.Content
 	htmlReply := server.MDStringToHTML(md)
-	safeReply := template.HTMLEscapeString(htmlReply)
+	p := bluemonday.UGCPolicy()
+	safeReply := p.Sanitize(htmlReply)
 	return safeReply, nil
 }
 

@@ -12,6 +12,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bytedance/sonic v1.14.0 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
@@ -38,6 +39,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20250810172220-2e2c11897d1a // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/context v1.1.2 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.4.0 // indirect
 	github.com/gosimple/slug v1.14.0 // indirect
@@ -57,6 +59,7 @@ require (
 	github.com/materials-commons/gomcapi v0.0.7 // indirect
 	github.com/materials-commons/hydra v1.0.1 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pascaldekloe/jwt v1.12.0 // indirect
