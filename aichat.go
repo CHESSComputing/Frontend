@@ -142,8 +142,11 @@ func aitichy(ctx context.Context, query string) (string, error) {
 		return "", fmt.Errorf("no choices in response")
 	}
 
-	return server.MDStringToHTML(chatResp.Choices[0].Message.Content), nil
+	md := chatResp.Choices[0].Message.Content
+	answer := server.MDStringToHTML(md)
+	return answer, nil
 }
+
 // wrapper AI chat function to use different AI backend engine
 func aichat(prompt string) (string, error) {
 	if srvConfig.Config.AIChat.Client == "ollama" {
@@ -156,4 +159,3 @@ func aichat(prompt string) (string, error) {
 	msg := "FOXDEN is not configured with AI assistance client"
 	return "", errors.New(msg)
 }
-
