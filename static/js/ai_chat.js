@@ -87,7 +87,16 @@ function sendMessage(chatInput, chatMessages) {
     })
     .then(response => response.json())
     .then(data => {
-        loadingMsg.textContent = data.reply || 'No response from server.';
+        const reply = data.reply || '';
+
+        // simple HTML detection: checks for tags like <something>
+        const hasHTML = /<\/?[a-z][\s\S]*>/i.test(reply);
+
+        if (hasHTML) {
+            loadingMsg.innerHTML = reply;
+        } else {
+            loadingMsg.textContent = reply;
+        }
     })
     .catch(() => {
         loadingMsg.textContent = 'Error contacting server.';
