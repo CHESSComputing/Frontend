@@ -33,7 +33,11 @@
               id="status-{{ index $row "uuid" }}"
             {{- end }}
           >
+          {{- if eq $col "uuid" }}
+            {{ with $v := index $row $col }}<a href="/sync/status/{{$v}}">{{$v}}</a>{{ else }}<span class="muted">—</span>{{ end }}
+          {{- else }}
             {{ with $v := index $row $col }}{{ $v }}{{ else }}<span class="muted">—</span>{{ end }}
+          {{- end }}
           </td>
         {{- end }}
           <td id="delete-{{ index $row "uuid" }}">
@@ -143,7 +147,12 @@ function toggleAll(source) {
 }
 
 function updateRowStatus(uuid) {
-  fetch("/sync/status/" + uuid)
+  fetch("/sync/status/" + uuid, {
+      // Configuration object for the request
+      headers: {
+        'Accept': 'application/json' 
+      }
+    })
     .then(resp => {
       if (!resp.ok) throw new Error("Network error: " + resp.status);
       return resp.json();
