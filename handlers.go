@@ -332,27 +332,37 @@ func SyncStatusHandler(c *gin.Context) {
 		LoginHandler(c)
 		return
 	}
+	status := "unknown"
+	style := "success.tmpl"
 	suuid := c.Param("uuid")
 	// create part for status dashboard
 	records, err := getSyncRecords(suuid)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": err})
-		return
+		status = err.Error()
+		style = "error.tmpl"
+	} else if len(records) == 0 {
+		status = "remove"
+	} else if len(records) != 1 {
+		status = fmt.Sprintf("too many records for uuid=%s", suuid)
+		style = "error.tmpl"
+	} else {
+		record := records[0]
+		if val, ok := record["status"]; ok {
+			status = fmt.Sprintf("%v", val)
+		}
 	}
-	if len(records) == 0 {
-		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": "removed"})
-		return
-	}
-	if len(records) != 1 {
-		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": fmt.Sprintf("too many records for uuid=%s", suuid)})
-		return
-	}
-	record := records[0]
-	if status, ok := record["status"]; ok {
+	if c.Request.Header.Get("Accept") == "application/json" {
 		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": status})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": "unknown"})
+	// fill out template content
+	tmpl := server.MakeTmpl(StaticFs, "SyncStatus")
+	content := fmt.Sprintf("uuid: %s<br/>status: %v", suuid, status)
+	tmpl["Content"] = content
+	tmpl["Title"] = "Synchronization status"
+	page := server.TmplPage(StaticFs, style, tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
+
 }
 
 // SyncDeleteHandler provides access to DELETE /sync/delete/:uuid endpoint
@@ -2502,6 +2512,7 @@ func SyncFormHandler(c *gin.Context) {
 	}
 	content := fmt.Sprintf("Sync record successfully created")
 	tmpl["Content"] = content
+	tmpl["RedirectLink"] = fmt.Sprintf("%s/sync", base)
 	page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
 	c.Writer.Write([]byte(header() + page + footer()))
 }
