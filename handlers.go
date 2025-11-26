@@ -2510,7 +2510,7 @@ func SyncFormHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, nil)
 		return
 	}
-	content := fmt.Sprintf("Sync record successfully created")
+	content := fmt.Sprintf("Sync record successfully created, you will be redirected to sync page in few seconds...")
 	tmpl["Content"] = content
 	tmpl["RedirectLink"] = fmt.Sprintf("%s/sync", base)
 	page := server.TmplPage(StaticFs, "success.tmpl", tmpl)
