@@ -1,8 +1,21 @@
 <section>
     <article id="article">
 <div class="alert alert-success">
+{{if .Title}}
+  <h1 class="text-large">{{.Title}}</h1>
+{{else}}
   <h1 class="text-large">Service status</h1>
+{{end}}
   {{.Content}}
 </div>
     </article>
 </section>
+
+{{if .RedirectLink}}
+<script>
+    // Redirect after 3 seconds (3000 ms)
+    setTimeout(function() {
+        window.location.href = "{{.RedirectLink}}";
+    }, 3000);
+</script>
+{{end}}
