@@ -11,15 +11,18 @@ import (
 	"net/http"
 	"time"
 
+	authz "github.com/CHESSComputing/golib/authz"
 	srvConfig "github.com/CHESSComputing/golib/config"
 	"github.com/CHESSComputing/golib/ollama"
 	server "github.com/CHESSComputing/golib/server"
+	services "github.com/CHESSComputing/golib/services"
+	"github.com/CHESSComputing/golib/utils"
 	"github.com/microcosm-cc/bluemonday"
 )
 
 // AIChat represents generic AI chat interface
 type AIChat interface {
-	Chat(prompt string) (string, error)
+	Chat(user, prompt string) (string, error)
 }
 
 // OllamaClient represents Ollama AI client
@@ -28,7 +31,7 @@ type OllamaClient struct {
 }
 
 // Chat implementation for OllamaClient
-func (o *OllamaClient) Chat(prompt string) (string, error) {
+func (o *OllamaClient) Chat(user, prompt string) (string, error) {
 	if o.AIConfig == nil {
 		o.AIConfig = &ollama.Config{
 			Host:  srvConfig.Config.AIChat.Host,
@@ -53,7 +56,7 @@ type TichyClient struct {
 }
 
 // Chat implementation for TichyClient
-func (o *TichyClient) Chat(prompt string) (string, error) {
+func (o *TichyClient) Chat(user, prompt string) (string, error) {
 
 	ctx := context.Background()
 	if srvConfig.Config.AIChat.Timeout != 0 {
@@ -63,7 +66,7 @@ func (o *TichyClient) Chat(prompt string) (string, error) {
 		defer cancel()
 		ctx = ctx1
 	}
-	resp, err := aitichy(ctx, prompt)
+	resp, err := aitichy(ctx, user, prompt)
 	return resp, err
 }
 
@@ -90,13 +93,41 @@ type TichyResponse struct {
 	} `json:"choices"`
 }
 
-func aitichy(ctx context.Context, query string) (string, error) {
+// helper function to get appropriate set of vector databases
+// based on provided FOXDEN user information
+func getVectorDbs(fuser services.User) []string {
+	vdbs := []string{"foxden"}
+	if utils.InList("cmpgrp", fuser.Groups) {
+		vdbs = []string{"computing"}
+	}
+	return vdbs
+}
+
+// helper function to generate AI token with appropriate user
+// information and list of vector databases to lookup
+func getAIToken(fuser services.User) (string, error) {
+	customClaims := authz.CustomClaims{
+		User:        fuser.Name,
+		Application: "FOXDEN",
+		VectorDbs:   getVectorDbs(fuser),
+	}
+	duration := srvConfig.Config.Authz.TokenExpires
+	if duration == 0 {
+		duration = 7200
+	}
+	return authz.JWTAccessToken(srvConfig.Config.Authz.ClientID, duration, customClaims)
+}
+
+func aitichy(ctx context.Context, user, query string) (string, error) {
 	// Build request payload
 	reqBody := TichyRequest{
 		Messages: []TichyMessage{
 			{Role: "user", Content: query},
 		},
 	}
+
+	// extract user groups and generate proper AIDB collection to query
+	fuser, err := _foxdenUser.Get(user)
 
 	data, err := json.Marshal(reqBody)
 	if err != nil {
@@ -113,6 +144,11 @@ func aitichy(ctx context.Context, query string) (string, error) {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+
+	// generate proper token for AI chatbot
+	if aitoken, err := getAIToken(fuser); err == nil {
+		req.Header.Set("Authorization", fmt.Sprintf("bearer %s", aitoken))
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -151,13 +187,13 @@ func aitichy(ctx context.Context, query string) (string, error) {
 }
 
 // wrapper AI chat function to use different AI backend engine
-func aichat(prompt string) (string, error) {
+func aichat(user, prompt string) (string, error) {
 	if srvConfig.Config.AIChat.Client == "ollama" {
 		client := OllamaClient{}
-		return client.Chat(prompt)
+		return client.Chat(user, prompt)
 	} else if srvConfig.Config.AIChat.Client == "tichy" {
 		client := TichyClient{}
-		return client.Chat(prompt)
+		return client.Chat(user, prompt)
 	}
 	msg := "FOXDEN is not configured with AI assistance client"
 	return "", errors.New(msg)
