@@ -2268,7 +2268,7 @@ type ChatResponse struct {
 
 // AIChatHandler handles requests from AI assitance chat
 func AIChatHandler(c *gin.Context) {
-	_, err := getUser(c)
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -2282,8 +2282,8 @@ func AIChatHandler(c *gin.Context) {
 		return
 	}
 
-	// Placeholder response — you will replace this with real AI logic later
-	resp, err := aichat(req.Message)
+	// send request to AI chatbot
+	resp, err := aichat(user, req.Message)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ChatResponse{Reply: err.Error()})
 	}
