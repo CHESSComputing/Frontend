@@ -128,6 +128,9 @@ func aitichy(ctx context.Context, user, query string) (string, error) {
 
 	// extract user groups and generate proper AIDB collection to query
 	fuser, err := _foxdenUser.Get(user)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract user info: %w", err)
+	}
 
 	data, err := json.Marshal(reqBody)
 	if err != nil {
@@ -147,7 +150,7 @@ func aitichy(ctx context.Context, user, query string) (string, error) {
 
 	// generate proper token for AI chatbot
 	if aitoken, err := getAIToken(fuser); err == nil {
-		req.Header.Set("Authorization", fmt.Sprintf("bearer %s", aitoken))
+		req.Header.Set("Authorization", "Bearer "+aitoken)
 	}
 
 	client := &http.Client{}
