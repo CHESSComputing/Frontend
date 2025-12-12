@@ -520,7 +520,7 @@ func ParentsHandler(c *gin.Context) {
 	_httpReadRequest.GetToken()
 
 	// get files from provenance service
-	records, err := getData("parens", did)
+	records, err := getData("parents", did)
 	if err != nil {
 		msg := fmt.Sprintf("unable to find parents for did=%s", did)
 		handleError(c, http.StatusBadRequest, msg, err)
