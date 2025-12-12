@@ -46,7 +46,7 @@ func getData(api, did string) ([]map[string]any, error) {
 	if err != nil {
 		return records, err
 	}
-	// parse data records from meta-data service
+	// parse data records from provenance service
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -62,14 +62,32 @@ func getData(api, did string) ([]map[string]any, error) {
 // helper function to get immediate parents for given did
 func getParents(did string) []string {
 	var parents []string
+	// request parents from DataBookkeeping service
 	records, err := getData("parents", did)
 	if err != nil {
 		log.Printf("ERROR: unable to lookup parents for did=%s, error=%v", did, err)
 		return parents
 	}
+	// request parents from metadata record itself
+	mrecord, err := findMetadataRecord(did)
+	if err == nil {
+		records = append(records, mrecord)
+	}
 	for _, rec := range records {
 		if val, ok := rec["parent_did"]; ok {
 			parents = append(parents, val.(string))
+		}
+		if val, ok := rec["parent_dids"]; ok {
+			switch vvv := val.(type) {
+			case []string:
+				parents = append(parents, vvv...)
+			case []any:
+				for _, parent := range vvv {
+					parents = append(parents, fmt.Sprintf("%v", parent))
+				}
+			case string:
+				parents = append(parents, vvv)
+			}
 		}
 	}
 	return parents
