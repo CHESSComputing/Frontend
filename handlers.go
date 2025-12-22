@@ -1498,7 +1498,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 			continue
 		}
 		if k == "Description" {
-			desc = strings.Join(items, " ")
+			desc = strings.Join(vals, " ")
 			continue
 		}
 		if k == "UpdateMetadata" {
