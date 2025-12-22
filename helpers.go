@@ -121,6 +121,7 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		tmpl["Cycle"] = recValue(rec, "cycle")
 		tmpl["Beamline"] = recValue(rec, "beamline")
 		tmpl["Btr"] = recValue(rec, "btr")
+		tmpl["MCProjectName"] = fmt.Sprintf("chess_btr_%s", recValue(rec, "btr"))
 		tmpl["Sample"] = recValue(rec, "sample_name")
 		tmpl["Schema"] = recValue(rec, "schema")
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base

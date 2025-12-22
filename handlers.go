@@ -2067,13 +2067,19 @@ func PublishHandler(c *gin.Context) {
 	schema := r.FormValue("schema")
 	draft := r.FormValue("draft")
 	publishmetadata := r.FormValue("publishmetadata")
+	// extract MC project name from the form
+	mcprojectname := r.FormValue("mcprojectname")
+	// but if foxden.yaml provides it we will overwrite it
+	if srvConfig.Config.DOI.ProjectName != "" {
+		mcprojectname = srvConfig.Config.DOI.ProjectName
+	}
 	doiPublic := false
 	if draft == "" {
 		doiPublic = true
 	}
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(user, doiprovider, did, description, parents, doiPublic)
+	doi, doiLink, err := publishDataset(user, doiprovider, did, description, parents, doiPublic, mcprojectname)
 	if Verbose > 0 {
 		log.Printf("### publish did=%s doiprovider=%s doi=%s doiLink=%s error=%v", did, doiprovider, doi, doiLink, err)
 	}
@@ -2120,15 +2126,16 @@ func PublishFormHandler(c *gin.Context) {
 
 	r := c.Request
 	w := c.Writer
+	base := srvConfig.Config.Frontend.WebServer.Base
 	// get beamline value from the form
 	did := r.FormValue("did")
 	schema := r.FormValue("schema")
 	tmpl := server.MakeTmpl(StaticFs, "Login")
-	base := srvConfig.Config.Frontend.WebServer.Base
 	tmpl["Base"] = base
 	tmpl["Did"] = did
 	tmpl["User"] = user
 	tmpl["Schema"] = schema
+	tmpl["MCProjectName"] = r.FormValue("mcprojectname")
 	tmpl["Parents"] = getAllParents(did)
 	page := server.TmplPage(StaticFs, "publishform.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))

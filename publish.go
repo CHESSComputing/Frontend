@@ -58,7 +58,7 @@ func getMetaData(user, did string) (map[string]any, error) {
 }
 
 // helper function to publish did with given provider
-func publishDataset(user, provider, did, description string, parents []string, doiPublic bool) (string, string, error) {
+func publishDataset(user, provider, did, description string, parents []string, doiPublic bool, mcprojectname string) (string, string, error) {
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
@@ -85,7 +85,10 @@ func publishDataset(user, provider, did, description string, parents []string, d
 		doi, doiLink, err = zenodoDoi.Publish(did, description, record, doiPublic)
 	} else if p == "materialscommons" {
 		if mcDoi == nil {
-			mcDoi = &srvDoi.MCProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
+			mcDoi = &srvDoi.MCProvider{
+				ProjectName: mcprojectname,
+				Verbose:     srvConfig.Config.Frontend.WebServer.Verbose,
+			}
 		}
 		mcDoi.Init()
 		doi, doiLink, err = mcDoi.Publish(did, description, record, doiPublic)

@@ -82,6 +82,7 @@ Date: {{.TimeStamp}}
         <form class="form-content" method="post" action="{{.Base}}/publishform">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="schema" value="{{.Schema}}">
+            <input type="hidden" name="mcprojectname" value="{{.MCProjectName}}">
             <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
             <button class="button button-small custom-button-publish-doi center width-200">Create DOI</button>
         </form>
