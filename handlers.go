@@ -566,8 +566,10 @@ func ProvenanceHandler(c *gin.Context) {
 			}
 		}
 	}
+	// get parents from record itself
+	parents := getParents(did)
+
 	// get files from provenance service
-	var parents []string
 	records, err = getData("parents", did)
 	if err != nil {
 		content := errorTmpl(c, "unable to get parents data from provenance service, error", err)
@@ -582,6 +584,10 @@ func ProvenanceHandler(c *gin.Context) {
 			}
 		}
 	}
+
+	// ensure that parents is unique list
+	parents = utils.List2Set(parents)
+
 	// get children from provenance service
 	var children []string
 	records, err = getData("child", did)
