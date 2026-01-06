@@ -93,6 +93,36 @@ func getParents(did string) []string {
 	return parents
 }
 
+// helper function to get immediate childred for given did
+func getChildren(did string) []string {
+	var children []string
+	// request children from metadata record itself
+	spec := make(map[string]any)
+	spec["parent_did"] = did
+	records, err := findMetadataRecordsViaSpec(did, spec)
+	if err == nil {
+		for _, r := range records {
+			if v, ok := r["did"]; ok {
+				children = append(children, fmt.Sprintf("%s", v))
+			}
+		}
+	}
+	delete(spec, "parent_did")
+	// look-up parent_dids list, e.g. { $in: ["abc"] }
+	cond := make(map[string]any)
+	cond["$in"] = []string{did}
+	spec["parent_dids"] = cond
+	records, err = findMetadataRecordsViaSpec(did, spec)
+	if err == nil {
+		for _, r := range records {
+			if v, ok := r["did"]; ok {
+				children = append(children, fmt.Sprintf("%s", v))
+			}
+		}
+	}
+	return children
+}
+
 // helper function to get all (in-depth) parents for given did
 func getAllParents(did string) []string {
 	visited := make(map[string]bool) // to avoid cycles

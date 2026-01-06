@@ -174,6 +174,39 @@ func findMetadataRecord(did string) (map[string]any, error) {
 	return records[0], nil
 }
 
+func findMetadataRecordsViaSpec(did string, spec map[string]any) ([]map[string]any, error) {
+	var records []map[string]any
+	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{Spec: spec},
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		return records, errors.New(msg)
+	}
+	// obtain valid token for read request
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.MetaDataURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		msg := "unable to get meta-data from upstream server"
+		return records, errors.New(msg)
+	}
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		msg := "unable to read response body"
+		return records, errors.New(msg)
+	}
+	err = json.Unmarshal(data, &records)
+	if err != nil {
+		msg := "unable to unmarshal response from Metadata service"
+		return records, errors.New(msg)
+	}
+	return records, nil
+}
+
 // helper function to update metadata record
 func updateMetadataRecord(did string, rec map[string]any) error {
 	// obtain valid token for write request
