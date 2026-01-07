@@ -341,7 +341,7 @@ func SyncStatusHandler(c *gin.Context) {
 		status = err.Error()
 		style = "error.tmpl"
 	} else if len(records) == 0 {
-		status = "remove"
+		status = "removed"
 	} else if len(records) != 1 {
 		status = fmt.Sprintf("too many records for uuid=%s", suuid)
 		style = "error.tmpl"
