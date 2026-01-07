@@ -374,6 +374,10 @@ func SyncStatusHandler(c *gin.Context) {
 	// fill out template content
 	tmpl := server.MakeTmpl(StaticFs, "SyncStatus")
 	content := fmt.Sprintf("uuid: %s<br/>status: %v", suuid, status)
+	if status == "removed" {
+		log.Printf("User removed record %s from sync service", suuid)
+		content = ""
+	}
 	tmpl["Content"] = content
 	tmpl["Title"] = "Synchronization status"
 	page := server.TmplPage(StaticFs, style, tmpl)
