@@ -197,8 +197,11 @@ function deleteRecord(uuid) {
   .catch(err => {
     alert("Error deleting record: " + err);
   });
-}
+  setTimeout(() => {
+    window.location.href = "/sync";
+  }, 2000);
 
+}
 
 // Option 1: Update all rows periodically
 function refreshAllStatuses() {
