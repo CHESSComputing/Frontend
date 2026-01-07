@@ -362,7 +362,7 @@ func SyncStatusHandler(c *gin.Context) {
 				if !strings.Contains(status, "progress") {
 					status = fmt.Sprintf("%s, elapsed time %s", status, elapsedTime)
 				} else {
-					status = fmt.Sprintf("%s, checked at %s", status, time.Now())
+					status = fmt.Sprintf("%s, checked at %s", status, time.Now().Format(time.RFC1123))
 				}
 			}
 		}
