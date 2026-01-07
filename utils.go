@@ -438,3 +438,18 @@ func lastModified(m map[string]any) (string, error) {
 	// convert to RFC3339
 	return time.Unix(ts, 0).UTC().Format(time.RFC1123), nil
 }
+
+// ElapsedTime returns the duration between createdAt and updatedAt
+func ElapsedTime(createdAt, updatedAt string) (time.Duration, error) {
+	created, err := time.Parse(time.RFC3339, createdAt)
+	if err != nil {
+		return 0, fmt.Errorf("parse created_at: %w", err)
+	}
+
+	updated, err := time.Parse(time.RFC3339, updatedAt)
+	if err != nil {
+		return 0, fmt.Errorf("parse updated_at: %w", err)
+	}
+
+	return updated.Sub(created), nil
+}
