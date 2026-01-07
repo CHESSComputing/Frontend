@@ -350,6 +350,22 @@ func SyncStatusHandler(c *gin.Context) {
 		if val, ok := record["status"]; ok {
 			status = fmt.Sprintf("%v", val)
 		}
+		var createdAt, updatedAt string
+		if val, ok := record["created_at"]; ok {
+			createdAt = fmt.Sprintf("%s", val)
+		}
+		if val, ok := record["updated_at"]; ok {
+			updatedAt = fmt.Sprintf("%s", val)
+		}
+		if createdAt != "" && updatedAt != "" {
+			if elapsedTime, err := ElapsedTime(createdAt, updatedAt); err == nil {
+				if !strings.Contains(status, "progress") {
+					status = fmt.Sprintf("%s, elapsed time %s", status, elapsedTime)
+				} else {
+					status = fmt.Sprintf("%s, checked at %s", status, time.Now())
+				}
+			}
+		}
 	}
 	if c.Request.Header.Get("Accept") == "application/json" {
 		c.JSON(http.StatusOK, gin.H{"uuid": suuid, "status": status})
