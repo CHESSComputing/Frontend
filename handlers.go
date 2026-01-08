@@ -315,7 +315,7 @@ func SyncHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, records)
 		return
 	}
-	cols := []string{"uuid", "source_url", "target_url", "status"}
+	cols := []string{"uuid", "source_url", "target_url", "continuous", "status"}
 	tmpl["Columns"] = cols
 	tmpl["NColumns"] = len(cols) + 1
 	tmpl["Rows"] = records
@@ -2519,6 +2519,9 @@ func SyncFormHandler(c *gin.Context) {
 	rec["source_token"] = c.Request.FormValue("sourceToken")
 	rec["target_url"] = c.Request.FormValue("targetUrl")
 	rec["target_token"] = c.Request.FormValue("targetToken")
+	rec["continuous"] = false
+	_, checked := c.GetPostForm("continuous")
+	rec["continuous"] = checked
 
 	// optional parameters
 	rec["did"] = c.Request.FormValue("did")
