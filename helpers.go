@@ -633,7 +633,8 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 		}
 		return vals, nil
 	} else if r.Type == "string" {
-		return items[0], nil
+		val := strings.Trim(strings.Join(items, ""), "")
+		return val, nil
 	} else if r.Type == "bool" {
 		v, err := strconv.ParseBool(items[0])
 		if err == nil {
