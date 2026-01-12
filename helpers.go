@@ -120,8 +120,15 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		}
 		tmpl["Cycle"] = recValue(rec, "cycle")
 		tmpl["Beamline"] = recValue(rec, "beamline")
-		tmpl["Btr"] = recValue(rec, "btr")
-		tmpl["MCProjectName"] = fmt.Sprintf("chess_btr_%s", recValue(rec, "btr"))
+		btr := recValue(rec, "btr")
+		tmpl["Btr"] = btr
+		if recValue(rec, "project") != "" {
+			tmpl["MCProjectName"] = fmt.Sprintf("chess_%s", recValue(rec, "project"))
+		} else if btr != "" {
+			tmpl["MCProjectName"] = fmt.Sprintf("chess_btr_%s", recValue(rec, "btr"))
+		} else {
+			tmpl["MCProjectName"] = fmt.Sprintf("chess_%s", recValue(rec, "did"))
+		}
 		tmpl["Sample"] = recValue(rec, "sample_name")
 		tmpl["Schema"] = recValue(rec, "schema")
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
@@ -601,6 +608,20 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 		log.Printf("ERROR: %s", msg)
 		return false, errors.New(msg)
 	} else if r.Type == "list_str" {
+		switch r.Value.(type) {
+		case []any:
+			return items, nil
+		case []string:
+			return items, nil
+		default:
+			nonEmptyItems := []string{}
+			for _, v := range items {
+				if v != "" {
+					nonEmptyItems = append(nonEmptyItems, v)
+				}
+			}
+			return nonEmptyItems, nil
+		}
 		return items, nil
 	} else if strings.HasPrefix(r.Type, "list_int") {
 		// parse given values to int data type
