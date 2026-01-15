@@ -1,9 +1,12 @@
 <hr />
 
 <h3>DatasetID (DID): {{.Did}}</h3>
-Schema: <b>{{.Schema}}</b>
+Schema: <b>{{.Schema}}</b>,
 {{if .SpecScanLink}}
 <a href="{{.SpecScanLink}}">SpecScan record(s)</a>,
+{{end}}
+{{if .UserMetaDataLink}}
+<a href="{{.UserMetaDataLink}}">User metadata</a>,
 {{end}}
 {{if .GlobusLink}}
 <a href="{{.GlobusLink}}">Globus link</a>,

@@ -222,6 +222,10 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		}
 		tmpl["AttributesMap"] = amap
 
+		if srvConfig.Config.UserMetaDataURL != "" {
+			tmpl["UserMetaDataLink"] = fmt.Sprintf("%s/record?did=%s", srvConfig.Config.UserMetaDataURL, did)
+		}
+
 		content := server.TmplPage(StaticFs, "record.tmpl", tmpl)
 		out = append(out, content)
 	}
