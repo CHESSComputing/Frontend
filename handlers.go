@@ -1696,6 +1696,20 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 		return
 	}
 
+	// look if provided record contains user metadata
+	if val, ok := mrec.Record["user_metadata"]; ok {
+		murl := srvConfig.Config.Services.UserMetaDataURL
+		if srvConfig.Config.Services.UserMetaDataURL != "" {
+			// we have dedicated user metadata service, so let's inject it over there
+			if e := updateUserMetaData(did, val); e != nil {
+				log.Printf("WARNING: unable to post to %s, error=%v", murl, e)
+			} else {
+				log.Printf("INFO: sucessfully uploaded user metadata record to %s", murl)
+				delete(mrec.Record, "user_metadata")
+			}
+		}
+	}
+
 	// place request to MetaData service
 	rurl = fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
 	data, err = json.MarshalIndent(mrec, "", "  ")

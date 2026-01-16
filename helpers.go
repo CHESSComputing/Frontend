@@ -5,6 +5,7 @@ package main
 // Copyright (c) 2023 - Valentin Kuznetsov <vkuznet@gmail.com>
 //
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -13,6 +14,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
@@ -22,6 +24,7 @@ import (
 	srvConfig "github.com/CHESSComputing/golib/config"
 	schema "github.com/CHESSComputing/golib/schema"
 	server "github.com/CHESSComputing/golib/server"
+	services "github.com/CHESSComputing/golib/services"
 	utils "github.com/CHESSComputing/golib/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -771,4 +774,54 @@ func makeProvenanceLinks(dids []string) []string {
 		out = append(out, link)
 	}
 	return out
+}
+
+// helper function to update UserMetaData
+func updateUserMetaData(did string, val any) error {
+	var rec map[string]any
+	var mrec map[string]any
+	switch v := val.(type) {
+	case map[string]any:
+		rec = v
+	default:
+		msg := fmt.Sprintf("Unsupport data-type %T for user medata record", val)
+		return errors.New(msg)
+	}
+	if vvv, ok := rec["metadata"]; ok {
+		switch v := vvv.(type) {
+		case map[string]any:
+			mrec = v
+		default:
+			msg := fmt.Sprintf("Unsupport data-type %T for user medata record", val)
+			return errors.New(msg)
+		}
+	} else {
+		mrec = rec
+	}
+	mrec["did"] = did
+	rurl := fmt.Sprintf("%s/record", srvConfig.Config.Services.UserMetaDataURL)
+	data, err := json.Marshal(mrec)
+	if err != nil {
+		return err
+	}
+	_httpWriteRequest.GetToken()
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var sresp services.ServiceResponse
+	err = json.Unmarshal(data, &sresp)
+	if err != nil {
+		return err
+	}
+	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
+		return errors.New(sresp.String())
+	}
+	return nil
 }
