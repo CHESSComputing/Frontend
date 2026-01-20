@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -430,7 +431,7 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 				if utils.InList[string](k, optKeys) {
 					required = false
 				}
-				rec = formEntry(c, schema.Map, k, s, required, record)
+				rec = formEntry(schema.FileName, schema.Map, k, s, required, record)
 				out = append(out, rec)
 			}
 			if showSection {
@@ -456,7 +457,7 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 			if utils.InList[string](k, optKeys) {
 				required = false
 			}
-			rec = formEntry(c, schema.Map, k, s, required, record)
+			rec = formEntry(schema.FileName, schema.Map, k, s, required, record)
 			out = append(out, rec)
 		}
 		if showSection {
@@ -472,7 +473,7 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 				if utils.InList[string](k, optKeys) {
 					required = false
 				}
-				rec = formEntry(c, schema.Map, k, "", required, record)
+				rec = formEntry(schema.FileName, schema.Map, k, "", required, record)
 				nOut = append(nOut, rec)
 			}
 		}
@@ -500,7 +501,11 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 }
 
 // helper function to create form entry
-func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s string, required bool, record *map[string]any) string {
+func formEntry(
+	schemaFileName string,
+	smap map[string]beamlines.SchemaRecord,
+	k, s string, required bool, record *map[string]any) string {
+
 	// check if provided record has value
 	var defaultValue string
 	if record != nil {
@@ -570,6 +575,9 @@ func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s stri
 						tmpl["Value"] = []string{"false", "true"}
 					}
 				}
+			} else if r.Type == "struct" || r.Type == "list_struct" {
+				entry := formStructEntry(schemaFileName, k, r)
+				return fmt.Sprintf("<fieldset><legend>%s</legend>%s</fieldset>", k, entry)
 			} else {
 				if r.Value != nil {
 					switch values := r.Value.(type) {
@@ -602,6 +610,27 @@ func formEntry(c *gin.Context, smap map[string]beamlines.SchemaRecord, k, s stri
 		}
 	}
 	return server.TmplPage(StaticFs, "form_entry.tmpl", tmpl)
+}
+
+// helper function to build struct form entry
+func formStructEntry(schemaFileName, k string, r beamlines.SchemaRecord) string {
+	log.Printf("### formEntry schemaFileName=%s key=%s rec=%+v", schemaFileName, k, r)
+	fname := fmt.Sprintf("%s/%s", filepath.Dir(schemaFileName), r.Schema)
+	schema, err := _smgr.Load(fname)
+	if err != nil {
+		msg := fmt.Sprintf("unable to load", fname, "error", err)
+		log.Println("ERROR: ", msg)
+		return msg
+	}
+	smap := schema.Map
+	var subRecords []string
+	for key, srec := range smap {
+		log.Printf("key=%s, value=%+v", key, srec)
+		rec := formEntry(schemaFileName, smap, key, "", !srec.Optional, nil)
+		log.Println("New form entry record:\n", rec)
+		subRecords = append(subRecords, rec)
+	}
+	return strings.Join(subRecords, "\n<br/>\n")
 }
 
 // helper function to parser form values
