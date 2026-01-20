@@ -614,20 +614,17 @@ func formEntry(
 
 // helper function to build struct form entry
 func formStructEntry(schemaFileName, k string, r beamlines.SchemaRecord) string {
-	log.Printf("### formEntry schemaFileName=%s key=%s rec=%+v", schemaFileName, k, r)
 	fname := fmt.Sprintf("%s/%s", filepath.Dir(schemaFileName), r.Schema)
 	schema, err := _smgr.Load(fname)
 	if err != nil {
-		msg := fmt.Sprintf("unable to load", fname, "error", err)
+		msg := fmt.Sprintf("unable to load %s error %v", fname, err)
 		log.Println("ERROR: ", msg)
 		return msg
 	}
 	smap := schema.Map
 	var subRecords []string
 	for key, srec := range smap {
-		log.Printf("key=%s, value=%+v", key, srec)
 		rec := formEntry(schemaFileName, smap, key, "", !srec.Optional, nil)
-		log.Println("New form entry record:\n", rec)
 		subRecords = append(subRecords, rec)
 	}
 	return strings.Join(subRecords, "\n<br/>\n")
