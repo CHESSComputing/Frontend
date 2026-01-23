@@ -676,6 +676,9 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 		var vals []float64
 		for _, values := range items {
 			for _, val := range strings.Split(values, " ") {
+				// if passed web form value contained comma we will replace it
+				val = strings.ReplaceAll(val, ",", "")
+				val = strings.Trim(val, " ")
 				v, err := strconv.ParseFloat(val, 64)
 				if err == nil {
 					vals = append(vals, v)
