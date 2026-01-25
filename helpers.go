@@ -16,7 +16,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -354,9 +353,9 @@ func makeURL(url, urlType string, startIdx, limit, nres int) string {
 }
 
 // helper function to generate input form
-func genForm(c *gin.Context, fname string, record *map[string]any) (string, error) {
+func genForm(fname string, record *map[string]any) (string, error) {
 	var out []string
-	val := fmt.Sprintf("<h3>Web form submission</h3><br/>")
+	val := "<h3>Web form submission</h3><br/>"
 	out = append(out, val)
 	beamline := utils.FileName(fname)
 	if strings.Contains(fname, "user") {
@@ -428,10 +427,10 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 			}
 			for _, k := range skeys {
 				required := true
-				if utils.InList[string](k, optKeys) {
+				if utils.InList(k, optKeys) {
 					required = false
 				}
-				rec = formEntry(schema.FileName, schema.Map, k, s, required, record)
+				rec = formEntry(&schema.Map, k, s, required, record)
 				out = append(out, rec)
 			}
 			if showSection {
@@ -441,7 +440,7 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 	}
 	// loop over the rest of section keys which did not show up in sections
 	for s, skeys := range sectionKeys {
-		if utils.InList[string](s, sections) {
+		if utils.InList(s, sections) {
 			continue
 		}
 		showSection := false
@@ -454,10 +453,10 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 		}
 		for _, k := range skeys {
 			required := true
-			if utils.InList[string](k, optKeys) {
+			if utils.InList(k, optKeys) {
 				required = false
 			}
-			rec = formEntry(schema.FileName, schema.Map, k, s, required, record)
+			rec = formEntry(&schema.Map, k, s, required, record)
 			out = append(out, rec)
 		}
 		if showSection {
@@ -466,24 +465,33 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 	}
 	// loop over all keys which do not have sections
 	var nOut []string
+	legend := "Attributes"
 	for _, k := range allKeys {
 		if r, ok := schema.Map[k]; ok {
-			if r.Section == "" {
-				required := true
-				if utils.InList[string](k, optKeys) {
-					required = false
+			required := true
+			if utils.InList(k, optKeys) {
+				required = false
+			}
+			if strings.Contains(k, ".") {
+				subKey := r.Key
+				fname := r.File
+				section := r.Section
+				rec = formStructEntry(fname, k, subKey)
+				if legend == "Attributes" {
+					legend = section
 				}
-				rec = formEntry(schema.FileName, schema.Map, k, "", required, record)
+				nOut = append(nOut, rec)
+			} else if r.Section == "" {
+				rec = formEntry(&schema.Map, k, "", required, record)
 				nOut = append(nOut, rec)
 			}
 		}
 	}
 	if len(nOut) > 0 {
-		out = append(out, fmt.Sprintf("<fieldset id=\"attributes\">"))
-		out = append(out, "<legend>Attriburtes</legend>")
-		for _, rec := range nOut {
-			out = append(out, rec)
-		}
+		nOut = utils.List2Set(nOut)
+		out = append(out, "<fieldset id=\"attributes\">")
+		out = append(out, fmt.Sprintf("<legend>%s</legend>", legend))
+		out = append(out, nOut...)
 		out = append(out, "</fieldset>")
 	}
 	form := strings.Join(out, "\n")
@@ -502,22 +510,21 @@ func genForm(c *gin.Context, fname string, record *map[string]any) (string, erro
 
 // helper function to create form entry
 func formEntry(
-	schemaFileName string,
-	smap map[string]beamlines.SchemaRecord,
-	k, s string, required bool, record *map[string]any) string {
+	smap *map[string]beamlines.SchemaRecord,
+	skey, section string, required bool, record *map[string]any) string {
 
 	// check if provided record has value
 	var defaultValue string
 	if record != nil {
 		rmap := *record
-		if v, ok := rmap[k]; ok {
+		if v, ok := rmap[skey]; ok {
 			defaultValue = fmt.Sprintf("%v", v)
 		}
 		defaultValue = strings.ReplaceAll(defaultValue, "[", "")
 		defaultValue = strings.ReplaceAll(defaultValue, "]", "")
 	}
 	tmpl := server.MakeTmpl(StaticFs, "FormEntry")
-	tmpl["Key"] = k
+	tmpl["Key"] = skey
 	tmpl["Value"] = defaultValue
 	tmpl["Placeholder"] = ""
 	tmpl["Description"] = ""
@@ -531,8 +538,14 @@ func formEntry(
 	tmpl["Type"] = "text"
 	tmpl["Multiple"] = ""
 	tmpl["Selected"] = []string{}
-	if r, ok := smap[k]; ok {
-		if r.Section == s {
+	schemaRecordMap := *smap
+	if strings.Contains(skey, ".") {
+		// we passed structKey with subkey use subkey for look-up in a map
+		arr := strings.Split(skey, ".")
+		skey = arr[1] // use subkey
+	}
+	if r, ok := schemaRecordMap[skey]; ok {
+		if r.Section == section {
 			if r.Type == "list_str" || r.Type == "list" {
 				tmpl["List"] = true
 				switch values := r.Value.(type) {
@@ -545,12 +558,12 @@ func formEntry(
 					for _, v := range values {
 						if v != defaultValue && v != "" {
 							strVal := fmt.Sprintf("%v", v)
-							if !utils.InList[string](strVal, selected) {
+							if !utils.InList(strVal, selected) {
 								vals = append(vals, strVal)
 							}
 						}
 					}
-					vals = utils.List2Set[string](vals)
+					vals = utils.List2Set(vals)
 					// for list data types, e.g. array of strings
 					// we can clearly define empty default value. And if attribute is not required
 					// we should use empty value first
@@ -575,9 +588,6 @@ func formEntry(
 						tmpl["Value"] = []string{"false", "true"}
 					}
 				}
-			} else if r.Type == "struct" || r.Type == "list_struct" {
-				entry := formStructEntry(schemaFileName, k, r)
-				return fmt.Sprintf("<fieldset><legend>%s</legend>%s</fieldset>", k, entry)
 			} else {
 				if r.Value != nil {
 					switch values := r.Value.(type) {
@@ -588,7 +598,7 @@ func formEntry(
 							strVal := fmt.Sprintf("%v", v)
 							vals = append(vals, strVal)
 						}
-						vals = utils.List2Set[string](vals)
+						vals = utils.List2Set(vals)
 						// for non list data types, e.g. array of floats
 						// we cannot clearly define empty default value as it should come from
 						// schema itself, and tehrefire we do not update vals with first empty value
@@ -601,7 +611,7 @@ func formEntry(
 			if r.Multiple {
 				tmpl["Multiple"] = "multiple"
 			}
-			desc := fmt.Sprintf("%s", r.Description)
+			desc := r.Description
 			if desc == "" {
 				desc = "Not Available"
 			}
@@ -613,19 +623,34 @@ func formEntry(
 }
 
 // helper function to build struct form entry
-func formStructEntry(schemaFileName, k string, r beamlines.SchemaRecord) string {
-	fname := fmt.Sprintf("%s/%s", filepath.Dir(schemaFileName), r.Schema)
-	schema, err := _smgr.Load(fname)
+func formStructEntry(schemaFileName, structKey, subKey string) string {
+	schema, err := _smgr.Load(schemaFileName)
 	if err != nil {
-		msg := fmt.Sprintf("unable to load %s error %v", fname, err)
+		msg := fmt.Sprintf("unable to load %s error %v", schemaFileName, err)
 		log.Println("ERROR: ", msg)
 		return msg
+	}
+	var section string
+	// structKey represents <struct_entry.sub_key>
+	arr := strings.Split(structKey, ".")
+	if len(arr) > 0 {
+		// we use struct entry as section for web UI
+		section = arr[0]
 	}
 	smap := schema.Map
 	var subRecords []string
 	for key, srec := range smap {
-		rec := formEntry(schemaFileName, smap, key, "", !srec.Optional, nil)
-		subRecords = append(subRecords, rec)
+		if key == subKey {
+			if srec.Section == "" {
+				// update schema record entry with proper section if is empty
+				srec.Section = section
+				smap[key] = srec
+			}
+			// here we pass structKey to formEntry to ensure that HTML input name value will use
+			// see formEntry logic how it handles given key with period symbol in it
+			rec := formEntry(&smap, structKey, section, !srec.Optional, nil)
+			subRecords = append(subRecords, rec)
+		}
 	}
 	return strings.Join(subRecords, "\n<br/>\n")
 }
