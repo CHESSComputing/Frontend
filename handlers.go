@@ -1418,7 +1418,7 @@ func MetaDataHandler(c *gin.Context) {
 		if idx == 0 {
 			cls = ""
 		}
-		form, err := genForm(c, fname, nil)
+		form, err := genForm(fname, nil)
 		if err != nil {
 			msg := "could not parse http form"
 			handleError(c, http.StatusInternalServerError, msg, err)
@@ -1774,6 +1774,8 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 
 	// prepare http writer
 	_httpWriteRequest.GetToken()
+
+	// TODO: I need to adjust mrec to handle structKey.subKey entries and make them as individual struct
 
 	// place request to MetaData service
 	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
@@ -2219,8 +2221,8 @@ func DoiPublicHandler(c *gin.Context) {
 	w.Write([]byte(header() + page + footer()))
 }
 
-// UploadJsonHandler handles upload of JSON record
-func UploadJsonHandler(c *gin.Context) {
+// UploadJSONHandler handles upload of JSON record
+func UploadJSONHandler(c *gin.Context) {
 
 	user, err := getUser(c)
 	if err != nil {
@@ -2289,7 +2291,7 @@ func UploadJsonHandler(c *gin.Context) {
 		if idx == 0 {
 			cls = ""
 		}
-		form, err := genForm(c, fname, &rec)
+		form, err := genForm(fname, &rec)
 		if err != nil {
 			log.Println("ERROR", err)
 			w.WriteHeader(http.StatusInternalServerError)
