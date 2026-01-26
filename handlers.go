@@ -1775,7 +1775,8 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 	// prepare http writer
 	_httpWriteRequest.GetToken()
 
-	// TODO: I need to adjust mrec to handle structKey.subKey entries and make them as individual struct
+	// adjust mrec to handle structKey.subKey entries and make them as individual struct
+	adjustMetadataRecord(&mrec)
 
 	// place request to MetaData service
 	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)

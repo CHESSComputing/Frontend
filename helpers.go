@@ -545,6 +545,11 @@ func formEntry(
 		skey = arr[1] // use subkey
 	}
 	if r, ok := schemaRecordMap[skey]; ok {
+		if r.Type == "list_struct" || r.Type == "struct" {
+			// we don't need to build web UI element for struct type as it will be handled differently
+			// via formStructEntry function
+			return ""
+		}
 		if r.Section == section {
 			if r.Type == "list_str" || r.Type == "list" {
 				tmpl["List"] = true
@@ -877,5 +882,68 @@ func updateUserMetaData(did string, val any) error {
 	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
 		return errors.New(sresp.String())
 	}
+	return nil
+}
+
+// helper function to adjust metadata record according to subkeys in structs
+func adjustMetadataRecord(mrec *services.MetaRecord) error {
+	fname := beamlines.SchemaFileName(mrec.Schema)
+	schema, err := _smgr.Load(fname)
+	if err != nil {
+		log.Printf("WARNING: unable to adjust metadata record, error=%v", err)
+		return err
+	}
+
+	for k, v := range mrec.Record {
+		if !strings.Contains(k, ".") {
+			continue
+		}
+
+		parts := strings.SplitN(k, ".", 2)
+		skey := parts[0]
+		subKey := parts[1]
+
+		schemaEntry, ok := schema.Map[skey]
+		if !ok {
+			log.Printf("WARNING: skey=%s not found in schema", skey)
+			continue
+		}
+
+		switch schemaEntry.Type {
+
+		case "struct":
+			// ensure map exists
+			obj, ok := mrec.Record[skey].(map[string]any)
+			if !ok {
+				obj = make(map[string]any)
+			}
+			obj[subKey] = v
+			mrec.Record[skey] = obj
+
+		case "list_struct":
+			var list []map[string]any
+
+			if existing, ok := mrec.Record[skey]; ok {
+				if cast, ok := existing.([]map[string]any); ok {
+					list = cast
+				}
+			}
+
+			if len(list) == 0 {
+				list = append(list, make(map[string]any))
+			}
+
+			// add field to the last struct in the list
+			list[len(list)-1][subKey] = v
+			mrec.Record[skey] = list
+
+		default:
+			log.Printf("WARNING: unsupported type %v for skey=%s", schemaEntry.Type, skey)
+			continue
+		}
+
+		delete(mrec.Record, k)
+	}
+
 	return nil
 }
