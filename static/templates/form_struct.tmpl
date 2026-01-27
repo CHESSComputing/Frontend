@@ -1,0 +1,71 @@
+<div class="repeatable-group"
+     data-repeatable
+     data-repeatable-name="{{.Section}}">
+
+  <fieldset data-repeatable-item>
+    <legend>{{.Section}}</legend>
+
+{{.SubRecords}}
+
+  <div class="repeatable-actions">
+      <button type="button"
+              class="button button-secondary"
+              data-repeatable-add>
+        &#x25BC;&nbsp;more &nbsp; <span class="legend-style">{{.Section}}</span> &nbsp; sub-records
+      </button>
+  </div>
+
+  </fieldset>
+
+<!--
+  <button type="button" data-repeatable-add>Add</button>
+  -->
+</div>
+
+<script>
+(function () {
+
+  // prevent double-binding
+  if (window.__repeatableInitialized) return;
+  window.__repeatableInitialized = true;
+
+  function addRepeatable(group) {
+    const items = group.querySelectorAll("[data-repeatable-item]");
+    const index = items.length;
+
+    const template = items[0];
+    const clone = template.cloneNode(true);
+
+    // Optional legend numbering
+    const legend = clone.querySelector("legend");
+    if (legend) {
+      legend.textContent = legend.textContent.replace(/\s+#\d+$/, "") +
+        ` #${index + 1}`;
+    }
+
+    clone.querySelectorAll("input, select, textarea").forEach(el => {
+      // Reset value
+      if (el.type === "checkbox" || el.type === "radio") {
+        el.checked = false;
+      } else {
+        el.value = "";
+      }
+
+    });
+
+    items[items.length - 1].after(clone);
+  }
+
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest("[data-repeatable-add]");
+    if (!btn) return;
+
+    const group = btn.closest("[data-repeatable]");
+    if (!group) return;
+
+    addRepeatable(group);
+  });
+
+})();
+</script>
+
