@@ -91,6 +91,9 @@ func FacebookCallBackHandler(c *gin.Context) {
 func getUser(c *gin.Context) (string, error) {
 	var user string
 	var err error
+	if srvConfig.Config.Frontend.TestMode {
+		return "test", nil
+	}
 	token := authz.BearerToken(c.Request)
 	if token != "" {
 		// if we received HTTP request with token
@@ -102,11 +105,7 @@ func getUser(c *gin.Context) (string, error) {
 		}
 		return user, e
 	}
-	if srvConfig.Config.Frontend.TestMode {
-		user = "TestUser"
-	} else {
-		user, err = c.Cookie("user")
-	}
+	user, err = c.Cookie("user")
 	return user, err
 
 }
@@ -1492,16 +1491,8 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 		log.Println("ERROR", err)
 		return mrec, updateMetadata, err
 	}
-	/*
-		log.Println("######## PostForm", r.PostForm)
-		for key, vals := range r.MultipartForm.Value {
-			log.Printf("Form field: %s = %v", key, vals)
-		}
-		for key, files := range r.MultipartForm.File {
-			log.Printf("File field: %s = %v", key, files)
-		}
-	*/
 
+	grouped := make(map[string]map[string][]string)
 	rec := make(map[string]any)
 	userMetadata := make(map[string]any)
 	var userKeys, userValues []string
@@ -1538,6 +1529,19 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 			}
 			continue
 		}
+		// special treatement for container group (struct with sub keys)
+		if strings.Contains(k, ".") {
+			parts := strings.SplitN(k, ".", 2)
+			skey := parts[0]
+			subKey := parts[1]
+
+			if _, ok := grouped[skey]; !ok {
+				grouped[skey] = make(map[string][]string)
+			}
+
+			grouped[skey][subKey] = vals
+			continue
+		}
 		val, err := parseValue(schema, k, items)
 		if err != nil {
 			// check if given key is mandatory or optional
@@ -1557,6 +1561,35 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 			}
 		}
 		rec[k] = val
+	}
+
+	// collect all grouped records in our record map
+	for k, v := range grouped {
+		smap := convert2records(v)
+		if srec, ok := schema.Map[k]; ok {
+			dir := filepath.Dir(fname)
+			subSchemaFilename := filepath.Join(dir, srec.Schema)
+			if subSchema, err := _smgr.Load(subSchemaFilename); err == nil {
+				nmap := convertTypes(subSchema, smap)
+				if subRecord, ok := subSchema.Map[k]; ok {
+					switch subRecord.Type {
+					case "struct":
+						if len(nmap) == 1 {
+							rec[k] = nmap[0]
+						}
+					case "list_struct":
+						rec[k] = nmap
+					}
+				} else {
+					rec[k] = nmap
+				}
+			} else {
+				log.Printf("WARNING: unable to load subschema map %s from file %s, error=%v", srec.Schema, subSchemaFilename, err)
+			}
+		} else {
+			log.Printf("WARNING: unable to convert grouped map for k=%s", k)
+			rec[k] = smap
+		}
 	}
 
 	// parse user metafile if it is provided
@@ -1602,10 +1635,13 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 		}
 		rec["user_metadata"] = userMetadata
 	}
-	if Verbose > 0 {
-		log.Printf("process form, record %v\n", rec)
-	}
+
+	// assign record
 	mrec.Record = rec
+	if Verbose > 0 {
+		log.Printf("process form, record %v\n", mrec)
+	}
+
 	return mrec, updateMetadata, nil
 }
 
@@ -1774,9 +1810,6 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 
 	// prepare http writer
 	_httpWriteRequest.GetToken()
-
-	// adjust mrec to handle structKey.subKey entries and make them as individual struct
-	adjustMetadataRecord(&mrec)
 
 	// place request to MetaData service
 	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)
