@@ -464,7 +464,7 @@ func genForm(fname string, record *map[string]any) (string, error) {
 		}
 	}
 	// loop over all keys which do not have sections
-	var nOut []string
+	var nOut, rOut []string
 	legend := "Attributes"
 	for _, k := range allKeys {
 		if r, ok := schema.Map[k]; ok {
@@ -475,17 +475,25 @@ func genForm(fname string, record *map[string]any) (string, error) {
 			if strings.Contains(k, ".") {
 				subKey := r.Key
 				fname := r.File
-				section := r.Section
 				rec = formStructEntry(fname, k, subKey)
+				section := r.Section
 				if legend == "Attributes" {
 					legend = section
 				}
-				nOut = append(nOut, rec)
+				rOut = append(rOut, rec)
 			} else if r.Section == "" {
 				rec = formEntry(&schema.Map, k, "", required, record)
 				nOut = append(nOut, rec)
 			}
 		}
+	}
+	if len(rOut) > 0 {
+		// we need to wrap sub records in repeatable container
+		tmpl := server.MakeTmpl(StaticFs, "FormStructEntry")
+		tmpl["Section"] = legend
+		tmpl["SubRecords"] = strings.Join(rOut, "\n<br/>\n")
+		structSection := server.TmplPage(StaticFs, "form_struct.tmpl", tmpl)
+		out = append(out, structSection)
 	}
 	if len(nOut) > 0 {
 		nOut = utils.List2Set(nOut)
@@ -885,65 +893,133 @@ func updateUserMetaData(did string, val any) error {
 	return nil
 }
 
-// helper function to adjust metadata record according to subkeys in structs
-func adjustMetadataRecord(mrec *services.MetaRecord) error {
-	fname := beamlines.SchemaFileName(mrec.Schema)
-	schema, err := _smgr.Load(fname)
-	if err != nil {
-		log.Printf("WARNING: unable to adjust metadata record, error=%v", err)
-		return err
+// helper function to convert string value to proper data-type. We acquire string value
+// on web UI form and must convert them to proper data-type value
+func convert2dtype(val string, dtype string) (any, error) {
+	switch dtype {
+
+	case "string", "str":
+		return val, nil
+
+	case "int", "int32", "int64":
+		i, err := strconv.Atoi(val)
+		if err != nil {
+			return nil, err
+		}
+		return i, nil
+
+	case "float", "float32", "float64":
+		f, err := strconv.ParseFloat(val, 64)
+		if err != nil {
+			return nil, err
+		}
+		return f, nil
+
+	case "bool":
+		b, err := strconv.ParseBool(val)
+		if err != nil {
+			return nil, err
+		}
+		return b, nil
+
+	// arrays of primitives (optional but future-proof)
+	case "list_str":
+		var out []string
+		if strings.Contains(val, ",") {
+			for _, v := range strings.Split(val, ",") {
+				out = append(out, strings.Trim(v, " "))
+			}
+		} else if strings.Contains(val, " ") {
+			for _, v := range strings.Split(val, " ") {
+				out = append(out, strings.Trim(v, " "))
+			}
+		}
+		return out, nil
+
+	case "list_int":
+		out := make([]int, 0, len(val))
+		sep := " "
+		if strings.Contains(val, ",") {
+			sep = ","
+		}
+		for _, v := range strings.Split(val, sep) {
+			i, err := strconv.Atoi(v)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, i)
+		}
+		return out, nil
+
+	case "list_float":
+		out := make([]float64, 0, len(val))
+		sep := " "
+		if strings.Contains(val, ",") {
+			sep = ","
+		}
+		for _, v := range strings.Split(val, sep) {
+			f, err := strconv.ParseFloat(v, 64)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, f)
+		}
+		return out, nil
 	}
 
-	for k, v := range mrec.Record {
-		if !strings.Contains(k, ".") {
-			continue
+	return nil, fmt.Errorf("unsupported data type %q", dtype)
+}
+
+// helper function to convert subschema record to proper structure
+func convert2records(input map[string][]string) []map[string]string {
+	// determine number of records
+	max := 0
+	for _, vals := range input {
+		if len(vals) > max {
+			max = len(vals)
 		}
+	}
 
-		parts := strings.SplitN(k, ".", 2)
-		skey := parts[0]
-		subKey := parts[1]
+	// allocate result slice
+	records := make([]map[string]string, max)
+	for i := 0; i < max; i++ {
+		records[i] = make(map[string]string)
+	}
 
-		schemaEntry, ok := schema.Map[skey]
-		if !ok {
-			log.Printf("WARNING: skey=%s not found in schema", skey)
-			continue
+	// populate records
+	for key, vals := range input {
+		for i, v := range vals {
+			records[i][key] = v
 		}
+	}
 
-		switch schemaEntry.Type {
+	return records
+}
 
-		case "struct":
-			// ensure map exists
-			obj, ok := mrec.Record[skey].(map[string]any)
-			if !ok {
-				obj = make(map[string]any)
-			}
-			obj[subKey] = v
-			mrec.Record[skey] = obj
+func convertTypes(subschema *beamlines.Schema, records []map[string]string) []map[string]any {
+	out := make([]map[string]any, 0, len(records))
+	smap := subschema.Map
 
-		case "list_struct":
-			var list []map[string]any
+	for _, r := range records {
+		row := make(map[string]any)
 
-			if existing, ok := mrec.Record[skey]; ok {
-				if cast, ok := existing.([]map[string]any); ok {
-					list = cast
+		for k, v := range r {
+			if t, ok := smap[k]; ok {
+				if value, err := convert2dtype(v, t.Type); err == nil {
+					row[k] = value
+					log.Printf("converted %s=%q (%T) -> %v (%T)", k, v, v, value, value)
+					continue
 				}
+				// conversion failed → fall back to string
+				log.Printf("WARNING: failed to convert %s=%q to %s, keeping string", k, v, t.Type)
 			}
 
-			if len(list) == 0 {
-				list = append(list, make(map[string]any))
-			}
-
-			// add field to the last struct in the list
-			list[len(list)-1][subKey] = v
-			mrec.Record[skey] = list
-
-		default:
-			log.Printf("WARNING: unsupported type %v for skey=%s", schemaEntry.Type, skey)
-			continue
+			// unknown field or failed conversion
+			row[k] = v
 		}
 
-		delete(mrec.Record, k)
+		out = append(out, row)
 	}
 
-	return nil
+	return out
 }
