@@ -1565,7 +1565,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 
 	// collect all grouped records in our record map
 	for k, v := range grouped {
-		smap := convert2records(v)
+		smap := utils.Convert2records(v)
 		if srec, ok := schema.Map[k]; ok {
 			dir := filepath.Dir(fname)
 			subSchemaFilename := filepath.Join(dir, srec.Schema)
