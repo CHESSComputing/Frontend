@@ -230,7 +230,7 @@ func chunkOfRecords(rec services.ServiceRequest) (services.ServiceResponse, erro
 }
 
 // helper function to make new query out of search filter and list of attributes
-func makeSpec(searchFilter string, attrs []string) map[string]any {
+func makeSpec(searchFilter string, attrs []string, caseInsensitive bool) map[string]any {
 	if srvConfig.Config.Embed.DocDb != "" {
 		// TODO: so far for embed db we can't use filters
 		return map[string]any{}
@@ -238,15 +238,31 @@ func makeSpec(searchFilter string, attrs []string) map[string]any {
 	var filters []map[string]any
 	for _, attr := range attrs {
 		if pat, err := regexp.Compile(fmt.Sprintf(".*%s.*", searchFilter)); err == nil {
-			filters = append(filters, map[string]any{
-				attr: map[string]any{"$regex": pat},
-			})
+			if caseInsensitive {
+				filters = append(filters, map[string]any{attr: map[string]any{"$regex": pat, "$options": "i"}})
+			} else {
+				filters = append(filters, map[string]any{attr: map[string]any{"$regex": pat}})
+			}
 		}
 	}
 	spec := map[string]any{
 		"$or": filters,
 	}
 	return spec
+}
+
+// helper function to update list of user BTRs based on provided search filter
+func updateBTRs(foxdenUser *services.User, searchFilter string) {
+	var btrs []string
+	for _, b := range foxdenUser.Btrs {
+		if strings.Contains(strings.ToLower(b), searchFilter) {
+			btrs = append(btrs, b)
+		}
+	}
+	if len(btrs) > 0 {
+		log.Printf("INFO: for user %+v reduced BTRs to %v based on search filter=%v", foxdenUser, btrs, searchFilter)
+		foxdenUser.Btrs = btrs
+	}
 }
 
 // wrapper function to update spec for given foxden user and use case
