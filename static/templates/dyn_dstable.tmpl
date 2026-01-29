@@ -19,6 +19,16 @@
 <hr/>
 
 
+<div class="grid">
+    <div class="column column-8">
+      &nbsp;
+    </div>
+    <div class="column column-4 right">
+      case insensitive search:
+      <input type="checkbox" id="caseInsensitive" name="caseInsensitive" checked>
+    </div>
+</div>
+
 <div>
     <table id="dataTable" class="display" style="width:100%">
         <thead>
@@ -85,6 +95,11 @@ function getCookie(name, defaultValue = "defaultValue") {
     return defaultValue;
 }
 
+function isCaseInsensitive() {
+    return $('#caseInsensitive').is(':checked') ? '1' : '';
+}
+
+
 $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
@@ -96,7 +111,8 @@ $(document).ready(function() {
     }
 
     // Fetch initial data to determine columns and populate the first page
-    fetchData(0, 10, "", "", "", userAttrs).then(response => {
+    let caseInsensitive = isCaseInsensitive();
+    fetchData(0, 10, "", "", "", userAttrs, caseInsensitive).then(response => {
         columns = response.columns;
 
         // Create table headers dynamically
@@ -181,7 +197,7 @@ $(document).ready(function() {
     }
 
     // Function to fetch data from the server with optional search parameter
-    function fetchData(startIndex, limit, searchTerm, sortKey, sortDirection, attrs) {
+    function fetchData(startIndex, limit, searchTerm, sortKey, sortDirection, attrs, caseInsensitive) {
         return $.ajax({
             url: "/datasets",
             type: "GET",
@@ -190,6 +206,7 @@ $(document).ready(function() {
                 limit: limit,
                 search: searchTerm,
                 attrs: attrs,
+                caseInsensitive: caseInsensitive,
                 sortKey: sortKey,
                 sortDirection: sortDirection
             },
@@ -234,7 +251,8 @@ $(document).ready(function() {
                 const attrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,user");
 
                 // Fetch data with current pagination and search term
-                fetchData(pageIndex, pageSize, searchTerm, sortKey, sortDirection, attrs).then(response => {
+                let caseInsensitive = isCaseInsensitive();
+                fetchData(pageIndex, pageSize, searchTerm, sortKey, sortDirection, attrs, caseInsensitive).then(response => {
                     callback({
                         recordsTotal: totalRecords,
                         recordsFiltered: response.total,
