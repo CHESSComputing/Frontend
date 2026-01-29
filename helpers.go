@@ -837,7 +837,9 @@ func extractParts(did string) (string, string, string, string) {
 func makeProvenanceLinks(dids []string) []string {
 	var out []string
 	for _, did := range dids {
-		link := fmt.Sprintf("<a href=\"/record?did=%s\" class=\"prov-link\">%s</a>", did, did)
+		link := fmt.Sprintf("<a href=\"/record?did=%s\" class=\"button button-small button-metadata\">Metadata</a>", did)
+		link = link + "&nbsp;" + fmt.Sprintf("<a href=\"/provenance?did=%s\" class=\"button button-small button-provenance\">Provenance</a>", did)
+		link += "&nbsp;" + fmt.Sprintf("<b><em>%s</em></b>", did)
 		out = append(out, link)
 	}
 	return out
