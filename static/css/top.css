@@ -213,6 +213,12 @@ footer {
 .button-foxden {
     --button-background-color: #197B7E;
 }
+.button-metadata {
+    --button-background-color: #F4BD8A;
+}
+.button-provenance {
+    --button-background-color: #F8E0AA;
+}
 .round {
     padding: 10px;
     border: 1px dashed grey;
