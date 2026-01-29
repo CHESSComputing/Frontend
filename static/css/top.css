@@ -421,3 +421,8 @@ table.table-sync td {
   color: rgba(17,17,19,.5);
 }
 
+.right {
+  float: right;
+  text-align: right;
+}
+
