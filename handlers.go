@@ -1992,12 +1992,17 @@ func DatasetsHandler(c *gin.Context) {
 	} else if sorder == "desc" {
 		sortOrder = -1
 	}
+	caseInsensitive := false
+	if c.Query("caseInsensitive") != "" {
+		caseInsensitive = true
+	}
 	if Verbose > 1 {
-		log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v", user, query, searchFilter, attrs, idx, limit, skey, sorder)
+		log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v caseInsensitive=%v",
+			user, query, searchFilter, attrs, idx, limit, skey, sorder, caseInsensitive)
 	}
 
-	spec := makeSpec(searchFilter, attrs)
-	if data, err := json.Marshal(spec); err == nil {
+	spec := makeSpec(searchFilter, attrs, caseInsensitive)
+	if data, e := json.Marshal(spec); e == nil {
 		query = string(data)
 	}
 
@@ -2034,6 +2039,8 @@ func DatasetsHandler(c *gin.Context) {
 	// request only user's specific data (check user attributes)
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
 		fuser, err := _foxdenUser.Get(user)
+		// reduce BTRs based on searchFilter
+		updateBTRs(&fuser, searchFilter)
 		if err == nil {
 			// in filters use-case we update spec with filters
 			spec = updateSpec(spec, fuser, "filter")
