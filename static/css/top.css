@@ -331,6 +331,11 @@ footer {
   font-size: 1.2em;
   color: green;
 }
+.prov-text {
+  color: #0077cc;           /* blueish color */
+  text-decoration: none;    /* remove underline */
+  font-family: monospace;   /* use monospace font like <pre> */
+}
 .prov-link {
   color: #0077cc;           /* blueish color */
   text-decoration: none;    /* remove underline */
