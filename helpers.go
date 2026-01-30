@@ -836,11 +836,11 @@ func extractParts(did string) (string, string, string, string) {
 // helper function to make provenance links from a links of given dids
 func makeProvenanceLinks(dids []string) []string {
 	var out []string
+	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
 	for _, did := range dids {
-		link := fmt.Sprintf("<a href=\"/record?did=%s\" class=\"button button-small button-dark-foxden\">Metadata</a>", did)
-		link = link + "&nbsp;" + fmt.Sprintf("<a href=\"/provenance?did=%s\" class=\"button button-small button-light-foxden\">Provenance</a>", did)
-		link += "&nbsp;" + fmt.Sprintf("<b><em>%s</em></b>", did)
-		out = append(out, link)
+		tmpl["did"] = did
+		page := server.TmplPage(StaticFs, "did_links.tmpl", tmpl)
+		out = append(out, page)
 	}
 	return out
 }
