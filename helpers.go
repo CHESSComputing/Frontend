@@ -838,6 +838,9 @@ func makeProvenanceLinks(dids []string) []string {
 	var out []string
 	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
 	for _, did := range dids {
+		if did == "" {
+			continue
+		}
 		tmpl["did"] = did
 		page := server.TmplPage(StaticFs, "did_links.tmpl", tmpl)
 		out = append(out, page)
