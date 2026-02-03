@@ -318,9 +318,11 @@ func chessUpdateSpec(ispec map[string]any, userFoxdenGroups, userBtrs []string, 
 	} else {
 		// ispec is plain dictionary of key:value pairs without $or condition
 		for key, val := range ispec {
+			/*
 			if key == "btr" {
 				continue
 			}
+			*/
 			flt := map[string]any{
 				key: val,
 			}

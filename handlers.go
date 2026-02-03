@@ -2038,13 +2038,12 @@ func DatasetsHandler(c *gin.Context) {
 	}
 	// request only user's specific data (check user attributes)
 	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
-		fuser, err := _foxdenUser.Get(user)
-		// reduce BTRs based on searchFilter
-		updateBTRs(&fuser, searchFilter)
-		if err == nil {
+		if fuser, ferr := _foxdenUser.Get(user); ferr == nil {
+			// reduce BTRs based on searchFilter
+			//updateBTRs(&fuser, searchFilter)
 			// in filters use-case we update spec with filters
 			spec = updateSpec(spec, fuser, "filter")
-			if data, err := json.Marshal(spec); err == nil {
+			if data, derr := json.Marshal(spec); derr == nil {
 				query = string(data)
 			}
 			rec = services.ServiceRequest{
