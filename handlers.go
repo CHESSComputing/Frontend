@@ -2219,9 +2219,13 @@ func PublishFormHandler(c *gin.Context) {
 	tmpl["Did"] = did
 	tmpl["User"] = user
 	tmpl["Schema"] = schema
-	tmpl["MCProjectName"] = r.FormValue("mcprojectname")
+	project := r.FormValue("mcprojectname")
+	if project == "" || project == "Not available" || project == "chess_Not available" {
+		project = "chess_foxden"
+	}
+	tmpl["MCProjectName"] = project
 	tmpl["Parents"] = getAllParents(did)
-	page := server.TmplPage(StaticFs, "publishform.tmpl", tmpl)
+	page := server.TmplPage(StaticFs, "form_publish.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))
 }
 

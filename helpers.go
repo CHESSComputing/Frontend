@@ -125,13 +125,16 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		tmpl["Beamline"] = recValue(rec, "beamline")
 		btr := recValue(rec, "btr")
 		tmpl["Btr"] = btr
-		if recValue(rec, "project") != "" {
-			tmpl["MCProjectName"] = fmt.Sprintf("chess_%s", recValue(rec, "project"))
-		} else if btr != "" {
-			tmpl["MCProjectName"] = fmt.Sprintf("chess_btr_%s", recValue(rec, "btr"))
-		} else {
-			tmpl["MCProjectName"] = fmt.Sprintf("chess_%s", recValue(rec, "did"))
+		project := recValue(rec, "project")
+		if project == "Not available" {
+			btr := recValue(rec, "btr")
+			if btr == "" {
+				project = "foxden"
+			} else {
+				project = btr
+			}
 		}
+		tmpl["MCProjectName"] = project
 		tmpl["Sample"] = recValue(rec, "sample_name")
 		tmpl["Schema"] = recValue(rec, "schema")
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base

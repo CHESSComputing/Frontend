@@ -10,7 +10,6 @@
         <label>Dataset</label>
         <input class="input" type="text" value="{{.Did}}" id="did" name="did">
         <input class="input" type="hidden" value="{{.Schema}}" id="schema" name="schema">
-        <input class="input" type="hidden" value="{{.MCProjectName}}" id="mcprojectname" name="mcprojectname">
     </div>
     <div class="form-item">
         <label>Publication Service</label>
@@ -19,6 +18,10 @@
             <option value="MaterialsCommons">MaterialsCommons</option>
             <option value="Zenodo">Zenodo</option>
         </select>
+    </div>
+    <div class="form-item hide">
+        <label>Project name (please use chess_ prefix to avoid overlap with other MC projects):</label>
+        <input class="input" type="text" value="{{.MCProjectName}}" id="mcprojectname" name="mcprojectname">
     </div>
     <div class="form-item alert alert-info">
         <input type="checkbox" checked="checked" id="draft" name="draft">
@@ -66,4 +69,32 @@ function toggleAll(source) {
         cb.checked = source.checked;
     }
 }
+
+(function () {
+
+  function toggleProjectName() {
+    const provider = document.getElementById("doiprovider");
+    const project = document.getElementById("mcprojectname")?.closest(".form-item");
+
+    if (!provider || !project) return;
+
+    if (provider.value === "MaterialsCommons") {
+      project.classList.remove("hide");
+    } else {
+      project.classList.add("hide");
+    }
+  }
+
+  // Run once on page load
+  document.addEventListener("DOMContentLoaded", toggleProjectName);
+
+  // React to user changes
+  document.addEventListener("change", function (e) {
+    if (e.target?.id === "doiprovider") {
+      toggleProjectName();
+    }
+  });
+
+})();
+
 </script>
