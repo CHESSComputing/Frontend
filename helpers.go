@@ -134,6 +134,9 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 				project = btr
 			}
 		}
+		if !strings.HasPrefix(project, "chess_") {
+			project = fmt.Sprintf("chess_%s", project)
+		}
 		tmpl["MCProjectName"] = project
 		tmpl["Sample"] = recValue(rec, "sample_name")
 		tmpl["Schema"] = recValue(rec, "schema")

@@ -2223,6 +2223,9 @@ func PublishFormHandler(c *gin.Context) {
 	if project == "" || project == "Not available" || project == "chess_Not available" {
 		project = "chess_foxden"
 	}
+	if !strings.HasPrefix(project, "chess_") {
+		project = fmt.Sprintf("chess_%s", project)
+	}
 	tmpl["MCProjectName"] = project
 	tmpl["Parents"] = getAllParents(did)
 	page := server.TmplPage(StaticFs, "form_publish.tmpl", tmpl)
