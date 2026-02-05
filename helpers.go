@@ -298,8 +298,7 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey
 	tmpl := server.MakeTmpl(StaticFs, "Search")
 	if user, err := getUser(c); err == nil {
 		tmpl["User"] = user
-		attrs := userAttrs(user)
-		tmpl["DataAttributes"] = strings.Join(attrs, ",")
+		tmpl["DataAttributes"] = strings.Join(_foxdenAttrs, ",")
 	}
 	eQuery := url.QueryEscape(query)
 	url := fmt.Sprintf("/search?query=%s&sort_keys=%s&sort_order=%s", eQuery, sortKey, sortOrder)

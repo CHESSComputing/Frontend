@@ -2089,7 +2089,7 @@ func DatasetsHandler(c *gin.Context) {
 }
 
 // helper function to get attributes based on user's affiliation
-func userAttrs(user string) []string {
+func foxdenAttrs() []string {
 	var attrs []string
 	for _, obj := range _smgr.Map {
 		for key, _ := range obj.Schema.Map {
@@ -2109,9 +2109,8 @@ func DatasetsTableHandler(c *gin.Context) {
 	}
 	tmpl := server.MakeTmpl(StaticFs, "CHESS datasets")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
-	attrs := userAttrs(user)
-	tmpl["Columns"] = attrs
-	tmpl["DataAttributes"] = strings.Join(attrs, ",")
+	tmpl["Columns"] = _foxdenAttrs
+	tmpl["DataAttributes"] = strings.Join(_foxdenAttrs, ",")
 	tmpl["User"] = user
 	if user != "test" {
 		if fuser, err := _foxdenUser.Get(user); err == nil {

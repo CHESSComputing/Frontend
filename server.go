@@ -32,6 +32,7 @@ var _smgr beamlines.SchemaManager
 var _httpReadRequest, _httpWriteRequest, _httpDeleteRequest *services.HttpRequest
 var _header, _footer, _footerEmpty string
 var _foxdenUser services.UserAttributes
+var _foxdenAttrs []string
 var Verbose int
 
 // helper function to define our header
@@ -167,6 +168,9 @@ func Server() {
 		_foxdenUser = &services.CHESSUser{}
 	}
 	_foxdenUser.Init()
+
+	// acquire all foxden attributes across FOXDEN schemas
+	_foxdenAttrs = foxdenAttrs()
 
 	// setup web router and start the service
 	r := setupRouter()
