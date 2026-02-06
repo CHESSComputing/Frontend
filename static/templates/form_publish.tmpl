@@ -7,12 +7,12 @@
 
 <form action="{{.Base}}/publish" method="post" name="did_publish" id="did_publish" class="form">
     <div class="form-item">
-        <label>Dataset</label>
+        <label class="hint hint-req">Dataset (&#42;)</label>
         <input class="input" type="text" value="{{.Did}}" id="did" name="did">
         <input class="input" type="hidden" value="{{.Schema}}" id="schema" name="schema">
     </div>
     <div class="form-item">
-        <label>Publication Service</label>
+        <label class="hint hint-req">Publication Service (&#42;)</label>
         <select class="input" id="doiprovider" name="doiprovider">
             <option value="DataCite">DataCite</option>
             <option value="MaterialsCommons">MaterialsCommons</option>
@@ -20,7 +20,7 @@
         </select>
     </div>
     <div class="form-item hide">
-        <label>Project name (please use chess_ prefix to avoid overlap with other MC projects):</label>
+        <label class="hint hint-req">Project name (please use chess_ prefix to avoid overlap with other MC projects) (&#42;)</label>
         <input class="input" type="text" value="{{.MCProjectName}}" id="mcprojectname" name="mcprojectname">
     </div>
     <div class="form-item alert alert-info">
@@ -50,7 +50,7 @@
 {{end}}
     </div>
     <div class="form-item">
-        <label>Dataset description</label>
+        <label class="hint hint-req">Dataset description (&#42;)</label>
         <textarea class="input" rows="3" id="description" name="description"></textarea>
     </div>
     <div class="form-item">
