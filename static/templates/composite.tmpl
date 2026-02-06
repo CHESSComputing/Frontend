@@ -9,28 +9,36 @@ Users are required to fill out all inputs listed in red color and bold font:
 
 <div class="form-item">
   <label class="hint hint-req">
-    Project
-    <input type="text" name="project" class="input column-9" placeholder="abc"/>
+    Project Name (&#42;)
+    <input type="text" name="project" class="input column-9" placeholder="chess_test"/>
   </label>
 </div>
 
 <div class="form-item">
   <label class="hint hint-req">
-    Dataset IDentifier (DID)
-    <input type="text" name="did" class="input column-9" placeholder="/beamline=bla/btr=foo/composition=abc"/>
+    Dataset IDentifier (DID) (&#42;)
+    <input type="text" name="did" class="input column-9" placeholder="/beamline=bla/project=chess_test"/>
   </label>
 </div>
 
 <div class="form-item">
   <label class="hint hint-req">
-    Parent DID:
+    Parent DID (&#42;)
   </label>
   <div id="meta-parent-container">
     <div class="meta-row">
       <input class="input" type="text" name="parent_dids" placeholder="/beamline=bla/btr=foo/..." />
     </div>
   </div>
+  <!--
   <div class="add-btn" onclick="addParentDidRow()">＋</div>
+  -->
+  <div class="add-btn" onclick="addParentDidRow()">
+    <button class="button button-small button-dark-foxden">➕</button>
+  </div>
+  <div class="add-btn" onclick="deleteParentDidRow()">
+    <button class="button button-small button-light-foxden">➖</button>
+  </div>
 </div>
 
 </fieldset>
@@ -47,4 +55,18 @@ function addParentDidRow() {
   console.log("add new parent");
   console.log(container);
 }
+
+function deleteParentDidRow() {
+  const container = document.getElementById("meta-parent-container");
+  const rows = container.getElementsByClassName("meta-row");
+
+  if (rows.length === 0) {
+    console.log("no parent rows to delete");
+    return;
+  }
+
+  container.removeChild(rows[rows.length - 1]);
+  console.log("deleted last parent row");
+}
+
 </script>
