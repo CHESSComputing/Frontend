@@ -2377,8 +2377,9 @@ func AIChatHandler(c *gin.Context) {
 	var req ChatRequest
 
 	// Bind JSON body to struct
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	if err1 := c.ShouldBindJSON(&req); err1 != nil {
+		msg := fmt.Sprintf("Invalid request, error %+v", err1)
+		c.JSON(http.StatusBadRequest, ChatResponse{Reply: msg})
 		return
 	}
 
@@ -2386,6 +2387,7 @@ func AIChatHandler(c *gin.Context) {
 	resp, err := aichat(user, req.Message)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ChatResponse{Reply: err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, ChatResponse{Reply: resp})

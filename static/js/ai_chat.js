@@ -85,21 +85,28 @@ function sendMessage(chatInput, chatMessages) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userInput })
     })
-    .then(response => response.json())
+    .then(async response => {
+        const data = await response.json();
+
+        // if backend signals error (HTTP or logical)
+        if (!response.ok) {
+            throw new Error(data.reply || 'Server error');
+        }
+
+        return data;
+    })
     .then(data => {
         const reply = data.reply || '';
 
-        // simple HTML detection: checks for tags like <something>
         const hasHTML = /<\/?[a-z][\s\S]*>/i.test(reply);
-
         if (hasHTML) {
             loadingMsg.innerHTML = reply;
         } else {
             loadingMsg.textContent = reply;
         }
     })
-    .catch(() => {
-        loadingMsg.textContent = 'Error contacting server.';
+    .catch(err => {
+        loadingMsg.textContent = err.message || 'Error contacting server.';
     });
 }
 
