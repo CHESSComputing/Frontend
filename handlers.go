@@ -1351,8 +1351,8 @@ func SpecScansHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, rec)
 		return
 	}
-	if Verbose > 0 {
-		log.Printf("response: %+v\n", response)
+	if Verbose > 1 {
+		log.Printf("services.ServiceResponse: %+v\n", response)
 	}
 	scans := response.Results.Records
 	if Verbose > 0 {
@@ -1996,8 +1996,8 @@ func DatasetsHandler(c *gin.Context) {
 	if c.Query("caseInsensitive") != "" {
 		caseInsensitive = true
 	}
-	if Verbose > 1 {
-		log.Printf("### user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v caseInsensitive=%v",
+	if Verbose > 0 {
+		log.Printf("user=%s query=%v filter=%s, attrs=%v, idx=%d, limit=%d, skey=%s, sorder=%v caseInsensitive=%v",
 			user, query, searchFilter, attrs, idx, limit, skey, sorder, caseInsensitive)
 	}
 
@@ -2055,6 +2055,9 @@ func DatasetsHandler(c *gin.Context) {
 					Limit:     limit,
 					SortKeys:  sortKeys,
 					SortOrder: sortOrder},
+			}
+			if Verbose > 0 {
+				log.Printf("user=%s serviceQuery: %+v", user, rec)
 			}
 		}
 	}
