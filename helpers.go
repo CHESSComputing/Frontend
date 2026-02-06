@@ -426,6 +426,17 @@ func genForm(fname string, record *map[string]any) (string, error) {
 			if len(skeys) != 0 {
 				showSection = true
 			}
+			// skip sub-records
+			subKey := false
+			for _, k := range skeys {
+				if strings.Contains(k, ".") {
+					subKey = true
+					break
+				}
+			}
+			if subKey {
+				continue
+			}
 			if showSection {
 				out = append(out, fmt.Sprintf("<fieldset id=\"%s\">", s))
 				out = append(out, fmt.Sprintf("<legend>%s</legend>", s))
@@ -446,6 +457,17 @@ func genForm(fname string, record *map[string]any) (string, error) {
 	// loop over the rest of section keys which did not show up in sections
 	for s, skeys := range sectionKeys {
 		if utils.InList(s, sections) {
+			continue
+		}
+		// skip sub-records
+		subKey := false
+		for _, k := range skeys {
+			if strings.Contains(k, ".") {
+				subKey = true
+				break
+			}
+		}
+		if subKey {
 			continue
 		}
 		showSection := false
