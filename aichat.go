@@ -132,6 +132,13 @@ func aitichy(ctx context.Context, user, query string) (string, error) {
 		return "", fmt.Errorf("failed to extract user info: %w", err)
 	}
 
+	// constrain AI chatbot to specific user group
+	groups := fuser.Groups
+	aigroup := srvConfig.Config.AIChat.Group
+	if aigroup != "" && !utils.InList(aigroup, groups) {
+		return "", fmt.Errorf("user %s does not belong to group %s, access prohibited", user, aigroup)
+	}
+
 	data, err := json.Marshal(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
