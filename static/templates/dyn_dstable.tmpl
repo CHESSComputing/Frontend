@@ -21,11 +21,24 @@
 
 <div class="grid">
     <div class="column column-8">
-      &nbsp;
+
+      <div id="help-message" class="help-message" style="display:none;">
+        <ul>
+          <li>Records in the table below are sorted by the first column by default.</li>
+          <li>Click a column header to change the sort order.</li>
+          <li>Use the pagination controls or adjust the number of entries shown to view the full list.</li>
+          <li>The applied filter is not equivalent to the search.
+              The filter value is applied to all shown values in a table, therefore it may match
+              values in different columns.</li>
+        </ul>
+      </div>
     </div>
     <div class="column column-4 right">
       case insensitive search:
       <input type="checkbox" id="caseInsensitive" name="caseInsensitive" checked>
+      <button type="button" id="help-btn" class="button-help-foxden round">
+        <img src="https://cdn.onlinewebfonts.com/svg/img_527362.png" alt="Help" style="width:20px;">
+      </button>
     </div>
 </div>
 
@@ -281,4 +294,11 @@ $(document).ready(function() {
         });
     }
 });
+
+
+$('#help-btn').on('click', function () {
+  $('#help-message').slideToggle(150);
+});
+
+
 </script>
