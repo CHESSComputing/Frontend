@@ -219,6 +219,9 @@ footer {
 .button-light-foxden {
     --button-background-color: #F8E0AA;
 }
+.button-help-foxden {
+    --button-background-color: #D6D6D6;
+}
 .round {
     padding: 10px;
     border: 1px dashed grey;
@@ -430,4 +433,9 @@ table.table-sync td {
   float: right;
   text-align: right;
 }
-
+.no-horizontal-scroll {
+  overflow-x: hidden;      /* prevent horizontal scroll */
+  word-wrap: break-word;   /* legacy support */
+  overflow-wrap: break-word; /* modern standard */
+  white-space: normal;     /* allow wrapping */
+}
