@@ -1687,10 +1687,15 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 		log.Printf("user record %+v", mrec)
 	}
 	var did string
-	if val, ok := mrec.Record["parent_did"]; ok {
-		tstamp := time.Now().Format("20060102_150405")
-		did = fmt.Sprintf("%s/user=%s:%s", val, user, tstamp)
-		mrec.Record["did"] = did
+	if vvv, ok := mrec.Record["did"]; ok {
+		did = vvv.(string)
+	}
+	if did == "" {
+		if val, ok := mrec.Record["parent_did"]; ok {
+			tstamp := time.Now().Format("20060102_150405")
+			did = fmt.Sprintf("%s/user=%s:%s", val, user, tstamp)
+			mrec.Record["did"] = did
+		}
 	}
 	mrec.Record["beamline"], mrec.Record["btr"], mrec.Record["cycle"], mrec.Record["sample_name"] = extractParts(did)
 	if mrec.Record["btr"] == "" {
@@ -1776,7 +1781,7 @@ func UserUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 	}
 	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
 		class = "alert alert-error"
-		msg = fmt.Sprintf("<pre>%s<pre>", sresp.String())
+		msg = fmt.Sprintf("<pre class=\"no-horizontal-scroll\">%s</pre>", sresp.HtmlString())
 	}
 
 	// we should use metadata json record instead of services.MetaRecord for web form
@@ -1845,7 +1850,7 @@ func MetaUploadHandler(c *gin.Context, mrec services.MetaRecord, updateMetadata 
 		msg = fmt.Sprintf("read response error: %v", err)
 	}
 	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
-		msg = fmt.Sprintf("<pre>%s<pre>", sresp.String())
+		msg = fmt.Sprintf("<pre class=\"no-horizontal-scroll\">%s</pre>", sresp.HtmlString())
 	}
 
 	// we should use metadata json record instead of services.MetaRecord for web form
