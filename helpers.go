@@ -357,6 +357,56 @@ func makeURL(url, urlType string, startIdx, limit, nres int) string {
 	return out
 }
 
+// helper function to provide ordered beamline section keys
+func beamlineOrderedSectionKeys(
+	schema *beamlines.Schema,
+	section string,
+	sectionKeys map[string][]string) []string {
+
+	var bskeys []string
+	schemaFileName := schema.Name()
+	for _, s := range srvConfig.Config.BeamlineSections {
+		if s.Schema == schemaFileName || strings.Contains(schemaFileName, s.Schema) {
+			for _, item := range s.Sections {
+				if item.Section == section {
+					bskeys = item.Attributes
+				}
+			}
+			break
+		}
+	}
+	if skeys, ok := sectionKeys[section]; ok {
+		for _, key := range skeys {
+			if !utils.InList(key, bskeys) {
+				bskeys = append(bskeys, key)
+			}
+		}
+	}
+	return bskeys
+}
+
+// helper function to extract ordered beamline sections from FOXDEN configuration
+func beamlineOrderedSections(schema *beamlines.Schema, sections []string) []string {
+	var orderedSections []string
+	var beamlineSections []srvConfig.WebUISection
+	schemaFileName := schema.Name()
+	for _, s := range srvConfig.Config.BeamlineSections {
+		if s.Schema == schemaFileName || strings.Contains(schemaFileName, s.Schema) {
+			beamlineSections = s.Sections
+			break
+		}
+	}
+	for _, s := range beamlineSections {
+		orderedSections = append(orderedSections, s.Section)
+	}
+	for _, s := range sections {
+		if !utils.InList(s, orderedSections) {
+			orderedSections = append(orderedSections, s)
+		}
+	}
+	return orderedSections
+}
+
 // helper function to generate input form
 func genForm(fname string, record *map[string]any) (string, error) {
 	var out []string
@@ -420,8 +470,11 @@ func genForm(fname string, record *map[string]any) (string, error) {
 		log.Println("unable to get sections, error", err)
 		return strings.Join(out, ""), err
 	}
-	for _, s := range sections {
-		if skeys, ok := sectionKeys[s]; ok {
+
+	for _, s := range beamlineOrderedSections(schema, sections) {
+		skeys := beamlineOrderedSectionKeys(schema, s, sectionKeys)
+		if len(skeys) > 0 {
+			//if skeys, ok := sectionKeys[s]; ok {
 			showSection := false
 			if len(skeys) != 0 {
 				showSection = true
