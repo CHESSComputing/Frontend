@@ -365,7 +365,11 @@ func beamlineOrderedSectionKeys(
 
 	var bskeys []string
 	schemaFileName := schema.Name()
-	for _, s := range srvConfig.Config.BeamlineSections {
+	beamlineSections := srvConfig.Config.BeamlineSections
+	if len(beamlineSections) == 0 {
+		beamlineSections = schema.ConfigSections
+	}
+	for _, s := range beamlineSections {
 		if s.Schema == schemaFileName || strings.Contains(schemaFileName, s.Schema) {
 			for _, item := range s.Sections {
 				if item.Section == section {
@@ -388,6 +392,14 @@ func beamlineOrderedSectionKeys(
 // helper function to extract ordered beamline sections from FOXDEN configuration
 func beamlineOrderedSections(schema *beamlines.Schema, sections []string) []string {
 	var orderedSections []string
+	if len(srvConfig.Config.BeamlineSections) == 0 {
+		for _, bs := range schema.ConfigSections {
+			for _, ws := range bs.Sections {
+				orderedSections = append(orderedSections, ws.Section)
+			}
+		}
+		return orderedSections
+	}
 	var beamlineSections []srvConfig.WebUISection
 	schemaFileName := schema.Name()
 	for _, s := range srvConfig.Config.BeamlineSections {
