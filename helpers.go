@@ -357,14 +357,32 @@ func makeURL(url, urlType string, startIdx, limit, nres int) string {
 	return out
 }
 
-// helper function to provide ordered beamline section keys
-func beamlineOrderedSectionKeys(
+// helper function to find beameline web UI order from
+// FOXDEN configuration. By default we'll use default order (alphabetical)
+func findSchemaOrder(schemaFileName string) bool {
+	for _, s := range srvConfig.Config.SchemaOrders {
+		if s.Schema == schemaFileName || strings.Contains(schemaFileName, s.Schema) {
+			return s.Order
+		}
+	}
+	// if order is false we'll use default order (alphabetical)
+	return false
+}
+
+// helper function to provide beamline section keys
+func beamlineSectionKeys(
 	schema *beamlines.Schema,
 	section string,
 	sectionKeys map[string][]string) []string {
 
-	var bskeys []string
 	schemaFileName := schema.Name()
+	ordered := findSchemaOrder(schemaFileName)
+	if !ordered {
+		skeys, _ := sectionKeys[section]
+		return skeys
+	}
+
+	var bskeys []string
 	beamlineSections := srvConfig.Config.BeamlineSections
 	if len(beamlineSections) == 0 {
 		beamlineSections = schema.ConfigSections
@@ -389,8 +407,13 @@ func beamlineOrderedSectionKeys(
 	return bskeys
 }
 
-// helper function to extract ordered beamline sections from FOXDEN configuration
-func beamlineOrderedSections(schema *beamlines.Schema, sections []string) []string {
+// helper function to extract beamline sections from FOXDEN configuration
+func beamlineSections(schema *beamlines.Schema, sections []string) []string {
+	schemaFileName := schema.Name()
+	ordered := findSchemaOrder(schemaFileName)
+	if !ordered {
+		return sections
+	}
 	var orderedSections []string
 	if len(srvConfig.Config.BeamlineSections) == 0 {
 		for _, bs := range schema.ConfigSections {
@@ -401,7 +424,6 @@ func beamlineOrderedSections(schema *beamlines.Schema, sections []string) []stri
 		return orderedSections
 	}
 	var beamlineSections []srvConfig.WebUISection
-	schemaFileName := schema.Name()
 	for _, s := range srvConfig.Config.BeamlineSections {
 		if s.Schema == schemaFileName || strings.Contains(schemaFileName, s.Schema) {
 			beamlineSections = s.Sections
@@ -483,8 +505,8 @@ func genForm(fname string, record *map[string]any) (string, error) {
 		return strings.Join(out, ""), err
 	}
 
-	for _, s := range beamlineOrderedSections(schema, sections) {
-		skeys := beamlineOrderedSectionKeys(schema, s, sectionKeys)
+	for _, s := range beamlineSections(schema, sections) {
+		skeys := beamlineSectionKeys(schema, s, sectionKeys)
 		if len(skeys) > 0 {
 			//if skeys, ok := sectionKeys[s]; ok {
 			showSection := false
