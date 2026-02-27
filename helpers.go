@@ -786,7 +786,7 @@ func formStructEntry(schemaFileName, structKey, subKey string) string {
 func parseValue(schema *beamlines.Schema, key string, items []string) (any, error) {
 	r, ok := schema.Map[key]
 	if !ok {
-		if srvConfig.Config.Frontend.TestMode && utils.InList(key, beamlines.SkipKeys) {
+		if srvConfig.Config.Frontend.TestMode && utils.InList(key, srvConfig.Config.CHESSMetaData.SkipKeys) {
 			return "", nil
 		}
 		msg := fmt.Sprintf("No key %s found in schema map", key)
