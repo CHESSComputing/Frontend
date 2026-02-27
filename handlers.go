@@ -1554,7 +1554,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 					return mrec, updateMetadata, err
 				}
 			} else {
-				if !utils.InList(k, beamlines.SkipKeys) {
+				if !utils.InList(k, srvConfig.Config.CHESSMetaData.SkipKeys) {
 					log.Printf("ERROR: no key=%s found in schema=%+v, error %v", k, schema, err)
 					return mrec, updateMetadata, err
 				}
@@ -1973,7 +1973,6 @@ func DatasetsHandler(c *gin.Context) {
 	// Parse query parameters
 	idx, _ := strconv.Atoi(c.DefaultQuery("idx", "0"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	// TODO: we should pass it to here via GET HTTP request
 	inputAttributes := c.DefaultQuery("attrs", "")
 	var attrs []string
 	if len(inputAttributes) != 0 {
@@ -2083,6 +2082,10 @@ func DatasetsHandler(c *gin.Context) {
 		for _, attr := range attrs {
 			frec[attr] = rec[attr]
 		}
+		// convert date to human readable form
+		if val, ok := frec["date"]; ok {
+			frec["date"] = utils.ConvertTimestamp(val)
+		}
 		records = append(records, frec)
 	}
 
@@ -2104,6 +2107,12 @@ func foxdenAttrs() []string {
 			attrs = append(attrs, key)
 		}
 
+	}
+	// add beamline skip keys to list of foxden attributes
+	for _, k := range srvConfig.Config.CHESSMetaData.SkipKeys {
+		if !strings.HasPrefix(k, "schema_") {
+			attrs = append(attrs, k)
+		}
 	}
 	return utils.List2Set[string](attrs)
 }
