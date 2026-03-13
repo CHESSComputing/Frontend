@@ -1,10 +1,10 @@
 module github.com/CHESSComputing/Frontend
 
-go 1.25.0
+go 1.26.1
 
 require (
-	github.com/CHESSComputing/golib v1.1.2
-	github.com/gin-gonic/gin v1.11.0
+	github.com/CHESSComputing/golib v1.1.3
+	github.com/gin-gonic/gin v1.12.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	gopkg.in/jcmturner/gokrb5.v7 v7.5.0
 )
@@ -102,7 +102,7 @@ require (
 	golang.org/x/arch v0.24.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // indirect
-	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
