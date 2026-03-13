@@ -479,22 +479,22 @@ func genForm(fname string, record *map[string]any) (string, error) {
 	schema, err := _smgr.Load(fname)
 	if err != nil {
 		log.Println("unable to load", fname, "error", err)
-		return strings.Join(out, ""), err
+		return strings.Join(out, ""), fmt.Errorf("[Frontend.main.genForm] _smgr.Load error: %w", err)
 	}
 	optKeys, err := schema.OptionalKeys()
 	if err != nil {
 		log.Println("unable to get optional keys, error", err)
-		return strings.Join(out, ""), err
+		return strings.Join(out, ""), fmt.Errorf("[Frontend.main.genForm] schema.OptionalKeys error: %w", err)
 	}
 	allKeys, err := schema.Keys()
 	if err != nil {
 		log.Println("unable to get keys, error", err)
-		return strings.Join(out, ""), err
+		return strings.Join(out, ""), fmt.Errorf("[Frontend.main.genForm] schema.Keys error: %w", err)
 	}
 	sectionKeys, err := schema.SectionKeys()
 	if err != nil {
 		log.Println("unable to get section keys, error", err)
-		return strings.Join(out, ""), err
+		return strings.Join(out, ""), fmt.Errorf("[Frontend.main.genForm] schema.SectionKeys error: %w", err)
 	}
 
 	// loop over all defined sections
@@ -502,7 +502,7 @@ func genForm(fname string, record *map[string]any) (string, error) {
 	sections, err := schema.Sections()
 	if err != nil {
 		log.Println("unable to get sections, error", err)
-		return strings.Join(out, ""), err
+		return strings.Join(out, ""), fmt.Errorf("[Frontend.main.genForm] schema.Sections error: %w", err)
 	}
 
 	for _, s := range beamlineSections(schema, sections) {
@@ -868,7 +868,7 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 			}
 			return v, nil
 		}
-		return 0, err
+		return 0, fmt.Errorf("[Frontend.main.parseValue] strconv.ParseInt error: %w", err)
 	} else if strings.HasPrefix(r.Type, "float") {
 		v, err := strconv.ParseFloat(items[0], 64)
 		if err == nil {
@@ -877,7 +877,7 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 			}
 			return v, nil
 		}
-		return 0.0, err
+		return 0.0, fmt.Errorf("[Frontend.main.parseValue] strconv.ParseFloat error: %w", err)
 	}
 	msg := fmt.Sprintf("Unable to parse form value for key %s", key)
 	log.Printf("ERROR: %s", msg)
@@ -988,23 +988,23 @@ func updateUserMetaData(did string, val any) error {
 	rurl := fmt.Sprintf("%s/record", srvConfig.Config.Services.UserMetaDataURL)
 	data, err := json.Marshal(mrec)
 	if err != nil {
-		return err
+		return fmt.Errorf("[Frontend.main.updateUserMetaData] json.Marshal error: %w", err)
 	}
 	_httpWriteRequest.GetToken()
 	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		return err
+		return fmt.Errorf("[Frontend.main.updateUserMetaData] _httpWriteRequest.Post error: %w", err)
 	}
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("[Frontend.main.updateUserMetaData] io.ReadAll error: %w", err)
 	}
 
 	var sresp services.ServiceResponse
 	err = json.Unmarshal(data, &sresp)
 	if err != nil {
-		return err
+		return fmt.Errorf("[Frontend.main.updateUserMetaData] json.Unmarshal error: %w", err)
 	}
 	if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
 		return errors.New(sresp.String())

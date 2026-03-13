@@ -31,7 +31,10 @@ func validJSON(query string) error {
 	}
 	var data map[string]any
 	err := json.Unmarshal([]byte(query), &data)
-	return err
+	if err != nil {
+		return fmt.Errorf("[Frontend.main.validJSON] json.Unmarshal error: %w", err)
+	}
+	return nil
 }
 
 // helper function to process service request
@@ -216,7 +219,7 @@ func updateMetadataRecord(did string, rec map[string]any) error {
 	// serialize data record
 	data, err := json.Marshal(mrec)
 	if err != nil {
-		return err
+		return fmt.Errorf("[Frontend.main.updateMetadataRecord] json.Marshal error: %w", err)
 	}
 	// place request to Metadata service
 	rurl := fmt.Sprintf("%s", srvConfig.Config.Services.MetaDataURL)

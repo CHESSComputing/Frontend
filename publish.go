@@ -25,7 +25,7 @@ func getMetaData(user, did string) (map[string]any, error) {
 	var rec map[string]any
 	token, err := newToken(user, "read")
 	if err != nil {
-		return rec, err
+		return rec, fmt.Errorf("[Frontend.main.getMetaData] newToken error: %w", err)
 	}
 	_httpReadRequest.Token = token
 	query := fmt.Sprintf("{\"did\": \"%s\"}", did)
@@ -38,17 +38,17 @@ func getMetaData(user, did string) (map[string]any, error) {
 	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.MetaDataURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		return rec, err
+		return rec, fmt.Errorf("[Frontend.main.getMetaData] _httpReadRequest.Post error: %w", err)
 	}
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return rec, err
+		return rec, fmt.Errorf("[Frontend.main.getMetaData] io.ReadAll error: %w", err)
 	}
 	var records []map[string]any
 	err = json.Unmarshal(data, &records)
 	if err != nil {
-		return rec, err
+		return rec, fmt.Errorf("[Frontend.main.getMetaData] json.Unmarshal error: %w", err)
 	}
 	if len(records) != 1 {
 		return rec, errors.New("wrong number of records")
@@ -63,7 +63,7 @@ func publishDataset(user, provider, did, description string, parents []string, d
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("[Frontend.main.publishDataset] getMetaData error: %w", err)
 	}
 	if len(parents) > 0 {
 		record["doi_parents_dids"] = parents
@@ -104,9 +104,9 @@ func publishDataset(user, provider, did, description string, parents []string, d
 	}
 	if err != nil {
 		log.Printf("ERROR: unable to publish did=%s provider=%s error=%v", did, p, err)
-		return doi, doiLink, err
+		return doi, doiLink, fmt.Errorf("[Frontend.main.publishDataset] error: %w", err)
 	}
-	return doi, doiLink, err
+	return doi, doiLink, nil
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
@@ -125,18 +125,18 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 	defer resp.Body.Close()
 	if err != nil {
 		log.Println("ERROR: unable to GET to MetaData service, error", err)
-		return err
+		return fmt.Errorf("[Frontend.main.updateMetaDataDOI] _httpReadRequest.Get error: %w", err)
 	}
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("ERROR: unable to read response body, error", err)
-		return err
+		return fmt.Errorf("[Frontend.main.updateMetaDataDOI] io.ReadAll error: %w", err)
 	}
 	var records []map[string]any
 	err = json.Unmarshal(data, &records)
 	if err != nil {
 		log.Println("ERROR: unable to unmarshal service response, error", err)
-		return err
+		return fmt.Errorf("[Frontend.main.updateMetaDataDOI] json.Unmarshal error: %w", err)
 	}
 
 	// for all matching records perform update
@@ -183,25 +183,25 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		data, err := json.Marshal(mrec)
 		if err != nil {
 			log.Println("ERROR: unable to marshal meta-data record, error", err)
-			return err
+			return fmt.Errorf("[Frontend.main.updateMetaDataDOI] json.Marshal error: %w", err)
 		}
 		resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
 		if err != nil {
 			log.Println("ERROR: unable to POST to MetaData service, error", err)
-			return err
+			return fmt.Errorf("[Frontend.main.updateMetaDataDOI] _httpWriteRequest.Put error: %w", err)
 		}
 		defer resp.Body.Close()
 		data, err = io.ReadAll(resp.Body)
 		if err != nil {
 			log.Println("ERROR: unable to read response body, error", err)
-			return err
+			return fmt.Errorf("[Frontend.main.updateMetaDataDOI] io.ReadAll error: %w", err)
 		}
 
 		var sresp services.ServiceResponse
 		err = json.Unmarshal(data, &sresp)
 		if err != nil {
 			log.Println("ERROR: unable to unmarshal service response, error", err)
-			return err
+			return fmt.Errorf("[Frontend.main.updateMetaDataDOI] json.Unmarshal error: %w", err)
 		}
 		if sresp.SrvCode != 0 || sresp.HttpCode != http.StatusOK {
 			return errors.New(sresp.String())
@@ -236,5 +236,8 @@ func makePublic(doi, provider string) error {
 		msg := fmt.Sprintf("Provider '%s' is not supported", provider)
 		err = errors.New(msg)
 	}
-	return err
+	if err != nil {
+		return fmt.Errorf("[Frontend.main.makePublic] error: %w", err)
+	}
+	return nil
 }

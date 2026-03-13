@@ -6,6 +6,7 @@ package main
 //
 
 import (
+	"fmt"
 	"log"
 
 	srvConfig "github.com/CHESSComputing/golib/config"
@@ -21,7 +22,7 @@ func kuserFromCache(cacheFile string) (*credentials.Credentials, error) {
 	client, err := client.NewClientFromCCache(ccache, cfg)
 	err = client.Login()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("[Frontend.main.kuserFromCache] client.Login error: %w", err)
 	}
 	return client.Credentials, nil
 
@@ -32,13 +33,13 @@ func kuser(user, password string) (*credentials.Credentials, error) {
 	cfg, err := config.Load(srvConfig.Config.Kerberos.Krb5Conf)
 	if err != nil {
 		log.Printf("reading krb5.conf failes, error %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("[Frontend.main.kuser] config.Load error: %w", err)
 	}
 	client := client.NewClientWithPassword(user, srvConfig.Config.Kerberos.Realm, password, cfg, client.DisablePAFXFAST(true))
 	err = client.Login()
 	if err != nil {
 		log.Printf("client login fails, error %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("[Frontend.main.kuser] client.Login error: %w", err)
 	}
 	return client.Credentials, nil
 }

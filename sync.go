@@ -23,20 +23,20 @@ func getSyncRecords(suuid string) ([]map[string]any, error) {
 	resp, err := _httpReadRequest.Get(rurl)
 	if err != nil {
 		log.Println("ERROR: unable to GET to MetaData service, error", err)
-		return records, err
+		return records, fmt.Errorf("[Frontend.main.getSyncRecords] _httpReadRequest.Get error: %w", err)
 	}
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("ERROR: unable to read response body, error", err)
-		return records, err
+		return records, fmt.Errorf("[Frontend.main.getSyncRecords] io.ReadAll error: %w", err)
 	}
 	err = json.Unmarshal(data, &records)
 	if err != nil {
 		log.Println("ERROR: unable to unmarshal service response, error", err)
-		return records, err
+		return records, fmt.Errorf("[Frontend.main.getSyncRecords] json.Unmarshal error: %w", err)
 	}
-	return records, err
+	return records, nil
 }
 
 // helper function to delete sync record
@@ -50,7 +50,7 @@ func deleteSyncRecord(suuid string) error {
 	defer resp.Body.Close()
 	if err != nil {
 		log.Println("ERROR: unable to GET to MetaData service, error", err)
-		return err
+		return fmt.Errorf("[Frontend.main.deleteSyncRecord] _httpDeleteRequest.Delete error: %w", err)
 	}
 	if resp.StatusCode != 200 {
 		msg := fmt.Sprintf("unable to delete sync record %s", suuid)

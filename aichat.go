@@ -46,7 +46,7 @@ func (o *OllamaClient) Chat(user, prompt string) (string, error) {
 	stream := true
 	response, err := client.SendRequest(ctx, prompt, stream, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("[Frontend.main.OllamaClient.Chat] client.SendRequest error: %w", err)
 	}
 	return response, nil
 }
@@ -67,7 +67,10 @@ func (o *TichyClient) Chat(user, prompt string) (string, error) {
 		ctx = ctx1
 	}
 	resp, err := aitichy(ctx, user, prompt)
-	return resp, err
+	if err != nil {
+		return resp, fmt.Errorf("[Frontend.main.TichyClient.Chat] aitichy error: %w", err)
+	}
+	return resp, nil
 }
 
 // Request message structure

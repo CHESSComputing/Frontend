@@ -7,6 +7,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -44,19 +45,22 @@ func getData(api, did string) ([]map[string]any, error) {
 	rurl := fmt.Sprintf("%s/%s?did=%s", srvConfig.Config.Services.DataBookkeepingURL, api, did)
 	resp, err := _httpReadRequest.Get(rurl)
 	if err != nil {
-		return records, err
+		return records, fmt.Errorf("[Frontend.main.getData] _httpReadRequest.Get error: %w", err)
 	}
 	// parse data records from provenance service
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return records, err
+		return records, fmt.Errorf("[Frontend.main.getData] io.ReadAll error: %w", err)
 	}
 	if Verbose > 0 {
 		log.Println("provenance data\n", string(data))
 	}
 	err = json.Unmarshal(data, &records)
-	return records, err
+	if err != nil {
+		return records, fmt.Errorf("[Frontend.main.getData] json.Unmarshal error: %w", err)
+	}
+	return records, nil
 }
 
 // helper function to get immediate parents for given did
@@ -171,30 +175,30 @@ func numberOfRecords(rec services.ServiceRequest) (int, error) {
 	data, err := json.Marshal(rec)
 	if err != nil {
 		log.Println("ERROR: marshall error", err)
-		return total, err
+		return total, fmt.Errorf("[Frontend.main.numberOfRecords] json.Marshal error: %w", err)
 	}
 	rurl := fmt.Sprintf("%s/nrecords", srvConfig.Config.Services.DiscoveryURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		log.Println("ERROR: HTTP POST error", err)
-		return total, err
+		return total, fmt.Errorf("[Frontend.main.getData] _httpReadRequest.Post error: %w", err)
 	}
 	// parse data records from discovery service
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("ERROR: IO error", err)
-		return total, err
+		return total, fmt.Errorf("[Frontend.main.getData] io.ReadAll error: %w", err)
 	}
 	var response services.ServiceResponse
 	err = json.Unmarshal(data, &response)
 	if err != nil {
 		log.Println("ERROR: unable to unmarshal response", err)
-		return total, err
+		return total, fmt.Errorf("[Frontend.main.getData] json.Unmarshal error: %w", err)
 	}
 	if response.HttpCode != http.StatusOK {
 		log.Println("ERROR", response.Error)
-		return 0, err
+		return 0, errors.New("HTTP response status not ok")
 	}
 	return response.Results.NRecords, nil
 }
@@ -210,23 +214,26 @@ func chunkOfRecords(rec services.ServiceRequest) (services.ServiceResponse, erro
 	data, err := json.Marshal(rec)
 	if err != nil {
 		log.Println("ERROR: marshall error", err)
-		return response, err
+		return response, fmt.Errorf("[Frontend.main.chunkOfRecords] json.Marshal error: %w", err)
 	}
 	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
 	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		log.Println("ERROR: HTTP POST error", err)
-		return response, err
+		return response, fmt.Errorf("[Frontend.main.chunkOfRecords] _httpReadRequest.Post error: %w", err)
 	}
 	// parse data records from discovery service
 	defer resp.Body.Close()
 	data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("ERROR: IO error", err)
-		return response, err
+		return response, fmt.Errorf("[Frontend.main.chunkOfRecords] io.ReadAll error: %w", err)
 	}
 	err = json.Unmarshal(data, &response)
-	return response, err
+	if err != nil {
+		return response, fmt.Errorf("[Frontend.main.chunkOfRecords] json.Unmarshal error: %w", err)
+	}
+	return response, nil
 }
 
 // helper function to make new query out of search filter and list of attributes
@@ -319,9 +326,9 @@ func chessUpdateSpec(ispec map[string]any, userFoxdenGroups, userBtrs []string, 
 		// ispec is plain dictionary of key:value pairs without $or condition
 		for key, val := range ispec {
 			/*
-			if key == "btr" {
-				continue
-			}
+				if key == "btr" {
+					continue
+				}
 			*/
 			flt := map[string]any{
 				key: val,

@@ -106,7 +106,10 @@ func getUser(c *gin.Context) (string, error) {
 		return user, e
 	}
 	user, err = c.Cookie("user")
-	return user, err
+	if err != nil {
+		return user, fmt.Errorf("[Frontend.main.getUser] error: %w", err)
+	}
+	return user, nil
 
 }
 
@@ -1456,7 +1459,7 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		return mrec, err
+		return mrec, fmt.Errorf("[Frontend.main.parseFileUploadForm] r.FormFile error: %w", err)
 	}
 	defer file.Close()
 	body, err := io.ReadAll(file)
@@ -1464,7 +1467,10 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	err = json.Unmarshal(body, &rec)
 	rec["user"] = user
 	mrec.Record = rec
-	return mrec, err
+	if err != nil {
+		return mrec, fmt.Errorf("[Frontend.main.parseFileUploadForm] json.Unmarshal error: %w", err)
+	}
+	return mrec, nil
 }
 
 // helper function to parse meta upload web form
@@ -1481,7 +1487,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 	schema, err := _smgr.Load(fname)
 	if err != nil {
 		log.Println("ERROR", err)
-		return mrec, updateMetadata, err
+		return mrec, updateMetadata, fmt.Errorf("[Frontend.main.parseFormUploadForm] _smgr.Load error: %w", err)
 	}
 	desc := ""
 	// r.PostForm provides url.Values which is map[string][]string type
@@ -1489,7 +1495,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 	err = r.ParseMultipartForm(10 << 20) // 10 MB max memory
 	if err != nil {
 		log.Println("ERROR", err)
-		return mrec, updateMetadata, err
+		return mrec, updateMetadata, fmt.Errorf("[Frontend.main.parseFormUploadForm] r.ParseMultipartForm error: %w", err)
 	}
 
 	grouped := make(map[string]map[string][]string)
@@ -1551,12 +1557,12 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 					log.Println("WARNING: unable to parse optional key", k)
 				} else {
 					log.Println("ERROR: unable to parse mandatory key", k, "error", err)
-					return mrec, updateMetadata, err
+					return mrec, updateMetadata, fmt.Errorf("[Frontend.main.parseFormUploadForm] parseValue unable to parse mandatory key %s error: %w", k, err)
 				}
 			} else {
 				if !utils.InList(k, srvConfig.Config.CHESSMetaData.SkipKeys) {
 					log.Printf("ERROR: no key=%s found in schema=%+v, error %v", k, schema, err)
-					return mrec, updateMetadata, err
+					return mrec, updateMetadata, fmt.Errorf("[Frontend.main.parseFormUploadForm] parseValue unable to find key=%s error: %w", k, err)
 				}
 			}
 		}
@@ -2274,10 +2280,12 @@ func DoiPublicHandler(c *gin.Context) {
 		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "preserve", doiParents); err != nil {
 			template = "error.tmpl"
 			content = fmt.Sprintf("ERROR:<br/>fail to update Metadata DOI information<br/>DOI=%s<br/>error=%v", doi, err)
+			w.WriteHeader(http.StatusNotFound)
 		}
 	} else {
 		template = "error.tmpl"
 		content = fmt.Sprintf("ERROR:<br/>fail to create public DOI record<br/>DOI=%s<br/>error=%v", doi, err)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 	tmpl["Content"] = content
 	page := server.TmplPage(StaticFs, template, tmpl)
