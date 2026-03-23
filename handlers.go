@@ -936,6 +936,69 @@ func ToolsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// TokenHandler provides access to GET /token endpoint
+func TokenHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("DidsHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	var token string
+	scope := c.Request.FormValue("scope")
+	if scope == "" {
+		scope = "read"
+	}
+	var expires int
+	tstmp := c.Request.FormValue("expires")
+	if tstmp != "" {
+		expires, err = strconv.Atoi(tstmp)
+	}
+	if expires == 0 {
+		expires = 3600
+	}
+	rec := authz.AuthUser{
+		Name:    user,
+		Scope:   scope,
+		Expires: int64(expires),
+	}
+	if fuser, err := _foxdenUser.Get(user); err != nil {
+		rec.Btrs = fuser.Btrs
+		rec.Groups = fuser.Groups
+		rec.Scopes = fuser.Scopes
+	}
+	var content string
+	tmpl := server.MakeTmpl(StaticFs, "Token")
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Base"] = base
+	var tmplName string
+	if tmap, err := rec.TokenMap(); err == nil {
+		token = tmap.AccessToken
+		tmpl["Token"] = token
+		tmpl["Expires"] = time.Now().Add(time.Duration(expires) * time.Second)
+		claims, err := authz.TokenClaims(token, srvConfig.Config.Authz.ClientID)
+		if err == nil {
+			data, err := json.MarshalIndent(claims, "", "   ")
+			if err == nil {
+				tmpl["TokenData"] = string(data)
+			} else {
+				tmpl["TokenData"] = errorTmpl(c, "unable to process token claims, error", err)
+			}
+		}
+		tmplName = "token.tmpl"
+	} else {
+		tmplName = "error.tmpl"
+		content = errorTmpl(c, "unable to get user's token, error", err)
+	}
+	tmpl["Content"] = content
+	content = server.TmplPage(StaticFs, tmplName, tmpl)
+	c.Data(http.StatusOK,
+		"text/html; charset=utf-8",
+		[]byte(header()+content+footer()))
+}
+
 // DidsHandler provides access to GET /dids endpoint
 func DidsHandler(c *gin.Context) {
 	user, err := getUser(c)

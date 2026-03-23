@@ -1,0 +1,10 @@
+<div class="record">
+<h3>Access token</h3>
+<pre>{{.Token}}</pre>
+<h4>Expires</h4>
+{{.Expires}}
+{{if ne .TokenData ""}}
+<h3>Token data</h3>
+<pre>{{.TokenData}}</pre>
+{{end}}
+</div>
