@@ -960,8 +960,10 @@ func TokenHandler(c *gin.Context) {
 		Name:    user,
 		Scope:   scope,
 		Expires: int64(expires),
+		App:     "FOXDEN frontend",
+		Kind:    "client_credentials",
 	}
-	if fuser, err := _foxdenUser.Get(user); err != nil {
+	if fuser, err := _foxdenUser.Get(user); err == nil {
 		rec.Btrs = fuser.Btrs
 		rec.Groups = fuser.Groups
 		rec.Scopes = fuser.Scopes
