@@ -947,10 +947,7 @@ func TokenHandler(c *gin.Context) {
 		return
 	}
 	var token string
-	scope := c.Request.FormValue("scope")
-	if scope == "" {
-		scope = "read"
-	}
+	scope := "read"
 	var expires int
 	tstmp := c.Request.FormValue("expires")
 	if tstmp != "" {
@@ -968,6 +965,19 @@ func TokenHandler(c *gin.Context) {
 		rec.Btrs = fuser.Btrs
 		rec.Groups = fuser.Groups
 		rec.Scopes = fuser.Scopes
+		if c.Query("scope") == "write" {
+			if utils.InList("foxdenrw", fuser.FoxdenGroups) {
+				rec.Scope = "write"
+			} else {
+				content := fmt.Sprintf("write token is not allowed for user %s", user)
+				tmpl := server.MakeTmpl(StaticFs, "Error")
+				tmpl["Content"] = content
+				content = server.TmplPage(StaticFs, "error.tmpl", tmpl)
+				c.Data(http.StatusNotAcceptable,
+					"text/html; charset=utf-8",
+					[]byte(header()+content+footer()))
+			}
+		}
 	}
 	var content string
 	tmpl := server.MakeTmpl(StaticFs, "Token")

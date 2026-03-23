@@ -1,6 +1,8 @@
 <div class="record">
 <h3>Access token</h3>
 <pre>{{.Token}}</pre>
+To obtain write token click
+<a href="{{.Base}}/token?scope=write" class="button button-small">here</a>
 <h4>Expires</h4>
 {{.Expires}}
 {{if ne .TokenData ""}}
