@@ -439,3 +439,45 @@ table.table-sync td {
   overflow-wrap: break-word; /* modern standard */
   white-space: normal;     /* allow wrapping */
 }
+
+/* user info overlay settings */
+#user-popup-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+#user-popup-overlay.active {
+  display: flex;
+}
+#user-popup {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 50%;
+  max-width: 50%;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+#user-popup-header {
+  display: none;           /* hidden until content is loaded */
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+#user-popup-header.visible {
+  display: flex;
+}
+#user-popup-close {
+  width: 50%
+  height: 24px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+#user-popup-close:hover {
+  opacity: 1;
+}
