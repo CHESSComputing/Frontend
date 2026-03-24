@@ -91,9 +91,9 @@ function renderRecord(u, index, total) {
     ${divider}
     ${badge}
     <h3 style="margin:0 0 2px;font-size:16px;
-               font-weight:500">${u.Name}</h3>
+               font-weight:500">&#128100; ${u.Name}</h3>
     <p style="margin:0 0 12px;color:#888;
-              font-size:13px">${u.Email}</p>
+              font-size:13px">&#128231; ${u.Email}</p>
     <table style="width:100%;border-collapse:collapse">
       ${row('UID', u.Uid)}
       ${row('UID number', u.UidNumber)}
