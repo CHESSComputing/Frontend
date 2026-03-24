@@ -26,6 +26,7 @@ import (
 	authz "github.com/CHESSComputing/golib/authz"
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
+	"github.com/CHESSComputing/golib/ldap"
 	"github.com/CHESSComputing/golib/ql"
 	server "github.com/CHESSComputing/golib/server"
 	services "github.com/CHESSComputing/golib/services"
@@ -947,7 +948,7 @@ func UsersHandler(c *gin.Context) {
 		return
 	}
 	// get user info from ClasseInfoService
-	var users []UserInfo
+	var users []ldap.UserInfo
 	_httpReadRequest.GetToken()
 	u := c.Query("user")
 	rurl := fmt.Sprintf("%s/translate?uid=%s", srvConfig.Config.Services.ClasseInfoURL, u)
