@@ -160,6 +160,9 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		if val, ok := rec["schema"]; ok {
 			tmpl["Schema"] = val
 		}
+		if val, ok := rec["user"]; ok {
+			tmpl["User"] = val
+		}
 		// first check if there is doi_url
 		if val, ok := rec["doi_url"]; ok {
 			tmpl["DoiLink"] = val

@@ -936,11 +936,48 @@ func ToolsHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// UsersHandler provides access to GET /users endpoint
+func UsersHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("UsersHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	// get user info from ClasseInfoService
+	var users []UserInfo
+	_httpReadRequest.GetToken()
+	u := c.Query("user")
+	rurl := fmt.Sprintf("%s/translate?uid=%s", srvConfig.Config.Services.ClasseInfoURL, u)
+	resp, err := _httpReadRequest.Get(rurl)
+	if err != nil {
+		msg := "unable to fetch user info"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		msg := "unable to obtain user info"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		msg := "unable to decode user info"
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}
+
 // TokenHandler provides access to GET /token endpoint
 func TokenHandler(c *gin.Context) {
 	user, err := getUser(c)
 	if Verbose > 1 {
-		log.Printf("DidsHandler %s user=%s error=%v", c.Request.Method, user, err)
+		log.Printf("TokenHandler %s user=%s error=%v", c.Request.Method, user, err)
 	}
 	if err != nil {
 		LoginHandler(c)
