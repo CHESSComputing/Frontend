@@ -2276,8 +2276,10 @@ func PublishHandler(c *gin.Context) {
 
 	// parse input form
 	var parents []string
+	var authors []string
 	if err := r.ParseForm(); err == nil {
 		parents = r.Form["parents"]
+		authors = r.Form["authors"]
 	}
 	// parse input form data
 	did := r.FormValue("did")
@@ -2302,7 +2304,7 @@ func PublishHandler(c *gin.Context) {
 	}
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(user, doiprovider, did, description, parents, doiPublic, mcprojectname)
+	doi, doiLink, err := publishDataset(authors, user, doiprovider, did, description, parents, doiPublic, mcprojectname)
 	if Verbose > 0 {
 		log.Printf("### publish did=%s doiprovider=%s doi=%s doiLink=%s error=%v", did, doiprovider, doi, doiLink, err)
 	}
@@ -2367,6 +2369,18 @@ func PublishFormHandler(c *gin.Context) {
 	}
 	tmpl["MCProjectName"] = project
 	tmpl["Parents"] = getAllParents(did)
+	// get all users associated with BTR
+	btr := utils.GetBtr(did)
+	tmpl["Btr"] = btr
+	if btrMembers, err := ldap.BtrMembers(
+		srvConfig.Config.LDAP.Login,
+		srvConfig.Config.LDAP.Password,
+		btr,
+	); err == nil {
+		tmpl["BtrMembers"] = btrMembers
+	} else {
+		log.Printf("### ERROR unable to get btr members for btr %s, error=%v", btr, err)
+	}
 	page := server.TmplPage(StaticFs, "form_publish.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))
 }
