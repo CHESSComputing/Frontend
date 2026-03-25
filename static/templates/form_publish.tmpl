@@ -49,6 +49,26 @@
     <p><em>No parents found for this dataset.</em></p>
 {{end}}
     </div>
+{{if .BtrMembers}}
+    <div class="form-item alert alert-info">
+        <h4>BTR: {{.Btr}}</h4>
+        You may select appropriate members of this BTR for your publication
+        <label>
+            <input type="checkbox" id="select-all" onclick="toggleAll(this)">
+            <strong>Select All</strong>
+        </label>
+        <ul class="parent-list">
+            {{range .BtrMembers}}
+            <li>
+                <label>
+                    <input type="checkbox" class="parent-checkbox" name="authors" value="{{.}}">
+                    {{.}}
+                </label>
+            </li>
+            {{end}}
+        </ul>
+    </div>
+{{end}}
     <div class="form-item">
         <label class="hint hint-req">Dataset description (&#42;)</label>
         <textarea class="input" rows="3" id="description" name="description"></textarea>
