@@ -2283,6 +2283,10 @@ func PublishHandler(c *gin.Context) {
 	did := r.FormValue("did")
 	doiprovider := r.FormValue("doiprovider")
 	description := r.FormValue("description")
+	// add to description specific parts about dataset (did) access
+	tmpl["DID"] = did
+	stagerequest := server.TmplPage(StaticFs, "stagerequest.tmpl", tmpl)
+	description = fmt.Sprintf("%s\n%s", description, stagerequest)
 	schema := r.FormValue("schema")
 	draft := r.FormValue("draft")
 	publishmetadata := r.FormValue("publishmetadata")
