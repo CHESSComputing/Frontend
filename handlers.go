@@ -2287,8 +2287,9 @@ func PublishHandler(c *gin.Context) {
 	description := r.FormValue("description")
 	// add to description specific parts about dataset (did) access
 	tmpl["DID"] = did
-	stagerequest := server.TmplPage(StaticFs, "stagerequest.tmpl", tmpl)
-	description = fmt.Sprintf("%s\nYou may access this dataset via: %s", description, stagerequest)
+	//stagerequest := server.TmplPage(StaticFs, "stagerequest.tmpl", tmpl)
+	stagerequest := fmt.Sprintf("%s/stage-request?did=%s", srvConfig.Config.DOIServiceURL, did)
+	description = fmt.Sprintf("%s\n\nYou may access this dataset via:\n%s", description, stagerequest)
 	schema := r.FormValue("schema")
 	draft := r.FormValue("draft")
 	publishmetadata := r.FormValue("publishmetadata")
