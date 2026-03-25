@@ -58,7 +58,7 @@ func getMetaData(user, did string) (map[string]any, error) {
 }
 
 // helper function to publish did with given provider
-func publishDataset(user, provider, did, description string, parents []string, doiPublic bool, mcprojectname string) (string, string, error) {
+func publishDataset(authors []string, user, provider, did, description string, parents []string, doiPublic bool, mcprojectname string) (string, string, error) {
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
@@ -82,7 +82,7 @@ func publishDataset(user, provider, did, description string, parents []string, d
 			zenodoDoi = &srvDoi.ZenodoProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
 		}
 		zenodoDoi.Init()
-		doi, doiLink, err = zenodoDoi.Publish(did, description, record, doiPublic)
+		doi, doiLink, err = zenodoDoi.Publish(authors, did, description, record, doiPublic)
 	} else if p == "materialscommons" {
 		if mcDoi == nil {
 			mcDoi = &srvDoi.MCProvider{
@@ -91,13 +91,13 @@ func publishDataset(user, provider, did, description string, parents []string, d
 			}
 		}
 		mcDoi.Init()
-		doi, doiLink, err = mcDoi.Publish(did, description, record, doiPublic)
+		doi, doiLink, err = mcDoi.Publish(authors, did, description, record, doiPublic)
 	} else if p == "datacite" {
 		if dataciteDoi == nil {
 			dataciteDoi = &srvDoi.DataciteProvider{Verbose: srvConfig.Config.Frontend.WebServer.Verbose}
 		}
 		dataciteDoi.Init()
-		doi, doiLink, err = dataciteDoi.Publish(did, description, record, doiPublic)
+		doi, doiLink, err = dataciteDoi.Publish(authors, did, description, record, doiPublic)
 	} else {
 		msg := fmt.Sprintf("Provider '%s' is not supported", provider)
 		err = errors.New(msg)
