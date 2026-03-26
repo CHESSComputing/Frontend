@@ -204,7 +204,7 @@ function saveSelectedColumns(columns) {
 
 //let columns = [];
 // set user attributes with default set
-let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name");
+let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,date");
 
 function ready() {
 
@@ -240,7 +240,7 @@ function openPopup() {
 {{if .DataAttributes}}
     cols = "{{.DataAttributes}}";
 {{else}}
-    cols = "beamline,btr,cycle,sample_name";
+    cols = "beamline,btr,cycle,sample_name,date";
 {{end}}
     userColumns = cols.split(',');
     userColumns.sort();

@@ -2099,7 +2099,7 @@ func DatasetsHandler(c *gin.Context) {
 			attrs = append(attrs, a)
 		}
 	} else {
-		attrs = []string{"beamline", "btr", "cycle", "sample_name", "user"}
+		attrs = []string{"beamline", "btr", "cycle", "sample_name", "date", "user"}
 	}
 	searchFilter := c.Query("search")
 	query := "{}"
