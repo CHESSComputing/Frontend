@@ -639,6 +639,7 @@ func ProvenanceHandler(c *gin.Context) {
 	}
 	// construct output record
 	tmpl := server.MakeTmpl(StaticFs, "Provenance information")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 	tmpl["InputFiles"] = strings.Join(inputFiles, "\n")
 	tmpl["OutputFiles"] = strings.Join(outputFiles, "\n")
 	if len(parents) > 0 {
