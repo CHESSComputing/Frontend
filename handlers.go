@@ -2374,9 +2374,9 @@ func PublishFormHandler(c *gin.Context) {
 	// get all users associated with BTR
 	group := _foxdenUser.GetGroup(did)
 	tmpl["Group"] = group
-	groupKey := "group"
-	if srvConfig.Config.CHESSMetaData.FoxdenUser.User == "CHESS" {
-		groupKey = "BTR"
+	groupKey := "BTR"
+	if srvConfig.Config.CHESSMetaData.FoxdenUser.User == "Maglab" {
+		groupKey = "group"
 	}
 	tmpl["GroupKey"] = groupKey
 	members, err := _foxdenUser.GetMembers(group)
