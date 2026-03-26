@@ -49,16 +49,16 @@
     <p><em>No parents found for this dataset.</em></p>
 {{end}}
     </div>
-{{if .BtrMembers}}
+{{if .Members}}
     <div class="form-item alert alert-info">
-        <h4>BTR: {{.Btr}}</h4>
-        You may select appropriate members of this BTR for your publication
+        <h4>{{.GroupKey}}: {{.Group}}</h4>
+        You may select appropriate members of this {{.GroupKey}} for your publication
         <label>
             <input type="checkbox" id="select-all" onclick="toggleAll(this)">
             <strong>Select All</strong>
         </label>
         <ul class="parent-list">
-            {{range .BtrMembers}}
+            {{range .Members}}
             <li>
                 <label>
                     <input type="checkbox" class="parent-checkbox" name="authors" value="{{.}}">

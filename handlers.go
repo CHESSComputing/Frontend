@@ -2371,16 +2371,18 @@ func PublishFormHandler(c *gin.Context) {
 	tmpl["MCProjectName"] = project
 	tmpl["Parents"] = getAllParents(did)
 	// get all users associated with BTR
-	btr := utils.GetBtr(did)
-	tmpl["Btr"] = btr
-	if btrMembers, err := ldap.BtrMembers(
-		srvConfig.Config.LDAP.Login,
-		srvConfig.Config.LDAP.Password,
-		btr,
-	); err == nil {
-		tmpl["BtrMembers"] = btrMembers
+	group := _foxdenUser.GetGroup(did)
+	tmpl["Group"] = group
+	groupKey := "group"
+	if srvConfig.Config.CHESSMetaData.FoxdenUser.User == "CHESS" {
+		groupKey = "BTR"
+	}
+	tmpl["GroupKey"] = groupKey
+	members, err := _foxdenUser.GetMembers(group)
+	if err == nil {
+		tmpl["Members"] = members
 	} else {
-		log.Printf("### ERROR unable to get btr members for btr %s, error=%v", btr, err)
+		log.Printf("### ERROR unable to get btr members for group %s, error=%v", group, err)
 	}
 	page := server.TmplPage(StaticFs, "form_publish.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))
