@@ -350,7 +350,7 @@ footer {
   color: green;
 }
 .prov-text {
-  color: #0077cc;           /* blueish color */
+  color: #CBC9A8;           /* grey-green color */
   text-decoration: none;    /* remove underline */
   font-family: monospace;   /* use monospace font like <pre> */
 }
@@ -359,6 +359,7 @@ footer {
   text-decoration: none;    /* remove underline */
   cursor: pointer;          /* pointer cursor on hover */
   font-family: monospace;   /* use monospace font like <pre> */
+  font-weight: 700;
 }
 .prov-link:visited {
   color: #5a4ca1;           /* purple-ish for visited links */
