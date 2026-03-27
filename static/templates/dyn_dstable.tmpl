@@ -117,7 +117,7 @@ $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
     // set user attributes with default set
-    let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,date");
+    let userAttrs = getCookie("userAttrs", "date,beamline,btr,cycle,sample_name");
 
     function saveSelectedColumns(columns) {
         document.cookie = "userAttrs=" + columns + "; path=/";
@@ -150,7 +150,7 @@ $(document).ready(function() {
 {{if .DataAttributes}}
         cols = "{{.DataAttributes}}";
 {{else}}
-        cols = "beamline,btr,cycle,sample_name,date";
+        cols = "date,beamline,btr,cycle,sample_name";
 {{end}}
         userColumns = cols.split(',');
         userColumns.sort();
@@ -183,11 +183,11 @@ $(document).ready(function() {
         // deselect all attributes
         $('.attributeCheckbox').prop('checked', false);
         // select our default attributes
+        $('.attributeCheckbox[value="date"]').prop('checked', true);
         $('.attributeCheckbox[value="beamline"]').prop('checked', true);
         $('.attributeCheckbox[value="btr"]').prop('checked', true);
         $('.attributeCheckbox[value="cycle"]').prop('checked', true);
         $('.attributeCheckbox[value="sample_name"]').prop('checked', true);
-        $('.attributeCheckbox[value="date"]').prop('checked', true);
     });
 
     // helper function to close popup window
@@ -262,7 +262,7 @@ $(document).ready(function() {
                 const orderColumnIdx = data.order[0].column;
                 const sortKey = columns[orderColumnIdx];
                 const sortDirection = data.order[0].dir; // "asc" or "desc"
-                const attrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,date");
+                const attrs = getCookie("userAttrs", "date,beamline,btr,cycle,sample_name");
 
                 // Fetch data with current pagination and search term
                 let caseInsensitive = isCaseInsensitive();

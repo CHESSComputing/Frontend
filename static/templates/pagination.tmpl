@@ -204,7 +204,7 @@ function saveSelectedColumns(columns) {
 
 //let columns = [];
 // set user attributes with default set
-let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,date");
+let userAttrs = getCookie("userAttrs", "date,beamline,btr,cycle,sample_name");
 
 function ready() {
 
@@ -222,11 +222,11 @@ function ready() {
         // deselect all attributes
         $('.attributeCheckbox').prop('checked', false);
         // select our default attributes
+        $('.attributeCheckbox[value="date"]').prop('checked', true);
         $('.attributeCheckbox[value="beamline"]').prop('checked', true);
         $('.attributeCheckbox[value="btr"]').prop('checked', true);
         $('.attributeCheckbox[value="cycle"]').prop('checked', true);
         $('.attributeCheckbox[value="sample_name"]').prop('checked', true);
-        $('.attributeCheckbox[value="date"]').prop('checked', true);
     });
 
     $('#gearIcon').click(openPopup);
@@ -241,7 +241,7 @@ function openPopup() {
 {{if .DataAttributes}}
     cols = "{{.DataAttributes}}";
 {{else}}
-    cols = "beamline,btr,cycle,sample_name,date";
+    cols = "date,beamline,btr,cycle,sample_name";
 {{end}}
     userColumns = cols.split(',');
     userColumns.sort();
