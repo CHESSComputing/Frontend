@@ -34,11 +34,11 @@
       </div>
     </div>
     <div class="column column-4 right">
-      case insensitive search:
+      <span id="help-btn">
+        <img src="https://cdn.onlinewebfonts.com/svg/img_527362.png" alt="Help">
+      </span>
+      <span class="upper medium">case insensitive search:</span>
       <input type="checkbox" id="caseInsensitive" name="caseInsensitive" checked>
-      <button type="button" id="help-btn" class="button-help-foxden round">
-        <img src="https://cdn.onlinewebfonts.com/svg/img_527362.png" alt="Help" style="width:20px;">
-      </button>
     </div>
 </div>
 
@@ -117,7 +117,7 @@ $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
     // set user attributes with default set
-    let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name");
+    let userAttrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,date");
 
     function saveSelectedColumns(columns) {
         document.cookie = "userAttrs=" + columns + "; path=/";
@@ -150,7 +150,7 @@ $(document).ready(function() {
 {{if .DataAttributes}}
         cols = "{{.DataAttributes}}";
 {{else}}
-        cols = "beamline,btr,cycle,sample_name";
+        cols = "beamline,btr,cycle,sample_name,date";
 {{end}}
         userColumns = cols.split(',');
         userColumns.sort();
@@ -187,6 +187,7 @@ $(document).ready(function() {
         $('.attributeCheckbox[value="btr"]').prop('checked', true);
         $('.attributeCheckbox[value="cycle"]').prop('checked', true);
         $('.attributeCheckbox[value="sample_name"]').prop('checked', true);
+        $('.attributeCheckbox[value="date"]').prop('checked', true);
     });
 
     // helper function to close popup window
@@ -261,7 +262,7 @@ $(document).ready(function() {
                 const orderColumnIdx = data.order[0].column;
                 const sortKey = columns[orderColumnIdx];
                 const sortDirection = data.order[0].dir; // "asc" or "desc"
-                const attrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,user");
+                const attrs = getCookie("userAttrs", "beamline,btr,cycle,sample_name,date");
 
                 // Fetch data with current pagination and search term
                 let caseInsensitive = isCaseInsensitive();
