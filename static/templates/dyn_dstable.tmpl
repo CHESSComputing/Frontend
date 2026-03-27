@@ -253,6 +253,7 @@ $(document).ready(function() {
             serverSide: true,
             processing: true,
             searchDelay: 500, // make delay 
+            order: [[0, "desc"]],  // default sort: first column descending
             ajax: function(data, callback, settings) {
                 const pageSize = data.length; // Get the current page length selected in the UI
                 const pageIndex = data.start; // Start index for data
