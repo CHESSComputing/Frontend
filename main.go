@@ -30,7 +30,7 @@ func main() {
 	if cobj, err := srvConfig.ParseConfig(config); err == nil {
 		srvConfig.Config = &cobj
 	} else {
-		log.Fatal(fmt.Sprintf("Unable to parse config='%s'", config))
+		log.Fatal(fmt.Sprintf("Unable to parse config='%s'\nerror: %v", config, err))
 	}
 	if srvConfig.Config.Frontend.WebServer.Verbose > 0 {
 		log.SetFlags(log.Llongfile)
