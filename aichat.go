@@ -106,6 +106,9 @@ func getVectorDbs(fuser services.User) []string {
 			vdbs = append(vdbs, rule.Databases...)
 		}
 	}
+	if len(vdbs) > 0 {
+		return utils.List2Set(vdbs)
+	}
 	return vdbs
 }
 
