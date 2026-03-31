@@ -99,9 +99,12 @@ type TichyResponse struct {
 // helper function to get appropriate set of vector databases
 // based on provided FOXDEN user information
 func getVectorDbs(fuser services.User) []string {
-	vdbs := []string{"foxden"}
-	if utils.InList("cmpgrp", fuser.Groups) {
-		vdbs = []string{"computing"}
+	arules := srvConfig.Config.AIChat.AccessRules
+	var vdbs []string
+	for _, rule := range arules {
+		if utils.InList(rule.Group, fuser.Groups) {
+			vdbs = append(vdbs, rule.Databases...)
+		}
 	}
 	return vdbs
 }
