@@ -1,7 +1,7 @@
 <section>
   <article id="article" class="wide">
 <div class="center huge">
-    FOXDEN: datasets
+    {{.PageTitle}}
 </div>
 <div class="grid">
     <div class="column column-11">
@@ -117,10 +117,10 @@ $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
     // set user attributes with default set
-    let userAttrs = getCookie("userAttrs", "date,beamline,btr,cycle,sample_name");
+    let userAttrs = getCookie("{{.CookieName}}", "{{.DefaultAttrs}}");
 
     function saveSelectedColumns(columns) {
-        document.cookie = "userAttrs=" + columns + "; path=/";
+        document.cookie = "{{.CookieName}}=" + columns + "; path=/";
     }
 
     // Fetch initial data to determine columns and populate the first page
@@ -180,14 +180,10 @@ $(document).ready(function() {
     });
     // helper function to select default checkbox'es attributes
     $('#selectDefaultsBtn').click(function() {
-        // deselect all attributes
         $('.attributeCheckbox').prop('checked', false);
-        // select our default attributes
-        $('.attributeCheckbox[value="date"]').prop('checked', true);
-        $('.attributeCheckbox[value="beamline"]').prop('checked', true);
-        $('.attributeCheckbox[value="btr"]').prop('checked', true);
-        $('.attributeCheckbox[value="cycle"]').prop('checked', true);
-        $('.attributeCheckbox[value="sample_name"]').prop('checked', true);
+        '{{.DefaultAttrs}}'.split(',').forEach(function(attr) {
+            $('.attributeCheckbox[value="' + attr.trim() + '"]').prop('checked', true);
+        });
     });
 
     // helper function to close popup window
@@ -213,7 +209,7 @@ $(document).ready(function() {
     // Function to fetch data from the server with optional search parameter
     function fetchData(startIndex, limit, searchTerm, sortKey, sortDirection, attrs, caseInsensitive) {
         return $.ajax({
-            url: "/datasets",
+            url: "{{.DataURL}}",
             type: "GET",
             data: {
                 idx: startIndex,
@@ -263,7 +259,7 @@ $(document).ready(function() {
                 const orderColumnIdx = data.order[0].column;
                 const sortKey = columns[orderColumnIdx];
                 const sortDirection = data.order[0].dir; // "asc" or "desc"
-                const attrs = getCookie("userAttrs", "date,beamline,btr,cycle,sample_name");
+                const attrs = getCookie("{{.CookieName}}", "{{.DefaultAttrs}}");
 
                 // Fetch data with current pagination and search term
                 let caseInsensitive = isCaseInsensitive();
