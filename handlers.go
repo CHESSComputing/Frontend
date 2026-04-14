@@ -1510,97 +1510,176 @@ func SearchHandler(c *gin.Context) {
 	processResults(c, rec, user, idx, limit, btrs)
 }
 
-// SpecScansTableHandler provides access to GET /specscans endpoint
+// SpecScansHandler provides access to GET /specscans endpoint.
+// With ?did=xxx: shows a DataTable of SpecScan records for that DID.
+// Without ?did: shows a DataTable of all SpecScan records matching the user's BTR groups.
 func SpecScansHandler(c *gin.Context) {
-	_, err := getUser(c)
+	user, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
 		return
 	}
 
-	var params MetaParams
-	err = c.Bind(&params)
-	if err != nil {
-		rec := services.Response("MetaData", http.StatusBadRequest, services.BindError, err)
-		c.JSON(http.StatusBadRequest, rec)
-		return
-	}
-	did := params.DID
-	//     query := fmt.Sprintf("{\"did\": \"%s\"}", did)
-	rec := services.ServiceRequest{
-		Client:       "foxden",
-		ServiceQuery: services.ServiceQuery{Query: did, Idx: 0, Limit: -1},
-	}
-
-	// parse response from SpecScan service to show its records
-	data, err := json.Marshal(rec)
-	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.SpecScansURL)
-	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		rec := services.Response("Frontend", http.StatusBadRequest, services.BindError, err)
-		c.JSON(http.StatusBadRequest, rec)
-		return
-	}
-	defer resp.Body.Close()
-	data, err = io.ReadAll(resp.Body)
-	if err != nil {
-		rec := services.Response("Frontend", http.StatusBadRequest, services.BindError, err)
-		c.JSON(http.StatusBadRequest, rec)
-		return
-	}
-
-	var response services.ServiceResponse
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		rec := services.Response("Frontend", http.StatusBadRequest, services.BindError, err)
-		c.JSON(http.StatusBadRequest, rec)
-		return
-	}
-	if Verbose > 1 {
-		log.Printf("services.ServiceResponse: %+v\n", response)
-	}
-	scans := response.Results.Records
-	if Verbose > 0 {
-		log.Printf("scans: %+v\n", scans)
-	}
-	// Get column headers from matching scan records
-	colsSet := make(map[string]struct{})
-	for _, s := range scans {
-		if Verbose > 2 {
-			log.Printf("s: %+v\n", s)
-		}
-		for k, _ := range s {
-			if Verbose > 2 {
-				log.Printf("k: %+v\n", k)
-			}
-			colsSet[k] = struct{}{}
+	_specScanAttrs := specScanAttrs()
+	tmpl := server.MakeTmpl(StaticFs, "CHESS spec scans")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Columns"] = _specScanAttrs
+	tmpl["DataAttributes"] = strings.Join(_specScanAttrs, ",")
+	tmpl["User"] = user
+	tmpl["CookieName"] = "scanAttrs"
+	tmpl["DefaultAttrs"] = "start_time,spec_file,scan_number,command"
+	if user != "test" {
+		if fuser, ferr := _foxdenUser.Get(user); ferr == nil {
+			tmpl["Btrs"] = fuser.Btrs
 		}
 	}
-	cols := make([]string, 0, len(colsSet))
-	for k := range colsSet {
-		cols = append(cols, k)
-	}
-	if Verbose > 1 {
-		log.Printf("colsSet: %+v", colsSet)
-		log.Printf("cols: %+v", cols)
+
+	did := c.Query("did")
+	if did != "" {
+		tmpl["PageTitle"] = fmt.Sprintf("FOXDEN: spec scans for %s", did)
+		tmpl["DataURL"] = fmt.Sprintf("/specscans/data?did=%s", url.QueryEscape(did))
+	} else {
+		tmpl["PageTitle"] = "FOXDEN: spec scans"
+		tmpl["DataURL"] = "/specscans/data"
 	}
 
-	// Make table
-	tmpl := server.MakeTmpl(StaticFs, "scantable.tmpl")
-	tmpl["Title"] = fmt.Sprintf("Scans for DID: %s", did)
-	tmpl["Columns"] = cols
-	tmpl["Selected"] = map[string]bool{
-		"start_time":  true,
-		"spec_file":   true,
-		"scan_number": true,
-		"command":     true,
-	}
-	tmpl["Rows"] = scans
-	if Verbose > 2 {
-		log.Printf("tmpl: %+v\n", tmpl)
-	}
-	content := server.TmplPage(StaticFs, "scantable.tmpl", tmpl)
+	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// fetchSpecScans sends a request to the SpecScansService and returns the matching records.
+func fetchSpecScans(req services.ServiceRequest) ([]map[string]any, error) {
+	reqData, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.SpecScansURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(reqData))
+	if err != nil {
+		return nil, err
+	}
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	var svcResp services.ServiceResponse
+	if err = json.Unmarshal(body, &svcResp); err != nil {
+		return nil, err
+	}
+	return svcResp.Results.Records, nil
+}
+
+// SpecScansDataHandler provides access to GET /specscans/data endpoint.
+// Returns a JSON payload of SpecScan records with optional server-side filtering,
+// sorting, and pagination.
+// With ?did=xxx: returns records for that DID.
+// Without ?did: returns records filtered by the user's BTR groups.
+func SpecScansDataHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{})
+		return
+	}
+
+	idx, _ := strconv.Atoi(c.DefaultQuery("idx", "0"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	inputAttrs := c.DefaultQuery("attrs", "")
+	var attrs []string
+	if inputAttrs != "" {
+		for _, a := range strings.Split(inputAttrs, ",") {
+			if a = strings.TrimSpace(a); a != "" {
+				attrs = append(attrs, a)
+			}
+		}
+	}
+	if len(attrs) == 0 {
+		attrs = []string{"start_time", "spec_file", "scan_number", "command"}
+	}
+	searchFilter := c.Query("search")
+	caseInsensitive := c.Query("caseInsensitive") != ""
+	var sortKeys []string
+	if skey := c.Query("sortKey"); skey != "" {
+		sortKeys = []string{skey}
+	}
+	var sortOrder int
+	switch c.Query("sortDirection") {
+	case "asc":
+		sortOrder = 1
+	case "desc":
+		sortOrder = -1
+	}
+
+	spec := makeSpec(searchFilter, attrs, caseInsensitive)
+
+	if did := c.Query("did"); did != "" {
+		// DID-scoped: add DID constraint to spec
+		spec["did"] = did
+	} else {
+		// BTR-filtered: use updateSpec to add btr:{$in:[...]} constraint for all BTRs at once
+		if user != "test" {
+			fuser, ferr := _foxdenUser.Get(user)
+			if ferr != nil || len(fuser.Btrs) == 0 {
+				c.JSON(http.StatusOK, gin.H{
+					"total":    0,
+					"records":  []map[string]any{},
+					"columns":  attrs,
+					"pageSize": limit,
+				})
+				return
+			}
+			spec = updateSpec(spec, fuser, "filter")
+		}
+	}
+
+	query, merr := json.Marshal(spec)
+	if merr != nil {
+		log.Printf("ERROR: SpecScansDataHandler: marshal spec: %v", merr)
+		c.JSON(http.StatusInternalServerError, gin.H{})
+		return
+	}
+
+	allRecords, err := fetchSpecScans(services.ServiceRequest{
+		Client: "frontend",
+		ServiceQuery: services.ServiceQuery{
+			Query:     string(query),
+			Idx:       idx,
+			Limit:     limit,
+			SortKeys:  sortKeys,
+			SortOrder: sortOrder,
+		},
+	})
+	if err != nil {
+		log.Printf("ERROR: SpecScansDataHandler: fetchSpecScans: %v", err)
+		c.JSON(http.StatusBadGateway, gin.H{})
+		return
+	}
+
+	total := len(allRecords)
+
+	// Project requested attributes
+	var records []map[string]any
+	for _, r := range allRecords {
+		frec := make(map[string]any)
+		for _, attr := range attrs {
+			if attr == "start_time" {
+				frec[attr] = utils.ConvertTimestamp(r[attr])
+			} else {
+				frec[attr] = r[attr]
+			}
+		}
+		records = append(records, frec)
+	}
+	if records == nil {
+		records = []map[string]any{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"total":    total,
+		"records":  records,
+		"columns":  attrs,
+		"pageSize": limit,
+	})
 }
 
 // MetaDataHandler provides access to GET /meta endpoint
@@ -2332,6 +2411,17 @@ func foxdenAttrs() []string {
 	return utils.List2Set[string](attrs)
 }
 
+// helper function to get SpecScans schema attributes
+func specScanAttrs() []string {
+	var attrs []string
+	for _, obj := range _spec_schema.Map {
+		for key, _ := range obj.Schema.Map {
+			attrs = append(attrs, key)
+		}
+	}
+	return utils.List2Set[string](attrs)
+}
+
 // DatasetsTableHandler provides access to GET /dstable endpoint
 func DatasetsTableHandler(c *gin.Context) {
 	user, err := getUser(c)
@@ -2341,9 +2431,13 @@ func DatasetsTableHandler(c *gin.Context) {
 	}
 	tmpl := server.MakeTmpl(StaticFs, "CHESS datasets")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["PageTitle"] = "FOXDEN: datasets"
 	tmpl["Columns"] = _foxdenAttrs
 	tmpl["DataAttributes"] = strings.Join(_foxdenAttrs, ",")
 	tmpl["User"] = user
+	tmpl["DataURL"] = "/datasets"
+	tmpl["CookieName"] = "userAttrs"
+	tmpl["DefaultAttrs"] = "date,beamline,btr,cycle,sample_name"
 	if user != "test" {
 		if fuser, err := _foxdenUser.Get(user); err == nil {
 			tmpl["Btrs"] = fuser.Btrs

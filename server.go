@@ -29,6 +29,7 @@ var StaticFs embed.FS
 // global variables
 var _beamlines []string
 var _smgr beamlines.SchemaManager
+var _spec_schema beamlines.SchemaManager
 var _httpReadRequest, _httpWriteRequest, _httpDeleteRequest *services.HttpRequest
 var _header, _footer, _footerEmpty string
 var _foxdenUser services.UserAttributes
@@ -75,6 +76,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/meta", Handler: MetaDataHandler, Authorized: false},
 		{Method: "GET", Path: "/dids", Handler: DidsHandler, Authorized: false},
 		{Method: "GET", Path: "/specscans", Handler: SpecScansHandler, Authorized: false},
+		{Method: "GET", Path: "/specscans/data", Handler: SpecScansDataHandler, Authorized: false},
 		{Method: "GET", Path: "/notebook", Handler: NotebookHandler, Authorized: false},
 		{Method: "GET", Path: "/publish", Handler: PublishSrvHandler, Authorized: false},
 		{Method: "GET", Path: "/aiml", Handler: AIMLHandler, Authorized: false},
@@ -156,7 +158,12 @@ func Server() {
 		}
 		_beamlines = append(_beamlines, utils.FileName(fname))
 	}
+	_spec_schema = beamlines.SchemaManager{}
 	log.Println("Schema", _smgr.String())
+	_, err := _spec_schema.Load(srvConfig.Config.SpecScans.SchemaFile)
+	if err != nil {
+		log.Fatalf("unable to load %s error %v", srvConfig.Config.SpecScans.SchemaFile, err)
+	}
 
 	// initialize http request
 	_httpReadRequest = services.NewHttpRequest("read", Verbose)
