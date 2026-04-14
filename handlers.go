@@ -1241,6 +1241,94 @@ func AdvancedSearchHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
+// ELogHandler provides access to POST /elog endpoint
+func ELogHandler(c *gin.Context) {
+	r := c.Request
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("SearchHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+
+	tmpl := server.MakeTmpl(StaticFs, "Edit")
+	entry := r.FormValue("entry")
+	did := r.FormValue("did")
+	desc := r.FormValue("description")
+
+	rec := ELogEntry{User: user, Text: entry, Did: did}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		content := errorTmpl(c, "unable to insert elo record, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+	}
+	// send data to ELogService
+	_httpWriteRequest.GetToken()
+
+	// insert provenance record
+	rurl := fmt.Sprintf("%s/update", srvConfig.Config.Services.ELogServiceURL)
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		content := errorTmpl(c, "unable to insert elog entry, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	if resp.StatusCode != 200 {
+		err := errors.New(fmt.Sprintf("ELogService response %+v", resp))
+		content := errorTmpl(c, "unable to insert elog entry, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	tmpl["Title"] = "success"
+	tmpl["Content"] = "updated Elog entry, you'll be redirected to elog form shortly..."
+	base := srvConfig.Config.Frontend.WebServer.Base
+	tmpl["RedirectLink"] = fmt.Sprintf("%s/elogform?did=%s&description=%s", base, did, desc)
+	content := server.TmplPage(StaticFs, "success.tmpl", tmpl)
+	c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
+// ElogFormHandler provides access to POST /elogform endpoint
+func ElogFormHandler(c *gin.Context) {
+	r := c.Request
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("SearchHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	var did, description string
+	// if we get GET request we'll extract URL parameters
+	if r.Method == "GET" {
+		did = c.Query("did")
+		description = c.Query("description")
+	} else if r.Method == "POST" {
+		query := r.FormValue("query")
+		var rec map[string]any
+		if err := json.Unmarshal([]byte(query), &rec); err == nil {
+			if val, ok := rec["did"]; ok {
+				did = fmt.Sprintf("%v", val)
+			}
+			if val, ok := rec["description"]; ok {
+				description = fmt.Sprintf("%v", val)
+			}
+		}
+	}
+
+	// fetch existing elog entries
+	records := fetchELogEntries(did, user)
+	tmpl := server.MakeTmpl(StaticFs, "Edit")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["did"] = did
+	tmpl["description"] = description
+	tmpl["Entries"] = records
+	content := server.TmplPage(StaticFs, "form_elog.tmpl", tmpl)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	r := c.Request
@@ -2102,6 +2190,13 @@ func DatasetsHandler(c *gin.Context) {
 	} else {
 		attrs = []string{"beamline", "btr", "cycle", "sample_name", "date", "user"}
 	}
+	columns := attrs
+	if !utils.InList("did", attrs) {
+		attrs = append(attrs, "did")
+	}
+	if !utils.InList("description", attrs) {
+		attrs = append(attrs, "description")
+	}
 	searchFilter := c.Query("search")
 	query := "{}"
 	var sortKeys []string
@@ -2213,7 +2308,7 @@ func DatasetsHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"total":    total,
 		"records":  records,
-		"columns":  attrs,
+		"columns":  columns,
 		"pageSize": limit,
 	})
 

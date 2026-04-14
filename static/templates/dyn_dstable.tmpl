@@ -240,13 +240,24 @@ $(document).ready(function() {
                         {{- range $index, $column := .Columns }}
                             "{{ $column }}": row["{{$column}}"],
                         {{- end }}
+                        "did": row["did"]
                     };
                     const payloadStr = JSON.stringify(payload);
                     return `
                         <form action="/search" method="POST" style="display:inline;">
                             <input type="hidden" name="query" value='${payloadStr}'>
-                            <button type="submit">Record</button>
+                            <button type="submit" title="View Record"
+                                    style="border:none; background:none; cursor:pointer;">
+                              <img src="https://cdn.onlinewebfonts.com/svg/img_174499.png" alt="Record" style="width:25px;">
+                            </button>
                         </form>
+                        <form action="/elogform" method="POST" style="display:inline;">
+                            <input type="hidden" name="query" value='${payloadStr}'>
+                            <button type="submit" title="Edit Record"
+                                    style="border:none; background:none; cursor:pointer;">
+                              <img src="https://cdn.onlinewebfonts.com/svg/img_524211.png" alt="Edit" style="width:25px;">
+                            </button>
+                         </form>
                     `;
                 }}]),
             pageLength: 10,
@@ -301,6 +312,5 @@ $(document).ready(function() {
 $('#help-btn').on('click', function () {
   $('#help-message').slideToggle(150);
 });
-
 
 </script>

@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	beamlines "github.com/CHESSComputing/golib/beamlines"
 	srvConfig "github.com/CHESSComputing/golib/config"
@@ -85,19 +86,19 @@ func datahubDidHashes() []string {
 	rurl := fmt.Sprintf("%s/datahub", srvConfig.Config.DataHubURL)
 	resp, err := _httpReadRequest.Get(rurl)
 	if err != nil {
-		log.Println("ERROR: unable to get datahub didHashes, error:", err)
+		log.Println("WARNING: unable to get datahub didHashes, error:", err)
 		return didHashes
 	}
 	defer resp.Body.Close()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("ERROR: unable to get datahub didHashes, error:", err)
+		log.Println("WARNING: unable to get datahub didHashes, error:", err)
 		return didHashes
 	}
 	var arr []string
 	err = json.Unmarshal(data, &arr)
 	if err != nil {
-		log.Println("ERROR: unable to get datahub didHashes, error:", err)
+		log.Println("WARNING: unable to get datahub didHashes, error:", err)
 		return didHashes
 	}
 	for _, entry := range arr {
@@ -1041,4 +1042,71 @@ func convertTypes(subschema *beamlines.Schema, records []map[string]string) []ma
 	}
 
 	return out
+}
+
+// ELogEntry defines Elog entry structure
+type ELogEntry struct {
+	Did  string    `json:"did,omitempty"`
+	Text string    `json:"text"`
+	User string    `json:"user"`
+	Date time.Time `json:"date"`
+}
+
+// helper function to fetch elog entries
+func fetchELogEntries(did, user string) []ELogEntry {
+	var records []map[string]any
+	var entries []ELogEntry
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/search?did=%s", srvConfig.Config.ELogServiceURL, did)
+	resp, err := _httpReadRequest.Get(rurl)
+	if err != nil {
+		log.Println("WARNING: unable to get datahub didHashes, error:", err)
+		return entries
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("WARNING: unable to get elog entries, error:", err)
+		return entries
+	}
+	err = json.Unmarshal(data, &records)
+	if err != nil {
+		log.Println("WARNING: unable to get elog entries, error:", err)
+	}
+	for _, r := range records {
+		entry := ELogEntry{}
+		if val, ok := r["text"]; ok {
+			entry.Text = fmt.Sprintf("%v", val)
+		}
+		if val, ok := r["user"]; ok {
+			entry.User = fmt.Sprintf("%v", val)
+		}
+		if val, ok := r["date"]; ok {
+			if ts, err := getUnixNano(val); err == nil {
+				entry.Date = time.Unix(0, ts).UTC()
+			}
+		}
+		entries = append(entries, entry)
+	}
+	return entries
+}
+
+// helper function to convert map value to unix nano
+func getUnixNano(v any) (int64, error) {
+	switch t := v.(type) {
+	case int64:
+		return t, nil
+	case int:
+		return int64(t), nil
+	case float64:
+		return int64(t), nil
+	case string:
+		ts, err := strconv.ParseInt(t, 10, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid date string: %v", err)
+		}
+		return ts, nil
+	default:
+		return 0, fmt.Errorf("unsupported type for date: %T", v)
+	}
 }

@@ -497,3 +497,51 @@ table.table-sync td {
 #user-popup-close:hover {
   opacity: 1;
 }
+.entry-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    border: 2px solid #ccc;        /* solid border */
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+
+    background: #fff;
+}
+.entry-card:nth-child(odd) {
+    background: #ffffff;
+}
+
+.entry-card:nth-child(even) {
+    background: #f5f5f5;  /* light gray */
+}
+.entry-card:hover {
+    background: #eaeaea;
+}
+
+/* right side content */
+.entry-content {
+    flex: 1;
+}
+
+/* meta row */
+.entry-meta {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+/* body text aligned under meta */
+.entry-body {
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* user emphasis */
+.user {
+    font-weight: bold;
+}

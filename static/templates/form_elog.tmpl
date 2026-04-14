@@ -1,0 +1,54 @@
+<section>
+  <article id="article" class="wide">
+
+<form action="{{.Base}}/elog" method="post" name="web_search" id="web_search" class="form">
+    <b>DID:</b> {{.did}}
+    <input class="input" type="hidden" name="did" value="{{.did}}">
+    <br/>
+    <label><b>Record description:</b></label>
+    <input class="input" type="hidden" name="description" value="{{.description}}">
+    {{.description}}
+    <br/>
+
+    <label><b>New ELog entry:</b></label>
+    <textarea class="input"
+              id="entry"
+              name="entry"
+              rows=5></textarea>
+    <br/>
+    <button class="button button-primary">Update</button>
+</form>
+
+<hr>
+
+<div class="entry-list">
+{{if eq (len .Entries) 0}}
+    No previous Elog entries found
+{{else}}
+    {{range .Entries}}
+    <div class="entry-card">
+        <div class="">
+            <img src="https://cdn.onlinewebfonts.com/svg/img_467682.png" alt="Sync" style="width:20px;">
+        </div>
+        <div class="entry-content">
+          <div class="entry-meta">
+
+              <span class="ts">
+                  {{.Date.Format "2006-01-02 15:04:05 UTC"}}
+              </span>
+              <span class="user">
+                  &#64;{{.User}}
+              </span>
+          </div>
+          <div class="entry-body">
+              {{.Text}}
+          </div>
+        </div>
+    </div>
+    {{end}}
+{{end}}
+</div>
+
+  </article>
+</section>
+
