@@ -456,6 +456,9 @@ table.table-sync td {
   white-space: normal;     /* allow wrapping */
 }
 
+/*
+ * FOXDEN user info pop-up CSS rules
+ */
 /* user info overlay settings */
 #user-popup-overlay {
   display: none;
@@ -497,6 +500,10 @@ table.table-sync td {
 #user-popup-close:hover {
   opacity: 1;
 }
+
+/*
+ * FOXDEN ELog CSS rules
+ */
 .entry-card {
     display: flex;
     align-items: flex-start;
@@ -544,4 +551,148 @@ table.table-sync td {
 /* user emphasis */
 .user {
     font-weight: bold;
+}
+
+/*
+ * CSS rules for record.tmpl to show links and icons within FOXDEN record
+ */
+
+/* container for all links */
+.record-actions {
+    display: flex;
+    flex-wrap: wrap;          /* allows wrapping on small screens */
+    gap: 12px;                /* space between links */
+    align-items: center;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* each link */
+.record-actions a {
+    display: inline-flex;     /* key for icon + text alignment */
+    align-items: center;      /* vertical alignment */
+    gap: 6px;                 /* space between icon and text */
+
+    text-decoration: none;
+    color: #2c3e50;           /* custom color */
+    padding: 4px 6px;
+    border-radius: 4px;
+
+    transition: all 0.2s ease;
+}
+
+/* icons */
+.record-actions a img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+/* hover effect */
+.record-actions a:hover {
+    background-color: #f0f2f5;
+    color: #007bff;
+}
+.record-actions a:hover img {
+    opacity: 0.8;
+}
+
+/* optional: active/pressed feel */
+.record-actions a:active {
+    transform: scale(0.97);
+}
+
+.record-actions a {
+    background: #fafafa;
+    border: 1px solid #ddd;
+}
+
+/* form should behave like inline element */
+.record-actions-form {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+/* button styled like your links */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    font-family: inherit;
+    font-size: inherit;
+    color: #2c3e50;
+
+    padding: 4px 6px;
+    border-radius: 4px;
+
+    transition: all 0.2s ease;
+}
+
+/* icon */
+.action-btn img {
+    width: 18px;
+    height: 18px;
+}
+
+/* hover = same as links */
+.action-btn:hover {
+    background-color: #f0f2f5;
+    color: #007bff;
+}
+
+/* static (non-clickable) state */
+.action-static {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    color: #888;
+    padding: 4px 6px;
+}
+
+.action-static img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.6;
+}
+
+/* GREY: Draft -> Public */
+.action-grey {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+/* GREEN: Create DOI */
+.action-green {
+    background-color: #28a745;
+    color: white;
+}
+
+/* RED: Published DOI */
+.action-red {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* ensure icons look good on colored background */
+.action-btn img,
+.action-static img {
+    filter: brightness(0) invert(1); /* makes icons white */
+}
+.action-grey:hover {
+    background-color: #d5d5d5;
+}
+
+.action-green:hover {
+    background-color: #218838;
+}
+
+.action-red {
+    opacity: 0.85;   /* static but slightly muted */
 }

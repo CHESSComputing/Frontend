@@ -40,58 +40,60 @@ Date: {{.TimeStamp}}
     {{end}}
 {{end}}
 
-<div class="grid">
-    <div class="column column-1">
-        <a href="javascript:FlipRecTable('{{.Id}}')" class="button button-small">Record</a>
-    </div>
-    <div class="column column-1">
-        <a href="javascript:FlipRecDesc('{{.Id}}')" class="button button-small">Description</a>
-    </div>
-    <div class="column column-1">
-        <a href="javascript:FlipRecJson('{{.Id}}')" class="button button-small">JSON</a>
-    </div>
-    <div class="column column-1">
-        <a href="/provenance?did={{.DidEncoded}}" class="button button-small">Provenance</a>
-    </div>
-    <div class="column column-1">
-        <a href="javascript:SaveRecord('json-record-{{.Id}}')" class="button button-small">Save</a>
-    </div>
-    <div class="column column-1">
-        <a href="/amend?did={{.DidEncoded}}" class="button button-small">Amend</a>
-    </div>
-    <div class="column column-1">
-        <a href="/elogform?did={{.DidEncoded}}" class="button button-small">ELog</a>
-    </div>
-    <div class="column column-1">
-        <a href="/users?user={{.User}}" class="button button-small user-info-btn">User</a>
-    </div>
-    <div class="column column-1">
+<div class="record-actions">
+<a href="javascript:FlipRecTable('{{.Id}}')" title="Record">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657108.png" alt="Record" style="width:20px;">Record</a>
+<a href="javascript:FlipRecDesc('{{.Id}}')" title="Description">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657228.png" alt="Description" style="width:20px;">Description</a>
+<a href="/provenance?did={{.DidEncoded}}" title="Provenance">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657461.png" alt="Provenance" style="width:20px;">Provenance</a>
+<a href="/users?user={{.User}}" title="User" class="user-info-btn">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657189.png" alt="User" style="width:20px;">User</a>
+<a href="/amend?did={{.DidEncoded}}" title="Amend">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657237.png" alt="Amend" style="width:20px;">Amend</a>
+<a href="/elogform?did={{.DidEncoded}}" title="ELog">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657402.png" alt="ELog" style="width:20px;">ELog</a>
+<a href="javascript:FlipRecJson('{{.Id}}')" title="JSON">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657371.png" alt="JSON" style="width:20px;">JSON</a>
+<a href="javascript:SaveRecord('json-record-{{.Id}}')" title="Save">
+<img src="https://cdn.onlinewebfonts.com/svg/img_657415.png" alt="Save" style="width:20px;">Save</a>
+
 {{if and .DoiLink .Doi}}
     {{if not .DoiPublic}}
-        <form class="form-content" method="post" action="{{.Base}}/doipublic">
+        <form class="record-actions-form" method="post" action="{{.Base}}/doipublic">
             <input type="hidden" name="did" value="{{.Did}}">
             <input type="hidden" name="doi" value="{{.Doi}}">
             <input type="hidden" name="doilink" value="{{.DoiLink}}">
             <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
             <input type="hidden" name="schema" value="{{.Schema}}">
-            <button class="button button-small custom-button-draft-public center width-200">Draft &#8658; Public</button>
+
+            <button type="submit" class="action-btn action-grey" title="Publish DOI">
+                <img src="https://cdn.onlinewebfonts.com/svg/img_657362.png" alt="Publish">
+                Draft &#8658; Public
+            </button>
         </form>
     {{else}}
-        <button class="button button-small custom-button-published-doi center width-200">Published DOI</button>
+        <span class="action-statici action-red">
+            <img src="https://cdn.onlinewebfonts.com/svg/img_657362.png" alt="Published">
+            Published DOI
+        </span>
     {{end}}
 {{else}}
-        <form class="form-content" method="post" action="{{.Base}}/publishform">
-            <input type="hidden" name="did" value="{{.Did}}">
-            <input type="hidden" name="schema" value="{{.Schema}}">
-            <input type="hidden" name="mcprojectname" value="{{.MCProjectName}}">
-            <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
-            <button class="button button-small custom-button-publish-doi center width-200">Create DOI</button>
-        </form>
+    <form class="record-actions-form" method="post" action="{{.Base}}/publishform">
+        <input type="hidden" name="did" value="{{.Did}}">
+        <input type="hidden" name="schema" value="{{.Schema}}">
+        <input type="hidden" name="mcprojectname" value="{{.MCProjectName}}">
+        <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
+
+        <button type="submit" class="action-btn action-green" title="Create DOI">
+            <img src="https://cdn.onlinewebfonts.com/svg/img_657362.png" alt="Create DOI">
+            Create DOI
+        </button>
+    </form>
 {{end}}
-    </div>
-    <div class="column column-6">
-    </div>
+
 </div>
+
 <div id="table-record-{{.Id}}" class="hide">
     <pre>{{.RecordTable}}</pre>
 </div>
