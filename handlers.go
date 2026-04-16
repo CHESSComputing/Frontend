@@ -1241,8 +1241,8 @@ func AdvancedSearchHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
-// ELogHandler provides access to POST /elog endpoint
-func ELogHandler(c *gin.Context) {
+// NotesHandler provides access to POST /notesform endpoint
+func NotesHandler(c *gin.Context) {
 	r := c.Request
 	user, err := getUser(c)
 	if Verbose > 1 {
@@ -1253,12 +1253,48 @@ func ELogHandler(c *gin.Context) {
 		return
 	}
 
-	tmpl := server.MakeTmpl(StaticFs, "Edit")
+	tmpl := server.MakeTmpl(StaticFs, "Notes")
+	// parse multipart form
+	err = r.ParseMultipartForm(10 << 20) // 10 MB
+	if err != nil {
+		content := errorTmpl(c, "unable to parse multipart form, error", err)
+		c.Data(http.StatusInternalServerError, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
 	entry := r.FormValue("entry")
 	did := r.FormValue("did")
 	desc := r.FormValue("description")
+	// Get uploaded file
+	file, fheader, err := r.FormFile("image")
+	var imagePath string
+	// get did hash to store into datahub
+	sum := md5.Sum([]byte(did))
+	didhash := hex.EncodeToString(sum[:])
+	if err == nil {
+		defer file.Close()
+		// Save file locally (simple approach)
+		filename := fmt.Sprintf("%d_%s", time.Now().Unix(), fheader.Filename)
+		sdir := fmt.Sprintf("%s/%s", srvConfig.Config.DataHub.StorageDir, didhash)
+		if e := os.MkdirAll(sdir, 0766); e != nil {
+			content := errorTmpl(c, "unable to create storage dir: "+sdir, e)
+			c.Data(http.StatusInternalServerError, "text/html; charset=utf-8", []byte(header()+content+footer()))
+			return
+		}
+		path := fmt.Sprintf("%s/%s", sdir, filename)
+		out, err1 := os.Create(path)
+		if err1 != nil {
+			msg := fmt.Sprintf("unable to save image in DataHub storage area: %s, error", sdir)
+			content := errorTmpl(c, msg, err1)
+			c.Data(http.StatusInternalServerError, "text/html; charset=utf-8", []byte(header()+content+footer()))
+			return
+		}
+		defer out.Close()
+		io.Copy(out, file)
+		// add image path pointing to datahub/didhash/filename
+		imagePath = fmt.Sprintf("%s/datahub/%s/%s", srvConfig.Config.DataHubURL, didhash, filename)
+	}
 
-	rec := ELogEntry{User: user, Text: entry, Did: did}
+	rec := ELogEntry{User: user, Text: entry, Did: did, ImageURL: imagePath, DidHash: didhash}
 	data, err := json.Marshal(rec)
 	if err != nil {
 		content := errorTmpl(c, "unable to insert elo record, error", err)
@@ -1284,13 +1320,13 @@ func ELogHandler(c *gin.Context) {
 	tmpl["Title"] = "success"
 	tmpl["Content"] = "updated Elog entry, you'll be redirected to elog form shortly..."
 	base := srvConfig.Config.Frontend.WebServer.Base
-	tmpl["RedirectLink"] = fmt.Sprintf("%s/elogform?did=%s&description=%s", base, did, desc)
+	tmpl["RedirectLink"] = fmt.Sprintf("%s/notesform?did=%s&description=%s", base, did, desc)
 	content := server.TmplPage(StaticFs, "success.tmpl", tmpl)
 	c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// ElogFormHandler provides access to POST /elogform endpoint
-func ElogFormHandler(c *gin.Context) {
+// NotesFormHandler provides access to POST /notesform endpoint
+func NotesFormHandler(c *gin.Context) {
 	r := c.Request
 	user, err := getUser(c)
 	if Verbose > 1 {
@@ -1317,7 +1353,6 @@ func ElogFormHandler(c *gin.Context) {
 			}
 		}
 	}
-
 	// fetch existing elog entries
 	records := fetchELogEntries(did, user)
 	tmpl := server.MakeTmpl(StaticFs, "Edit")
@@ -1325,7 +1360,7 @@ func ElogFormHandler(c *gin.Context) {
 	tmpl["did"] = did
 	tmpl["description"] = description
 	tmpl["Entries"] = records
-	content := server.TmplPage(StaticFs, "form_elog.tmpl", tmpl)
+	content := server.TmplPage(StaticFs, "form_notes.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 

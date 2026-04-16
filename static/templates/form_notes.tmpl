@@ -1,21 +1,38 @@
 <section>
   <article id="article" class="wide">
 
-<form action="{{.Base}}/elog" method="post" name="web_search" id="web_search" class="form">
+<form action="{{.Base}}/notes"
+      method="post"
+      enctype="multipart/form-data"
+      name="web_search"
+      id="web_search"
+      class="form">
+
     <b>DID:</b> {{.did}}
     <input class="input" type="hidden" name="did" value="{{.did}}">
     <br/>
+
     <label><b>Record description:</b></label>
     <input class="input" type="hidden" name="description" value="{{.description}}">
     {{.description}}
     <br/>
 
-    <label><b>New ELog entry:</b></label>
+    <label><b>New note entry:</b></label>
     <textarea class="input"
               id="entry"
               name="entry"
-              rows=5></textarea>
+              rows="5"></textarea>
     <br/>
+
+    <!-- NEW: file upload -->
+    <label><b>Attach image:</b></label>
+    <input class="input"
+           type="file"
+           name="image"
+           accept="image/*">
+    <br/>
+    <br/>
+
     <button class="button button-primary">Update</button>
 </form>
 
@@ -23,7 +40,7 @@
 
 <div class="entry-list">
 {{if eq (len .Entries) 0}}
-    No previous Elog entries found
+    No previous entries found
 {{else}}
     {{range .Entries}}
     <div class="entry-card">
@@ -32,7 +49,6 @@
         </div>
         <div class="entry-content">
           <div class="entry-meta">
-
               <span class="ts">
                   {{.Date.Format "2006-01-02 15:04:05 UTC"}}
               </span>
@@ -40,9 +56,17 @@
                   &#64;{{.User}}
               </span>
           </div>
+
           <div class="entry-body">
               {{.Text}}
+          <!-- NEW: show image if exists -->
+          {{if .ImageURL}}
+              <br/>
+              <img src="{{.ImageURL}}" style="max-width:300px;">
+          {{end}}
+
           </div>
+
         </div>
     </div>
     {{end}}
@@ -51,4 +75,3 @@
 
   </article>
 </section>
-

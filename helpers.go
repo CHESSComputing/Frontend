@@ -1046,10 +1046,12 @@ func convertTypes(subschema *beamlines.Schema, records []map[string]string) []ma
 
 // ELogEntry defines Elog entry structure
 type ELogEntry struct {
-	Did  string    `json:"did,omitempty"`
-	Text string    `json:"text"`
-	User string    `json:"user"`
-	Date time.Time `json:"date"`
+	Did      string    `json:"did,omitempty"`
+	Text     string    `json:"text"`
+	User     string    `json:"user"`
+	DidHash  string    `json:"didhash,omitempty"`
+	ImageURL string    `json:"image_url,omitempty"`
+	Date     time.Time `json:"date"`
 }
 
 // helper function to fetch elog entries
@@ -1080,6 +1082,9 @@ func fetchELogEntries(did, user string) []ELogEntry {
 		}
 		if val, ok := r["user"]; ok {
 			entry.User = fmt.Sprintf("%v", val)
+		}
+		if val, ok := r["image_url"]; ok {
+			entry.ImageURL = fmt.Sprintf("%v", val)
 		}
 		if val, ok := r["date"]; ok {
 			if ts, err := getUnixNano(val); err == nil {
