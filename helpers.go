@@ -1115,3 +1115,32 @@ func getUnixNano(v any) (int64, error) {
 		return 0, fmt.Errorf("unsupported type for date: %T", v)
 	}
 }
+
+// helper function to get total number of records from upstream service
+func countMetadataRecords() (int, error) {
+	// get total number of metadata records in FOXDEN
+	_httpReadRequest.GetToken()
+	rec := services.ServiceRequest{
+		Client:       "frontend",
+		ServiceQuery: services.ServiceQuery{Query: "{}", Idx: 0, Limit: 1},
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		return 0, err
+	}
+	rurl := fmt.Sprintf("%s/count", srvConfig.Config.Services.MetaDataURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return 0, err
+	}
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return 0, err
+	}
+	var nrec int
+	if err = json.Unmarshal(body, &nrec); err != nil {
+		return 0, err
+	}
+	return nrec, nil
+}
