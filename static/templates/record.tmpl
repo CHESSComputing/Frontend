@@ -41,22 +41,14 @@ Date: {{.TimeStamp}}
 {{end}}
 
 <div class="record-actions">
-<a href="javascript:FlipRecTable('{{.Id}}')" title="Record">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657108.png" alt="Record" style="width:20px;">Record</a>
-<a href="javascript:FlipRecDesc('{{.Id}}')" title="Description">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657228.png" alt="Description" style="width:20px;">Description</a>
-<a href="/provenance?did={{.DidEncoded}}" title="Provenance">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657461.png" alt="Provenance" style="width:20px;">Provenance</a>
-<a href="/users?user={{.User}}" title="User" class="user-info-btn">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657189.png" alt="User" style="width:20px;">User</a>
-<a href="/amend?did={{.DidEncoded}}" title="Amend">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657237.png" alt="Amend" style="width:20px;">Amend</a>
-<a href="/notesform?did={{.DidEncoded}}" title="Notes">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657402.png" alt="Notes" style="width:20px;">Notes</a>
-<a href="javascript:FlipRecJson('{{.Id}}')" title="JSON">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657371.png" alt="JSON" style="width:20px;">JSON</a>
-<a href="javascript:SaveRecord('json-record-{{.Id}}')" title="Save">
-<img src="https://cdn.onlinewebfonts.com/svg/img_657415.png" alt="Save" style="width:20px;">Save</a>
+<a href="javascript:FlipRecTable('{{.Id}}')" title="Record">Record</a>
+<a href="javascript:FlipRecDesc('{{.Id}}')" title="Description">Description</a>
+<a href="/provenance?did={{.DidEncoded}}" title="Provenance">Provenance</a>
+<a href="/users?user={{.User}}" title="User" class="user-info-btn">User</a>
+<a href="/amend?did={{.DidEncoded}}" title="Amend">Amend</a>
+<a href="/notesform?did={{.DidEncoded}}" title="Notes">Notes</a>
+<a href="javascript:FlipRecJson('{{.Id}}')" title="JSON">JSON</a>
+<a href="javascript:SaveRecord('json-record-{{.Id}}')" title="Save">Save</a>
 
 {{if and .DoiLink .Doi}}
     {{if not .DoiPublic}}
@@ -68,13 +60,11 @@ Date: {{.TimeStamp}}
             <input type="hidden" name="schema" value="{{.Schema}}">
 
             <button type="submit" class="action-btn action-grey" title="Publish DOI">
-                <img src="https://cdn.onlinewebfonts.com/svg/img_657362.png" alt="Publish" style="width:20px;">
                 Draft &#8658; Public
             </button>
         </form>
     {{else}}
         <span class="action-static action-red">
-            <img src="https://cdn.onlinewebfonts.com/svg/img_657362.png" alt="Published" style="width:20px;">
             Published DOI
         </span>
     {{end}}
@@ -86,7 +76,6 @@ Date: {{.TimeStamp}}
         <input type="hidden" name="doiprovider" value="{{.DoiProvider}}">
 
         <button type="submit" class="action-btn action-green" title="Create DOI">
-            <img src="https://cdn.onlinewebfonts.com/svg/img_657362.png" alt="Create DOI" style="width:20px;">
             Create DOI
         </button>
     </form>

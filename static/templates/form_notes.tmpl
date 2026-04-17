@@ -1,6 +1,15 @@
 <section>
   <article id="article" class="wide">
 
+<!-- Popup overlay for user info -->
+<div id="user-popup-overlay">
+  <div id="user-popup">
+    <div id="user-popup-content"></div>
+    <div id="user-popup-header">
+      <button id="user-popup-close" class="button button-small user-popup-close">Close</button>
+    </div>
+  </div>
+</div>
 <form action="{{.Base}}/notes"
       method="post"
       enctype="multipart/form-data"
@@ -53,7 +62,9 @@
                   {{.Date.Format "2006-01-02 15:04:05 UTC"}}
               </span>
               <span class="user">
+                  <a href="/users?user={{.User}}" title="User" class="user-info-btn">
                   &#64;{{.User}}
+                  </a>
               </span>
           </div>
 
