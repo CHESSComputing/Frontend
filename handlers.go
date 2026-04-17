@@ -2478,6 +2478,9 @@ func DatasetsTableHandler(c *gin.Context) {
 			tmpl["Btrs"] = fuser.Btrs
 		}
 	}
+	if nrec, err := countMetadataRecords(); err == nil {
+		tmpl["NRecords"] = nrec
+	}
 	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
