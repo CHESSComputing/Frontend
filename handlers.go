@@ -1297,7 +1297,7 @@ func NotesHandler(c *gin.Context) {
 	rec := ELogEntry{User: user, Text: entry, Did: did, ImageURL: imagePath, DidHash: didhash}
 	data, err := json.Marshal(rec)
 	if err != nil {
-		content := errorTmpl(c, "unable to insert elo record, error", err)
+		content := errorTmpl(c, "unable to insert notes record, error", err)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 	}
 	// send data to ELogService
@@ -1307,13 +1307,13 @@ func NotesHandler(c *gin.Context) {
 	rurl := fmt.Sprintf("%s/update", srvConfig.Config.Services.ELogServiceURL)
 	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		content := errorTmpl(c, "unable to insert elog entry, error", err)
+		content := errorTmpl(c, "unable to insert notes entry, error", err)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
 	if resp.StatusCode != 200 {
 		err := errors.New(fmt.Sprintf("ELogService response %+v", resp))
-		content := errorTmpl(c, "unable to insert elog entry, error", err)
+		content := errorTmpl(c, "unable to insert notes entry, error", err)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
 		return
 	}
