@@ -1007,7 +1007,7 @@ func TokenHandler(c *gin.Context) {
 		rec.Groups = fuser.Groups
 		rec.Scopes = fuser.Scopes
 		if c.Query("scope") == "write" {
-			if utils.InList("foxdenrw", fuser.FoxdenGroups) {
+			if utils.InList(srvConfig.Config.AccessRules.WriteGroup, fuser.FoxdenGroups) {
 				rec.Scope = "write"
 			} else {
 				content := fmt.Sprintf("write token is not allowed for user %s", user)

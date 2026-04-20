@@ -21,6 +21,7 @@ import (
 	authz "github.com/CHESSComputing/golib/authz"
 	srvConfig "github.com/CHESSComputing/golib/config"
 	services "github.com/CHESSComputing/golib/services"
+	"github.com/CHESSComputing/golib/utils"
 )
 
 // helper function to get new token for given user and scope
@@ -293,8 +294,9 @@ func maglabUpdateSpec(ispec map[string]any, foxdenUser services.User, useCase st
 // - in case of search spec we only update input spec with btrs limited to user ldap attributes
 // - in case of filter spec we make a new spec based on filter conditions
 func chessUpdateSpec(ispec map[string]any, userFoxdenGroups, userBtrs []string, useCase string) map[string]any {
-	if (len(userFoxdenGroups) > 0 && srvConfig.Config.Frontend.CheckAdmins) ||
-		srvConfig.Config.Frontend.AllowAllRecords {
+	cond1 := srvConfig.Config.Frontend.CheckAdmins && utils.InList(srvConfig.Config.AccessRules.AdminGroup, userFoxdenGroups)
+	cond2 := srvConfig.Config.Frontend.AllowAllRecords && utils.InList(srvConfig.Config.AccessRules.AdminGroup, userFoxdenGroups)
+	if cond1 || cond2 {
 		// foxden attributes allows to see all btrs
 		return ispec
 	}
