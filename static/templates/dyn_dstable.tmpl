@@ -129,8 +129,10 @@ $(document).ready(function() {
 
     // Fetch initial data to determine columns and populate the first page
     let caseInsensitive = isCaseInsensitive();
+    let notesMap = {};
     fetchData(0, 10, "", "", "", userAttrs, caseInsensitive).then(response => {
         columns = response.columns;
+        notesMap = response.notes || {};
 
         // Create table headers dynamically
         columns.forEach(function(col) {
@@ -245,19 +247,25 @@ $(document).ready(function() {
                         "did": row["did"]
                     };
                     const payloadStr = JSON.stringify(payload);
+                    const did = row["did"];
+                    const nNotes = notesMap[did] || 0;
+                    // dynamic styling for notes: use differnt image ids when records has notes
+                    const imgId = nNotes > 0 ? "657402" : "524211";
                     return `
                         <form action="/search" method="POST" style="display:inline;">
                             <input type="hidden" name="query" value='${payloadStr}'>
                             <button type="submit" title="View Record"
                                     style="border:none; background:none; cursor:pointer;">
-                              <img src="https://cdn.onlinewebfonts.com/svg/img_174499.png" alt="Record" style="width:25px;">
+                              <img src="https://cdn.onlinewebfonts.com/svg/img_174499.png"
+                                   alt="Record" style="width:25px;">
                             </button>
                         </form>
                         <form action="/notesform" method="POST" style="display:inline;">
                             <input type="hidden" name="query" value='${payloadStr}'>
                             <button type="submit" title="Edit Record"
                                     style="border:none; background:none; cursor:pointer;">
-                              <img src="https://cdn.onlinewebfonts.com/svg/img_524211.png" alt="Edit" style="width:25px;">
+                              <img src="https://cdn.onlinewebfonts.com/svg/img_${imgId}.png"
+                                   alt="Note" style="width:25px;">
                             </button>
                          </form>
                     `;
@@ -281,6 +289,7 @@ $(document).ready(function() {
                 // Fetch data with current pagination and search term
                 let caseInsensitive = isCaseInsensitive();
                 fetchData(pageIndex, pageSize, searchTerm, sortKey, sortDirection, attrs, caseInsensitive).then(response => {
+                    notesMap = response.notes || {};
                     callback({
                         recordsTotal: totalRecords,
                         recordsFiltered: response.total,

@@ -1144,3 +1144,44 @@ func countMetadataRecords() (int, error) {
 	}
 	return nrec, nil
 }
+
+// NoteEntry defines Elog entry structure
+type NoteEntry struct {
+	Did      string `json:"did"`
+	Text     string `json:"text"`
+}
+
+func getNotes(dids []string) map[string]int {
+	rurl := fmt.Sprintf("%s/records", srvConfig.Config.Services.ELogServiceURL)
+	data, err := json.Marshal(dids)
+	if err != nil {
+		log.Printf("ERROR: unable to marshal dids, error: %v", err)
+		return nil
+	}
+	_httpReadRequest.GetToken()
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		log.Printf("ERROR: unable to request notes from ELogService, error: %v", err)
+		return nil
+	}
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		log.Printf("ERROR: unable to read log entries ELogService, error: %v", err)
+		return nil
+	}
+	var out []NoteEntry
+	err = json.Unmarshal(body, &out)
+	if err != nil {
+		log.Printf("ERROR: unable to unmarshal http response body, error: %v", err)
+	}
+	mdict := make(map[string]int)
+	for _, r := range out {
+		if _, ok := mdict[r.Did]; ok {
+			mdict[r.Did] += 1
+		} else {
+			mdict[r.Did] = 1
+		}
+	}
+	return mdict
+}

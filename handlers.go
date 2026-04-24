@@ -2417,6 +2417,16 @@ func DatasetsHandler(c *gin.Context) {
 		}
 		records = append(records, frec)
 	}
+	// get notes for all records we have based on their did hashes
+	var dids []string
+	for _, r := range records {
+		if val, ok := r["did"]; ok {
+			did := fmt.Sprintf("%s", val)
+			dids = append(dids, did)
+		}
+	}
+	notes := getNotes(dids)
+	log.Printf("notes %+v", notes)
 
 	// Send JSON response
 	c.JSON(http.StatusOK, gin.H{
@@ -2424,6 +2434,7 @@ func DatasetsHandler(c *gin.Context) {
 		"records":  records,
 		"columns":  columns,
 		"pageSize": limit,
+		"notes":    notes,
 	})
 
 }
