@@ -1147,11 +1147,13 @@ func countMetadataRecords() (int, error) {
 
 // NoteEntry defines Elog entry structure
 type NoteEntry struct {
-	Did      string `json:"did"`
-	Text     string `json:"text"`
+	Did  string `json:"did"`
+	Text string `json:"text"`
+	User string `json:"user"`
+	Date uint64 `json:"date"`
 }
 
-func getNotes(dids []string) map[string]int {
+func getNotes(dids []string) map[string]string {
 	rurl := fmt.Sprintf("%s/records", srvConfig.Config.Services.ELogServiceURL)
 	data, err := json.Marshal(dids)
 	if err != nil {
@@ -1175,13 +1177,31 @@ func getNotes(dids []string) map[string]int {
 	if err != nil {
 		log.Printf("ERROR: unable to unmarshal http response body, error: %v", err)
 	}
-	mdict := make(map[string]int)
-	for _, r := range out {
-		if _, ok := mdict[r.Did]; ok {
-			mdict[r.Did] += 1
-		} else {
-			mdict[r.Did] = 1
+	return notesToMap(out)
+}
+
+// noteToMap converts given note entries to a map used in UI
+func notesToMap(notes []NoteEntry) map[string]string {
+	// keep latest note per Did
+	latest := make(map[string]NoteEntry)
+
+	for _, n := range notes {
+		if existing, ok := latest[n.Did]; !ok || n.Date > existing.Date {
+			latest[n.Did] = n
 		}
 	}
-	return mdict
+
+	// build final map[string]string
+	result := make(map[string]string, len(latest))
+
+	for did, n := range latest {
+		t := time.Unix(0, int64(n.Date))
+		result[did] = fmt.Sprintf(
+			"%s @ %s",
+			n.User,
+			t.Format(time.DateOnly),
+		)
+	}
+
+	return result
 }

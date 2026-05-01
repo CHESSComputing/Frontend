@@ -248,24 +248,21 @@ $(document).ready(function() {
                     };
                     const payloadStr = JSON.stringify(payload);
                     const did = row["did"];
-                    const nNotes = notesMap[did] || 0;
-                    // dynamic styling for notes: use differnt image ids when records has notes
-                    const imgId = nNotes > 0 ? "657402" : "524211";
+                    const noteText = notesMap[did] || "";
+                    const hasNote = noteText !== "";
                     return `
                         <form action="/search" method="POST" style="display:inline;">
                             <input type="hidden" name="query" value='${payloadStr}'>
                             <button type="submit" title="View Record"
-                                    style="border:none; background:none; cursor:pointer;">
-                              <img src="https://cdn.onlinewebfonts.com/svg/img_174499.png"
-                                   alt="Record" style="width:25px;">
+                                    class="button button-small">
+                                    Record
                             </button>
                         </form>
                         <form action="/notesform" method="POST" style="display:inline;">
                             <input type="hidden" name="query" value='${payloadStr}'>
                             <button type="submit" title="Edit Record"
-                                    style="border:none; background:none; cursor:pointer;">
-                              <img src="https://cdn.onlinewebfonts.com/svg/img_${imgId}.png"
-                                   alt="Note" style="width:25px;">
+                                    ${hasNote ? `class="button button-small button-light-foxden"` : `class="button button-small"`}>
+                              ${hasNote ? `${noteText}` : `Add note`}
                             </button>
                          </form>
                     `;

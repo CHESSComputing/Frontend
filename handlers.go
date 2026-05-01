@@ -2426,7 +2426,6 @@ func DatasetsHandler(c *gin.Context) {
 		}
 	}
 	notes := getNotes(dids)
-	log.Printf("notes %+v", notes)
 
 	// Send JSON response
 	c.JSON(http.StatusOK, gin.H{
