@@ -1199,7 +1199,7 @@ func notesToMap(notes []NoteEntry) map[string]string {
 		result[did] = fmt.Sprintf(
 			"%s @ %s",
 			n.User,
-			t.Format(time.DateOnly),
+			t.Format(time.DateTime),
 		)
 	}
 
