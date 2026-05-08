@@ -1240,14 +1240,15 @@ func addAffiliation(members []string) []string {
 				if r.FirstName == "" {
 					continue
 				}
-				o = fmt.Sprintf("%s %s, %s %s %s email: %s",
-					r.FirstName, r.LastName, r.City, r.Country, r.Zip, r.Email)
+				o = fmt.Sprintf("%s %s, Email: %s",
+					r.FirstName, r.LastName, r.Email)
 				if r.OrchidId != "" {
-					o = fmt.Sprintf("%s orchid: %s", o, r.OrchidId)
+					o = fmt.Sprintf("%s, Orchid: %s", o, r.OrchidId)
 				}
 				if r.Organization != "" {
-					o = fmt.Sprintf("%s affiliation: %s", o, r.Organization)
+					o = fmt.Sprintf("%s, Affiliation: %s", o, r.Organization)
 				}
+				o = fmt.Sprintf("%s, %s %s %s", o, r.City, r.Country, r.Zip)
 				out = append(out, o)
 				break
 			}
