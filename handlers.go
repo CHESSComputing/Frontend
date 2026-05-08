@@ -324,7 +324,7 @@ func SyncHandler(c *gin.Context) {
 	tmpl["Rows"] = records
 
 	// fill out template content
-	content := server.TmplPage(StaticFs, "syncform.tmpl", tmpl)
+	content := server.TmplPage(StaticFs, "form_sync.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
@@ -1237,7 +1237,7 @@ func AdvancedSearchHandler(c *gin.Context) {
 	tmpl["Schemas"] = smap
 	b, _ := json.Marshal(smap)
 	tmpl["SchemasJSON"] = template.JS(b)
-	page := server.TmplPage(StaticFs, "advanced_searchform.tmpl", tmpl)
+	page := server.TmplPage(StaticFs, "form_adv_search.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
@@ -1410,7 +1410,7 @@ func SearchHandler(c *gin.Context) {
 
 	// if we got GET request it is /search web form without query request
 	if r.Method == "GET" && r.FormValue("query") == "" {
-		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
+		page := server.TmplPage(StaticFs, "form_search.tmpl", tmpl)
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 		return
 	}
@@ -1424,7 +1424,7 @@ func SearchHandler(c *gin.Context) {
 	fix := r.FormValue("fix")
 	if fix == "true" {
 		tmpl["FixQuery"] = query
-		page := server.TmplPage(StaticFs, "searchform.tmpl", tmpl)
+		page := server.TmplPage(StaticFs, "form_search.tmpl", tmpl)
 		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+page+footer()))
 		return
 	}
@@ -1746,7 +1746,7 @@ func MetaDataHandler(c *gin.Context) {
 		forms = append(forms, beamlineForm)
 	}
 	tmpl["Form"] = template.HTML(strings.Join(forms, "\n"))
-	page := server.TmplPage(StaticFs, "metaforms.tmpl", tmpl)
+	page := server.TmplPage(StaticFs, "form_meta.tmpl", tmpl)
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
@@ -2618,6 +2618,9 @@ func PublishFormHandler(c *gin.Context) {
 	tmpl["GroupKey"] = groupKey
 	members, err := _foxdenUser.GetMembers(group)
 	if err == nil {
+		if len(members) > 0 && strings.Contains(members[0], " uid ") {
+			members = addAffiliation(members)
+		}
 		tmpl["Members"] = members
 	} else {
 		log.Printf("### ERROR unable to get btr members for group %s, error=%v", group, err)
@@ -2744,7 +2747,7 @@ func UploadJSONHandler(c *gin.Context) {
 		forms = append(forms, beamlineForm)
 	}
 	tmpl["Form"] = template.HTML(strings.Join(forms, "\n"))
-	page := server.TmplPage(StaticFs, "metaforms.tmpl", tmpl)
+	page := server.TmplPage(StaticFs, "form_meta.tmpl", tmpl)
 	w.Write([]byte(header() + page + footer()))
 }
 

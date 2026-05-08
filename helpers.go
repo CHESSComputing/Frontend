@@ -453,7 +453,7 @@ func genForm(fname string, record *map[string]any) (string, error) {
 	beamline := utils.FileName(fname)
 	if strings.Contains(fname, "user") {
 		tmpl := server.MakeTmpl(StaticFs, "Form")
-		form := server.TmplPage(StaticFs, "userform.tmpl", tmpl)
+		form := server.TmplPage(StaticFs, "form_user.tmpl", tmpl)
 		tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
 		tmpl["Beamline"] = beamline
 		tmpl["Description"] = ""
@@ -1204,4 +1204,32 @@ func notesToMap(notes []NoteEntry) map[string]string {
 	}
 
 	return result
+}
+
+func addAffiliation(members []string) []string {
+	var out []string
+	for _, m := range members {
+		// uid suffix is added by golib/services/chess.go in BtrMembersUids
+		arr := strings.Split(m, " uid ")
+		if len(arr) != 2 {
+			log.Println("WARNING: unable to extract member's uid:", m)
+			continue
+		}
+		uid := arr[1]
+		_httpReadRequest.GetToken()
+		rurl := fmt.Sprintf("%s/affiliations?uid=%s", srvConfig.Config.BeamPassURL, uid)
+		resp, err := _httpReadRequest.Get(rurl)
+		if err != nil {
+			log.Println("WARNING: unable to get user affiliation, error:", err)
+			return members
+		}
+		defer resp.Body.Close()
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Println("WARNING: unable to read response body, error:", err)
+			return members
+		}
+		out = append(out, string(data))
+	}
+	return out
 }
