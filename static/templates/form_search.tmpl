@@ -1,0 +1,213 @@
+<!-- searchform.tmpl -->
+<section>
+    <article id="article">
+
+<br/>
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-9">
+        <h2>
+        Search for data across FOXDEN services
+        </h2>
+    </div>
+    <div class="column column-2">
+      <a href="{{.Base}}/advancedsearch">Advanced Search</a>
+    </div>
+</div>
+<br/>
+<form action="{{.Base}}/search" method="post" name="web_search" id="web_search" class="form" autocomplete="off">
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-10">
+    <br/>
+    {{if .FixQuery}}
+    <textarea class="input"
+              id="query"
+              name="query"
+              rows=5>{{.FixQuery}}</textarea>
+    {{else}}
+    <textarea class="input"
+              id="query"
+              name="query"
+              placeholder='FOXDEN query editor'
+              rows=5></textarea>
+    {{end}}
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-10">
+        <div class="form-item">
+            <div class="autocomplete" style="width:100%">
+                {{if .Query}}
+                <input class="input"
+                       type="text"
+                       id="query_input"
+                       value="{{.Query}}">
+                       onchange="AddQuery()">
+                {{else}}
+                <input class="input"
+                       type="text"
+                       id="query_input"
+                       oninput="CallAutocomplete();"
+                       placeholder="FOXDEN search keywords autocompletion">
+                {{end}}
+            </div>
+        </div>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-9">
+        Please provide your query in query editor, you may use auto-complete input
+        to search for your favorite attributes. Make sure to replace
+        <span style="color:gray;font-weight:bold;">INT, STRING, LIST, FLOAT, BOOL</span>
+        placeholders with actual values of corresponding data-type.
+        <br/>
+        Use <span style="color:blue;font-weight:bold;padding:2px;border:1px solid black;">Search</span>
+        button to place the query,
+        and <span style="color:gray;font-weight:bold;padding:2px;border:1px solid black;">Clear</span>
+        to clear query area.
+    </div>
+    <div class="column column-1">
+        <div class="form-item">
+            <button class="button button-primary">Search</button>
+        </div>
+    </div>
+    <div class="column column-1">
+        <a href="javascript:ClearTextarea();" class="button">Clear</a>
+    </div>
+</div>
+
+</form>
+
+<div class="grid">
+    <div class="column column-1">
+    </div>
+    <div class="column column-10">
+        <b>FOXDEN Query Language (QL) &nbsp; &#8658; &nbsp;</b>
+        <button class="button button-small" onclick="ToggleTag('help');ToggleFooter()">HELP</button>
+        <div id="help" class="hide" style>
+            FOXDEN queries use
+            <a href="https://www.mongodb.com/docs/manual/tutorial/query-documents/">MongoDB query language</a>.
+            A query is composed in JSON data-format which contains QL keys and associated value or
+            more complex conditions, e.g.
+<pre>
+# fetch all records
+{}
+
+# search for specific key:value pair where "key" is your record key
+# and "123" is your record value (can be any data-type):
+{"btr":"3731-b"}
+or use multiple conditions
+{"beam_energy": 41.1, "btr": "3731-b"}
+
+# search for specific condition using operators:
+{"atten_thickness": {"$gt": 3}}
+
+# search using regex patterns:
+{"did":{"$regex":"/beamline=3a/btr=3731-b.*"}}
+
+# make complex queries
+{
+   "did":{"$regex":"/beamline=3a/btr=3731-b.*"},
+   "beam_energy": 41.1,
+   "atten_thickness": {"$gt": 3}
+}
+
+# please consult MongoDB query language syntax for more examples
+</pre>
+        </div>
+    </div>
+    <div class="column column-1">
+    </div>
+</div>
+
+<!-- AI chat -->
+{{.AIChat}}
+<!-- end of AI chat -->
+
+<!-- start of auto-complete part -->
+<script>
+function CallAutocomplete() {
+    var skeys = {{.QLKeys}};
+    autocomplete(document.getElementById("query_input"), skeys);
+}
+function AddQuery() {
+    var query = document.getElementById("query");
+    // first strip off white spaces and opening and closed brackets
+    query.value = stripWhiteSpacesAndChars(query.value, '{', '}');
+    // now process query_input
+    var input = document.getElementById("query_input");
+    // split input value using separator, the code is implemented in utils.go (qlKeys function), e.g.
+    // btr: description, units:, data-type:STRING
+    parts = input.value.split(":")
+    // first value in split array is key:description
+    input.value = parts[0];
+    // last value should be a data-type
+    const len = parts.length;
+    dataType = parts[len-1].toUpperCase().trim();
+    // combine previous and new query inputs
+    origQuery = query.value.trim()
+    if (origQuery == "") {
+        query.value = '"' + input.value + '": ' + dataType;
+    } else {
+        query.value = origQuery + ',\n' + '"' + input.value + '": ' + dataType;
+    }
+    // wrap them up into JSON brackets
+    query.value = '{\n' + query.value.trim() + '\n}';
+    // and clear query input field
+    ClearInput();
+}
+function ClearInput() {
+    var input = document.getElementById("query_input");
+    input.value = "";
+}
+function stripWhiteSpacesAndChars(str, firstChar, lastChar) {
+    // First, trim the whitespace from the beginning and end of the string
+    str = str.trim();
+
+    // Check if the string starts with the provided first character and ends with the provided last character
+    if (str.startsWith(firstChar) && str.endsWith(lastChar)) {
+        // Remove the first and last characters
+        str = str.slice(1, -1);
+    }
+    return str;
+}
+var footerHTML = "";
+var footerBkgColor = "";
+function ToggleFooter() {
+    var footer = document.getElementById("footer");
+    if (footerHTML == "") {
+        footerHTML = footer.innerHTML;
+        footerBkgColor = footer.style.backgroundColor;
+        footer.innerHTML = "";
+        footer.style.backgroundColor = "white";
+    } else {
+        footer.innerHTML = footerHTML;
+        footer.style.backgroundColor = footerBkgColor;
+        footerHTML = "";
+        footerBkgColor = "";
+    }
+}
+function ClearTextarea() {
+    var area = document.getElementById("query");
+    area.value = "";
+}
+</script>
+
+<!-- end of autocomplete part -->
+
+    </article>
+</section>
+<!-- end of web_searchform.tmpl -->
