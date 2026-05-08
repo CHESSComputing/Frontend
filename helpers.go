@@ -1215,21 +1215,56 @@ func addAffiliation(members []string) []string {
 			log.Println("WARNING: unable to extract member's uid:", m)
 			continue
 		}
+		name := arr[0]
 		uid := arr[1]
 		_httpReadRequest.GetToken()
 		rurl := fmt.Sprintf("%s/affiliations?uid=%s", srvConfig.Config.BeamPassURL, uid)
 		resp, err := _httpReadRequest.Get(rurl)
 		if err != nil {
 			log.Println("WARNING: unable to get user affiliation, error:", err)
-			return members
+			out = append(out, name)
+			continue
 		}
 		defer resp.Body.Close()
 		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Println("WARNING: unable to read response body, error:", err)
+			out = append(out, name)
 			return members
 		}
-		out = append(out, string(data))
+		// deserialize data into struct and construct new string name
+		var records []AffiliationInfo
+		if err := json.Unmarshal(data, &records); err == nil {
+			var o string
+			for _, r := range records {
+				if r.FirstName == "" {
+					continue
+				}
+				o = fmt.Sprintf("%s %s, %s %s %s email: %s",
+					r.FirstName, r.LastName, r.City, r.Country, r.Zip, r.Email)
+				if r.OrchidId != "" {
+					o = fmt.Sprintf("%s orchid: %s", o, r.OrchidId)
+				}
+				if r.Organization != "" {
+					o = fmt.Sprintf("%s affiliation: %s", o, r.Organization)
+				}
+				out = append(out, o)
+				break
+			}
+		}
 	}
 	return out
+}
+
+type AffiliationInfo struct {
+	UID          string `json:"uid"`
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	Email        string `json:"email"`
+	OrchidId     string `json:"orchid_id"`
+	Organization string `json:"organization"`
+	City         string `json:"city"`
+	Zip          string `json:"zip"`
+	Country      string `json:"country"`
+	Department   string `json:"department"`
 }
