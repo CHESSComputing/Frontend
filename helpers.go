@@ -1235,22 +1235,11 @@ func addAffiliation(members []string) []string {
 		// deserialize data into struct and construct new string name
 		var records []AffiliationInfo
 		if err := json.Unmarshal(data, &records); err == nil {
-			var o string
 			for _, r := range records {
-				if r.FirstName == "" {
-					continue
+				if r.Affiliation != "" {
+					out = append(out, r.Affiliation)
+					break
 				}
-				o = fmt.Sprintf("%s %s, Email: %s",
-					r.FirstName, r.LastName, r.Email)
-				if r.OrchidId != "" {
-					o = fmt.Sprintf("%s, Orchid: %s", o, r.OrchidId)
-				}
-				if r.Organization != "" {
-					o = fmt.Sprintf("%s, Affiliation: %s", o, r.Organization)
-				}
-				o = fmt.Sprintf("%s, %s %s %s", o, r.City, r.Country, r.Zip)
-				out = append(out, o)
-				break
 			}
 		}
 	}
@@ -1258,14 +1247,5 @@ func addAffiliation(members []string) []string {
 }
 
 type AffiliationInfo struct {
-	UID          string `json:"uid"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	Email        string `json:"email"`
-	OrchidId     string `json:"orchid_id"`
-	Organization string `json:"organization"`
-	City         string `json:"city"`
-	Zip          string `json:"zip"`
-	Country      string `json:"country"`
-	Department   string `json:"department"`
+	Affiliation string `json:"affiliation"`
 }
