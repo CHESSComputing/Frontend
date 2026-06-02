@@ -1364,6 +1364,53 @@ func NotesFormHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// TmpRecordsFormHandler provides access to POST /notesform endpoint
+func TmpRecordsFormHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("SearchHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	btr := c.Query("btr")
+
+	tmpl := server.MakeTmpl(StaticFs, "TmpRecords")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	reason, err := c.Cookie("redirect_reason")
+	if err == nil {
+		tmpl["Update"] = reason
+	}
+
+	// get tmp records from MetaData service
+	records, err := getTmpRecords(btr)
+	if err != nil {
+		tmpl["Content"] = fmt.Sprintf("Unable to fetch tmp records, %v", err)
+		page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
+		msg := string(template.HTML(page))
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	skipKeys := []string{"btr", "beamline", "schema", "SchemaName"}
+
+	// fetch existing elog entries
+	tmpl["SkipKeys"] = skipKeys
+	tmpl["Records"] = records
+	content := server.TmplPageWithFuncs(
+		StaticFs,
+		"form_tmp_records.tmpl",
+		tmpl,
+		func(t *template.Template) *template.Template {
+			return t.Funcs(template.FuncMap{
+				"contains": contains,
+			})
+		},
+	)
+	c.Data(http.StatusOK,
+		"text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	r := c.Request
@@ -1751,6 +1798,20 @@ func MetaDataHandler(c *gin.Context) {
 }
 
 // helper function to parse metadata upload form using user's provided file
+func parseTmplUploadForm(c *gin.Context) (map[string]any, error) {
+	user, _ := getUser(c)
+	c.Request.ParseForm()
+	rec := make(map[string]any)
+	rec["user"] = user
+	for k, v := range c.Request.PostForm {
+		if len(v) > 0 {
+			rec[k] = v[0]
+		}
+	}
+	return rec, nil
+}
+
+// helper function to parse metadata upload form using user's provided file
 func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 	r := c.Request
 	mrec := services.MetaRecord{}
@@ -1979,6 +2040,76 @@ func MetaFormUploadHandler(c *gin.Context) {
 	} else {
 		MetaUploadHandler(c, rec, updateMetadata)
 	}
+}
+
+// MetaTmplUploadHandler provides access to POST /meta/tmpl/upload endpoint
+func MetaTmplUploadHandler(c *gin.Context) {
+	user, _ := getUser(c)
+	// construct record
+	rec, err := parseTmplUploadForm(c)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
+		return
+	}
+	tmpl := server.MakeTmpl(StaticFs, "Upload")
+	tmpl["User"] = user
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["Date"] = time.Now().Unix()
+	schemaFiles := srvConfig.Config.CHESSMetaData.SchemaFiles
+	var sname string
+	if val, ok := rec["SchemaName"]; ok {
+		sname = fmt.Sprintf("%s", val)
+	} else {
+		err := errors.New("beamline key not found")
+		handleError(c, http.StatusBadRequest, "unable to parse tmpl upload form", err)
+		return
+	}
+
+	if sname != "" {
+		// construct proper schema files order which will be used to generate forms
+		sfiles := []string{}
+		// add scheme file which matches our desired schema
+		for _, f := range schemaFiles {
+			if strings.Contains(f, sname) {
+				sfiles = append(sfiles, f)
+			}
+		}
+		// add rest of schema files
+		for _, f := range schemaFiles {
+			if !strings.Contains(f, sname) {
+				sfiles = append(sfiles, f)
+			}
+		}
+		schemaFiles = sfiles
+		// construct proper bemalines order
+		blines := []string{sname}
+		for _, b := range _beamlines {
+			if b != sname {
+				blines = append(blines, b)
+			}
+		}
+		tmpl["Beamlines"] = blines
+	} else {
+		tmpl["Beamlines"] = _beamlines
+	}
+	var forms []string
+	for idx, fname := range schemaFiles {
+		cls := "hide"
+		if idx == 0 {
+			cls = ""
+		}
+		form, err := genForm(fname, &rec)
+		if err != nil {
+			log.Println("ERROR", err)
+			c.Writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		beamlineForm := fmt.Sprintf("<div id=\"%s\" class=\"%s\">%s</div>", utils.FileName(fname), cls, form)
+		forms = append(forms, beamlineForm)
+	}
+	tmpl["Form"] = template.HTML(strings.Join(forms, "\n"))
+	page := server.TmplPage(StaticFs, "form_meta.tmpl", tmpl)
+	c.Writer.Write([]byte(header() + page + footer()))
 }
 
 // MetaFileUploadHandler provides access to GET /meta/file/upload endpoint
@@ -2761,6 +2892,63 @@ type ChatRequest struct {
 // ChatResponse represents outgoing JSON to frontend
 type ChatResponse struct {
 	Reply string `json:"reply"`
+}
+
+// TmpRecordUpdateHandler handles updates of tmp records
+func TmpRecordUpdateHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	// Parse form data
+	err = c.Request.ParseForm()
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Create dynamic record
+	record := make(map[string]string)
+	var btr, sample string
+
+	// Iterate over submitted fields
+	for key, values := range c.Request.PostForm {
+		// HTML forms send []string
+		// usually only one value per field
+		if len(values) > 0 {
+			record[key] = values[0]
+			if key == "btr" {
+				btr = values[0]
+			}
+			if key == "sample_name" {
+				sample = values[0]
+			}
+		}
+	}
+
+	// update records in MetaData service
+	log.Printf("NewRecordHandler user=%s rec=%+v", user, record)
+	data, err := json.Marshal(record)
+	if err != nil {
+		msg := fmt.Sprintf("unable to marshal form record %v", err)
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	_httpWriteRequest.GetToken()
+	rurl := fmt.Sprintf("%s/tmp/record", srvConfig.Config.Services.MetaDataURL)
+	resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil || resp.StatusCode != 200 {
+		msg := fmt.Sprintf("unable to process sync request, status %s", resp.Status)
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+
+	// redirect HTTP to /tmp/records end-point
+	msg := fmt.Sprintf("BTR=%s sample=%s record is updated", btr, sample)
+	c.SetCookie("redirect_reason", msg, 3, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/tmp/records")
+
 }
 
 // AIChatHandler handles requests from AI assitance chat

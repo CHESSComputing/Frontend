@@ -1249,3 +1249,42 @@ func addAffiliation(members []string) []string {
 type AffiliationInfo struct {
 	Affiliation string `json:"affiliation"`
 }
+
+func contains(list []string, key string) bool {
+	for _, v := range list {
+		if v == key {
+			return true
+		}
+	}
+	return false
+}
+
+func getTmpRecords(btr string) ([]map[string]any, error) {
+	var records []map[string]any
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/tmp/records", srvConfig.Config.Services.MetaDataURL)
+	var resp *http.Response
+	var err error
+	if btr == "" {
+		resp, err = _httpReadRequest.Get(rurl)
+	} else {
+		// create payload to send
+		spec := make(map[string]string)
+		spec["btr"] = btr
+		data, e := json.Marshal(spec)
+		if e != nil {
+			return records, e
+		}
+		resp, err = _httpReadRequest.Request("GET", rurl, "application/json", bytes.NewBuffer(data))
+	}
+	if err != nil {
+		return records, err
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return records, err
+	}
+	err = json.Unmarshal(data, &records)
+	return records, err
+}

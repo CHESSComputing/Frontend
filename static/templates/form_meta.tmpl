@@ -29,6 +29,22 @@
             <br/>
 
             <div>
+                <form class="form-content" method="get" action="{{.Base}}/tmp/records">
+                <h3>Use templates</h3>
+                <div class="form-item">
+                    <label style="color:#4F8F00"> Use template records for your beamline/BTR </label>
+                </div>
+                <div class="form-item flex">
+                    <div class="is-append push-right">
+                      <button class="button button-small button-light-foxden">Access</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+
+            <hr/>
+
+            <div>
                 <form class="form-content" method="post" action="{{.Base}}/meta/file/upload" enctype="multipart/form-data">
                 <h3>Upload metadata</h3>
                 <div class="form-item">

@@ -96,6 +96,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/sync", Handler: SyncHandler, Authorized: false},
 		{Method: "GET", Path: "/sync/status/:uuid", Handler: SyncStatusHandler, Authorized: false},
 		{Method: "GET", Path: "/notesform", Handler: NotesFormHandler, Authorized: false},
+		{Method: "GET", Path: "/tmp/records", Handler: TmpRecordsFormHandler, Authorized: false},
 		{Method: "DELETE", Path: "/sync/delete/:uuid", Handler: SyncDeleteHandler, Authorized: false},
 		{Method: "POST", Path: "/notes", Handler: NotesHandler, Authorized: false},
 		{Method: "POST", Path: "/sync", Handler: SyncFormHandler, Authorized: false},
@@ -109,11 +110,13 @@ func setupRouter() *gin.Engine {
 		{Method: "POST", Path: "/provenance", Handler: PostProvenanceHandler, Authorized: false},
 		{Method: "POST", Path: "/meta/form/upload", Handler: MetaFormUploadHandler, Authorized: false},
 		{Method: "POST", Path: "/meta/file/upload", Handler: MetaFileUploadHandler, Authorized: false},
+		{Method: "POST", Path: "/meta/tmpl/upload", Handler: MetaTmplUploadHandler, Authorized: false},
 		{Method: "POST", Path: "/publish", Handler: PublishHandler, Authorized: false},
 		{Method: "POST", Path: "/publishform", Handler: PublishFormHandler, Authorized: false},
 		{Method: "POST", Path: "/populateform", Handler: UploadJSONHandler, Authorized: false},
 		{Method: "POST", Path: "/doipublic", Handler: DoiPublicHandler, Authorized: false},
 		{Method: "POST", Path: "/aichat", Handler: AIChatHandler, Authorized: false},
+		{Method: "POST", Path: "/tmp/update", Handler: TmpRecordUpdateHandler, Authorized: false},
 	}
 	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)
 
