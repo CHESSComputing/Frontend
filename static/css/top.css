@@ -78,7 +78,7 @@ article {
   padding-right: 300px;
   background-color: #ffffff;
   width:100%;
-  min-height: 700px;
+  min-height: 800px;
 }
 article.wide {
   padding-left: 100px;
@@ -206,7 +206,7 @@ footer {
     font-size: 18px;
 }
 .min-height {
-    min-height: 600px;
+    min-height: 700px;
 }
 
 /*
