@@ -1261,8 +1261,9 @@ func contains(list []string, key string) bool {
 
 func getTmpRecords(btr string) ([]map[string]any, error) {
 	var records []map[string]any
+	// fetch template records from MetaData service
 	_httpReadRequest.GetToken()
-	rurl := fmt.Sprintf("%s/tmp/records", srvConfig.Config.Services.MetaDataURL)
+	rurl := fmt.Sprintf("%s/tmpl/records", srvConfig.Config.Services.MetaDataURL)
 	var resp *http.Response
 	var err error
 	if btr == "" {

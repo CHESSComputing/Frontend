@@ -2949,10 +2949,10 @@ func TmplRecordUpdateHandler(c *gin.Context) {
 		return
 	}
 
-	// redirect HTTP to /tmp/records end-point
+	// redirect HTTP to /tmpl/records end-point
 	msg := fmt.Sprintf("BTR=%s sample=%s record is updated", btr, sample)
 	c.SetCookie("redirect_reason", msg, 3, "/", "", false, true)
-	c.Redirect(http.StatusFound, "/tmp/records")
+	c.Redirect(http.StatusFound, "/tmpl/records")
 
 }
 
