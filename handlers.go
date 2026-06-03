@@ -1399,7 +1399,7 @@ func TmplRecordsFormHandler(c *gin.Context) {
 	tmpl["Records"] = records
 	content := server.TmplPageWithFuncs(
 		StaticFs,
-		"form_tmp_records.tmpl",
+		"form_tmpl_records.tmpl",
 		tmpl,
 		func(t *template.Template) *template.Template {
 			return t.Funcs(template.FuncMap{
