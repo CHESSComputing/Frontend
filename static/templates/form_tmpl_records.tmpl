@@ -55,7 +55,7 @@ setTimeout(function() {
 {{range .Records}}
 
 <div class="">
-  <h2>Schema: {{index . "SchemaName"}} BTR: {{index . "btr"}}</h2>
+  <h3>Schema: {{index . "SchemaName"}}, BTR: {{index . "btr"}}</h3>
   <form action="{{$.Base}}/tmpl/update" method="post" class="form-content">
     <table class="table-tmp-record">
       {{range $key, $value := .}}
