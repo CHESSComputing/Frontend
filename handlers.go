@@ -2935,7 +2935,7 @@ func TmplRecordUpdateHandler(c *gin.Context) {
 		return
 	}
 	_httpWriteRequest.GetToken()
-	rurl := fmt.Sprintf("%s/tmp/record", srvConfig.Config.Services.MetaDataURL)
+	rurl := fmt.Sprintf("%s/tmpl/record", srvConfig.Config.Services.MetaDataURL)
 	resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil || resp.StatusCode != 200 {
 		msg := fmt.Sprintf("unable to update template record, status %s, error %v", resp.Status, err)
