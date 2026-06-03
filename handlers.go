@@ -1364,8 +1364,8 @@ func NotesFormHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
-// TmpRecordsFormHandler provides access to POST /notesform endpoint
-func TmpRecordsFormHandler(c *gin.Context) {
+// TmplRecordsFormHandler provides access to POST /notesform endpoint
+func TmplRecordsFormHandler(c *gin.Context) {
 	user, err := getUser(c)
 	if Verbose > 1 {
 		log.Printf("SearchHandler %s user=%s error=%v", c.Request.Method, user, err)
@@ -2894,9 +2894,9 @@ type ChatResponse struct {
 	Reply string `json:"reply"`
 }
 
-// TmpRecordUpdateHandler handles updates of tmp records
-func TmpRecordUpdateHandler(c *gin.Context) {
-	user, err := getUser(c)
+// TmplRecordUpdateHandler handles updates of tmp records
+func TmplRecordUpdateHandler(c *gin.Context) {
+	_, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
 		return
@@ -2928,7 +2928,6 @@ func TmpRecordUpdateHandler(c *gin.Context) {
 	}
 
 	// update records in MetaData service
-	log.Printf("NewRecordHandler user=%s rec=%+v", user, record)
 	data, err := json.Marshal(record)
 	if err != nil {
 		msg := fmt.Sprintf("unable to marshal form record %v", err)
@@ -2939,7 +2938,13 @@ func TmpRecordUpdateHandler(c *gin.Context) {
 	rurl := fmt.Sprintf("%s/tmp/record", srvConfig.Config.Services.MetaDataURL)
 	resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil || resp.StatusCode != 200 {
-		msg := fmt.Sprintf("unable to process sync request, status %s", resp.Status)
+		msg := fmt.Sprintf("unable to update template record, status %s, error %v", resp.Status, err)
+		if err == nil {
+			defer resp.Body.Close()
+			if data, err = io.ReadAll(resp.Body); err == nil {
+				msg = fmt.Sprintf("unable to update template record, status %s, %v", resp.Status, string(data))
+			}
+		}
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}

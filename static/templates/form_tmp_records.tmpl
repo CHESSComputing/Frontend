@@ -56,7 +56,7 @@ setTimeout(function() {
 
 <div class="">
   <h2>Schema: {{index . "SchemaName"}} Beamline: {{index . "beamline"}} BTR: {{index . "btr"}}</h2>
-  <form action="{{$.Base}}/tmp/update" method="post" class="form-content">
+  <form action="{{$.Base}}/tmpl/update" method="post" class="form-content">
     <table class="table-tmp-record">
       {{range $key, $value := .}}
       {{if not (contains $.SkipKeys $key)}}

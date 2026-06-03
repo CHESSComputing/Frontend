@@ -96,7 +96,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/sync", Handler: SyncHandler, Authorized: false},
 		{Method: "GET", Path: "/sync/status/:uuid", Handler: SyncStatusHandler, Authorized: false},
 		{Method: "GET", Path: "/notesform", Handler: NotesFormHandler, Authorized: false},
-		{Method: "GET", Path: "/tmp/records", Handler: TmpRecordsFormHandler, Authorized: false},
+		{Method: "GET", Path: "/tmpl/records", Handler: TmplRecordsFormHandler, Authorized: false},
 		{Method: "DELETE", Path: "/sync/delete/:uuid", Handler: SyncDeleteHandler, Authorized: false},
 		{Method: "POST", Path: "/notes", Handler: NotesHandler, Authorized: false},
 		{Method: "POST", Path: "/sync", Handler: SyncFormHandler, Authorized: false},
@@ -116,7 +116,7 @@ func setupRouter() *gin.Engine {
 		{Method: "POST", Path: "/populateform", Handler: UploadJSONHandler, Authorized: false},
 		{Method: "POST", Path: "/doipublic", Handler: DoiPublicHandler, Authorized: false},
 		{Method: "POST", Path: "/aichat", Handler: AIChatHandler, Authorized: false},
-		{Method: "POST", Path: "/tmp/update", Handler: TmpRecordUpdateHandler, Authorized: false},
+		{Method: "POST", Path: "/tmpl/update", Handler: TmplRecordUpdateHandler, Authorized: false},
 	}
 	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)
 
