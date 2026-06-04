@@ -1721,10 +1721,18 @@ func SpecScansDataHandler(c *gin.Context) {
 		return
 	}
 
+	total, terr := countSpecScansRecords(string(query), spec)
+	if terr != nil {
+		log.Printf("ERROR: SpecScansDataHandler: countSpecScansRecords: %v", terr)
+		c.JSON(http.StatusBadGateway, gin.H{})
+		return
+	}
+
 	allRecords, err := fetchSpecScans(services.ServiceRequest{
 		Client: "frontend",
 		ServiceQuery: services.ServiceQuery{
 			Query:     string(query),
+			Spec:      spec,
 			Idx:       idx,
 			Limit:     limit,
 			SortKeys:  sortKeys,
@@ -1736,8 +1744,6 @@ func SpecScansDataHandler(c *gin.Context) {
 		c.JSON(http.StatusBadGateway, gin.H{})
 		return
 	}
-
-	total := len(allRecords)
 
 	// Project requested attributes
 	var records []map[string]any
