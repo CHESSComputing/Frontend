@@ -6,11 +6,10 @@
 <div class="grid">
     <div class="column column-1">
     </div>
-    <div class="column column-8">
+    <div class="column column-10">
         <h1>FOXDEN Command Line Tool</h1>
         <a href="https://github.com/CHESSComputing/gotools/releases/latest">foxden</a> command line tool provides access to all FOXDEN services
         <br/>
-        <!------!>
         <div class="grid">
             <div class="column column-10">
                 token commands
@@ -19,7 +18,6 @@
 				<button class="button button-small" onclick="ToggleTag('auth')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="auth" class="hide">
 foxden token create [scope: read|write|delete] [options]
 foxden token view [options]
@@ -47,7 +45,6 @@ foxden token view --token=/tmp/token
 # view existing token stored in [CHESS_TOKEN CHESS_WRITE_TOKEN CHESS_DELETE_TOKEN]
 foxden token view
                 </pre>
-        <!------!>
         <div class="grid">
             <div class="column column-10">
                 search commands
@@ -56,7 +53,6 @@ foxden token view
 				<button class="button button-small" onclick="ToggleTag('search')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="search" class="hide">
 foxden search <spec>
 
@@ -73,7 +69,6 @@ foxden search '{"PI":"name"}'
 # keys can be in lower case, e.g. pi instead of PI used in meta-data record
 foxden search pi:name
                 </pre>
-        <!------!>
         <div class="grid">
             <div class="column column-10">
                 view commands
@@ -82,7 +77,6 @@ foxden search pi:name
 				<button class="button button-small" onclick="ToggleTag('view')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="view" class="hide">
 foxden view [DID]
                 </pre>
@@ -94,7 +88,6 @@ foxden view [DID]
 				<button class="button button-small" onclick="ToggleTag('prov')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="prov" class="hide">
 foxden prov [ls|add] [options]
 options: provenance attributes like dataset(s), file(s) or
@@ -113,7 +106,6 @@ foxden prov ls files --dataset=/x/y/z
 # add provenance data record:
 foxden prov add <provenance.json>
                 </pre>
-        <!------!>
         <div class="grid">
             <div class="column column-10">
                 Meta-data commands
@@ -122,7 +114,6 @@ foxden prov add <provenance.json>
 				<button class="button button-small" onclick="ToggleTag('meta')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="meta" class="hide">
 foxden meta [ls|add|rm] [value]
 Examples:
@@ -139,7 +130,6 @@ foxden meta rm 123xyz
 # add meta-data record:
 foxden meta add [schema] [file.json]
                 </pre>
-        <!------!>
         <div class="grid">
             <div class="column column-10">
                 S3 commands
@@ -148,7 +138,6 @@ foxden meta add [schema] [file.json]
 				<button class="button button-small" onclick="ToggleTag('s3')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="s3" class="hide">
 foxden s3 [ls|create|delete|upload] [value]
 
@@ -172,7 +161,6 @@ foxden s3 ls Cornell
 # list specific bucket on s3 storage:
 foxden s3 ls Cornell/bucket
                 </pre>
-        <!------!>
         <div class="grid">
             <div class="column column-10">
                 ML commands
@@ -181,7 +169,6 @@ foxden s3 ls Cornell/bucket
 				<button class="button button-small" onclick="ToggleTag('ml')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="ml" class="hide">
 foxden ml [models|upload|predict|delete] [values]
 
@@ -199,7 +186,6 @@ foxden ml predict /path/input.json
 # ML inference for input via submission, e.g. image prediction
 foxden ml predict --file=/path/img.png --model=model --type=TensorFlow --backend=TFaaS
                 </pre>
-        <!------!>
         <div class="grid">
             <div class="column column-10">
                 doi commands
@@ -208,7 +194,6 @@ foxden ml predict --file=/path/img.png --model=model --type=TensorFlow --backend
 				<button class="button button-small" onclick="ToggleTag('doi')">Show</button>
             </div>
         </div>
-        <!------!>
                 <pre id="doi" class="hide">
 foxden doi [ls|create|update|publish|view] [DID] [options]
 
@@ -251,7 +236,6 @@ Here is example of record.json
     }
 }
                 </pre>
-        <!------!>
 
         <br/>
         <h1>FOXDEN services</h1>
