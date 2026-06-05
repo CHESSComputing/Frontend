@@ -1384,7 +1384,7 @@ func TmplRecordsFormHandler(c *gin.Context) {
 	}
 
 	// get tmp records from MetaData service
-	records, err := getTmpRecords(btr)
+	records, err := getTmplRecords(btr)
 	if err != nil {
 		tmpl["Content"] = fmt.Sprintf("Unable to fetch tmp records, %v", err)
 		page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
@@ -1392,7 +1392,7 @@ func TmplRecordsFormHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
-	skipKeys := []string{"btr", "beamline", "schema", "SchemaName"}
+	skipKeys := []string{"btr", "beamline", "schema", "SchemaName", "timestamp"}
 
 	// fetch existing elog entries
 	tmpl["SkipKeys"] = skipKeys
@@ -2900,8 +2900,18 @@ type ChatResponse struct {
 	Reply string `json:"reply"`
 }
 
-// TmplRecordUpdateHandler handles updates of tmp records
+// TmplRecordCreateHandler handles creation of tmpl record
+func TmplRecordCreateHandler(c *gin.Context) {
+	TmplRecordHandler(c, "create")
+}
+
+// TmplRecordUpdateHandler handles updates of tmpl record
 func TmplRecordUpdateHandler(c *gin.Context) {
+	TmplRecordHandler(c, "update")
+}
+
+// TmplRecordHandler handles updates of tmp records
+func TmplRecordHandler(c *gin.Context, action string) {
 	_, err := getUser(c)
 	if err != nil {
 		LoginHandler(c)
@@ -2942,7 +2952,12 @@ func TmplRecordUpdateHandler(c *gin.Context) {
 	}
 	_httpWriteRequest.GetToken()
 	rurl := fmt.Sprintf("%s/tmpl/record", srvConfig.Config.Services.MetaDataURL)
-	resp, err := _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	var resp *http.Response
+	if action == "update" {
+		resp, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	} else if action == "create" {
+		resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	}
 	if err != nil || resp.StatusCode != 200 {
 		msg := fmt.Sprintf("unable to update template record, status %s, error %v", resp.Status, err)
 		if err == nil {
@@ -2956,7 +2971,7 @@ func TmplRecordUpdateHandler(c *gin.Context) {
 	}
 
 	// redirect HTTP to /tmpl/records end-point
-	msg := fmt.Sprintf("BTR=%s sample=%s record is updated", btr, sample)
+	msg := fmt.Sprintf("BTR=%s sample=%s record action %s", btr, sample, action)
 	c.SetCookie("redirect_reason", msg, 3, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/tmpl/records")
 
