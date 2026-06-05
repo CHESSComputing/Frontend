@@ -1276,7 +1276,7 @@ func contains(list []string, key string) bool {
 	return false
 }
 
-func getTmpRecords(btr string) ([]map[string]any, error) {
+func getTmplRecords(btr string) ([]map[string]any, error) {
 	var records []map[string]any
 	// fetch template records from MetaData service
 	_httpReadRequest.GetToken()
@@ -1304,5 +1304,9 @@ func getTmpRecords(btr string) ([]map[string]any, error) {
 		return records, err
 	}
 	err = json.Unmarshal(data, &records)
+	// remove from records "_id" attribute
+	for _, rec := range records {
+		delete(rec, "_id")
+	}
 	return records, err
 }
