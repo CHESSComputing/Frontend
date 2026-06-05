@@ -15,7 +15,7 @@ table.table-tmp-record td {
 }
 </style>
 
-<h2>FOXDEN Template Records</h2>
+<h2>Staging area (existing template records)</h2>
 
 {{if .Update}}
 <style>
@@ -52,45 +52,105 @@ setTimeout(function() {
 </script>
 {{end}}
 
-{{range .Records}}
 
-<div class="">
-  <h3>Schema: {{index . "SchemaName"}}, BTR: {{index . "btr"}}</h3>
-  <form action="{{$.Base}}/tmpl/update" method="post" class="form-content">
-    <table class="table-tmp-record">
-      {{range $key, $value := .}}
-      {{if not (contains $.SkipKeys $key)}}
-      <tr>
-        <td class="">{{$key}}</td>
-        <td>
+{{range $idx, $record := .Records}}
+
+<div class="record-container">
+
+  <div style="display:flex; align-items:center; gap:10px;">
+    <h3 style="margin:0;">
+      Schema: {{index $record "SchemaName"}},
+      BTR: {{index $record "btr"}}
+    </h3>
+
+    <button
+        type="button"
+        class="button button-small"
+        onclick="toggleRecord('record-{{$idx}}', this)">
+        Show
+    </button>
+  </div>
+
+  <div id="record-{{$idx}}" style="display:none; margin-top:10px;">
+
+    <form action="{{$.Base}}/tmpl/update"
+          method="post"
+          class="form-content">
+
+      <table class="table-tmp-record">
+
+        {{range $key, $value := $record}}
+
+          {{if not (contains $.SkipKeys $key)}}
+          <tr>
+            <td>{{$key}}</td>
+            <td>
+              <input
+                class="input"
+                type="text"
+                name="{{$key}}"
+                value="{{$value}}">
+            </td>
+          </tr>
+          {{else}}
           <input
-            class="input"
-            type="text"
-            name="{{$key}}"
-            value="{{$value}}">
-        </td>
-      </tr>
-      {{else}}
-        <input type="hidden" name="{{$key}}" value="{{$value}}" />
-      {{end}}
-      {{end}}
-    </table>
-    <div class="form-item flex" style="display:flex; justify-content: flex-end; gap:10px">
-      <button type="submit" 
-          formaction="{{$.Base}}/meta/tmpl/upload"
-          class="button button-small button-dark-foxden">
-          Use as FOXDEN template
-      </button>
-      <button type="submit"
-          class="button button-small button-light-foxden">
-          Update
-      </button>
-    </div>
-  </form>
-<hr/>
+              type="hidden"
+              name="{{$key}}"
+              value="{{$value}}" />
+          {{end}}
+
+        {{end}}
+
+      </table>
+
+      <div class="form-item flex"
+           style="display:flex; justify-content:flex-end; gap:10px">
+
+        <button
+            type="submit"
+            formaction="{{$.Base}}/meta/tmpl/upload"
+            class="button button-small button-very-light-foxden">
+            Select
+        </button>
+
+        <button
+            type="submit"
+            formaction="{{$.Base}}/tmpl/create"
+            class="button button-small button-light-foxden">
+            Create
+        </button>
+
+        <button
+            type="submit"
+            class="button button-small button-dark-foxden">
+            Save
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+  <hr/>
+
 </div>
 
 {{end}}
 
   </article>
 </section>
+
+<script>
+function toggleRecord(id, button) {
+    const record = document.getElementById(id);
+
+    if (record.style.display === "none") {
+        record.style.display = "block";
+        button.textContent = "Hide";
+    } else {
+        record.style.display = "none";
+        button.textContent = "Show";
+    }
+}
+</script>
