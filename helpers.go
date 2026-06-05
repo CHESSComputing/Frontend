@@ -1145,6 +1145,23 @@ func countMetadataRecords() (int, error) {
 	return nrec, nil
 }
 
+// countSpecScansRecords returns the total number of SpecScan records matching the given query spec.
+func countSpecScansRecords(query string, spec map[string]any) (int, error) {
+	records, err := fetchSpecScans(services.ServiceRequest{
+		Client: "frontend",
+		ServiceQuery: services.ServiceQuery{
+			Query: query,
+			Spec:  spec,
+			Idx:   0,
+			Limit: 0,
+		},
+	})
+	if err != nil {
+		return 0, err
+	}
+	return len(records), nil
+}
+
 // NoteEntry defines Elog entry structure
 type NoteEntry struct {
 	Did  string `json:"did"`
