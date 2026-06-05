@@ -234,6 +234,12 @@ footer {
 .button-light-foxden {
     --button-background-color: #F8E0AA;
 }
+.button-lighter-foxden {
+    --button-background-color: #FBECC8;
+}
+.button-very-light-foxden {
+    --button-background-color: #FDF4DF;
+}
 .button-help-foxden {
     --button-background-color: #D6D6D6;
 }
