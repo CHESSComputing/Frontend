@@ -1452,7 +1452,7 @@ func SearchHandler(c *gin.Context) {
 
 	// add AIChat into search page if it is presented within FOXDEN configuration
 	if srvConfig.Config.AIChat.Model != "" {
-		tmpl["AIChat"] = server.TmplPage(StaticFs, "ai_chat.tmpl", tmpl)
+		tmpl["AIChat"] = template.HTML(server.TmplPage(StaticFs, "ai_chat.tmpl", tmpl))
 	}
 
 	// if we got GET request it is /search web form without query request
