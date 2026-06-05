@@ -1304,9 +1304,5 @@ func getTmplRecords(btr string) ([]map[string]any, error) {
 		return records, err
 	}
 	err = json.Unmarshal(data, &records)
-	// remove from records "_id" attribute
-	for _, rec := range records {
-		delete(rec, "_id")
-	}
 	return records, err
 }
