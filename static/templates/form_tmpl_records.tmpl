@@ -16,6 +16,7 @@ table.table-tmp-record td {
 </style>
 
 <h2>Staging area (existing template records)</h2>
+<hr/>
 
 {{if .Update}}
 <style>
@@ -57,18 +58,22 @@ setTimeout(function() {
 
 <div class="record-container">
 
-  <div style="display:flex; align-items:center; gap:10px;">
-    <h3 style="margin:0;">
-      Schema: {{index $record "SchemaName"}},
-      BTR: {{index $record "btr"}}
-    </h3>
+  <div class="grid">
+    <div class="column column-11">
+      <b>Schema:</b> {{index $record "SchemaName"}},
+      <b>BTR:</b> {{index $record "btr"}},
+      <b>Cycle:</b> {{index $record "cycle"}},
+      <b>Sample:</b> {{index $record "sample_name"}}
+    </div>
 
-    <button
-        type="button"
-        class="button button-small"
-        onclick="toggleRecord('record-{{$idx}}', this)">
-        Show
-    </button>
+    <div class="column column-1">
+      <button
+          type="button"
+          class="button button-small"
+          onclick="toggleRecord('record-{{$idx}}', this)">
+          Show
+      </button>
+    </div>
   </div>
 
   <div id="record-{{$idx}}" style="display:none; margin-top:10px;">
