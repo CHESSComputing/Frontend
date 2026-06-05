@@ -27,16 +27,24 @@ document.addEventListener('click', function(e) {
     .catch(() => { content.innerHTML = '<p>ERROR: failed to load user information</p>'; });
 });
 
-document.getElementById('user-popup-close')
-  .addEventListener('click', closeUserPopup);
+const closeBtn = document.getElementById('user-popup-close');
+if (closeBtn) {
+    closeBtn.addEventListener('click', closeUserPopup);
+}
 
-document.getElementById('user-popup-overlay')
-  .addEventListener('click', function(e) {
-    if (e.target === this) closeUserPopup();
-  });
+const overlay = document.getElementById('user-popup-overlay');
+if (overlay) {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeUserPopup();
+        }
+    });
+}
 
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeUserPopup();
+    if (e.key === 'Escape') {
+        closeUserPopup();
+    }
 });
 
 function closeUserPopup() {
