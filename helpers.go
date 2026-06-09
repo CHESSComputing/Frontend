@@ -609,7 +609,7 @@ func genForm(fname string, record *map[string]any) (string, error) {
 		// we need to wrap sub records in repeatable container
 		tmpl := server.MakeTmpl(StaticFs, "FormStructEntry")
 		tmpl["Section"] = legend
-		tmpl["SubRecords"] = strings.Join(rOut, "\n<br/>\n")
+		tmpl["SubRecords"] = template.HTML(strings.Join(rOut, "\n<br/>\n"))
 		structSection := server.TmplPage(StaticFs, "form_struct.tmpl", tmpl)
 		out = append(out, structSection)
 	}
