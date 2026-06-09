@@ -2048,6 +2048,42 @@ func MetaFormUploadHandler(c *gin.Context) {
 	}
 }
 
+// MetaTmplSubmitHandler provides access to POST /meta/tmpl/submit endpoint
+func MetaTmplSubmitHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	// construct record
+	rec, err := parseTmplUploadForm(c)
+	if err != nil {
+		handleError(c, http.StatusBadRequest, "unable to parse file upload form", err)
+		return
+	}
+	rec["user"] = user
+	_httpWriteRequest.GetToken()
+	rurl := fmt.Sprintf("%s/tmpl/submit/record", srvConfig.Config.Services.MetaDataURL)
+	data, err := json.Marshal(rec)
+	resp, err := _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil || resp.StatusCode != 200 {
+		msg := fmt.Sprintf("unable to submit template record, status %s, error %v", resp.Status, err)
+		if err == nil {
+			defer resp.Body.Close()
+			if data, err = io.ReadAll(resp.Body); err == nil {
+				msg = fmt.Sprintf("unable to submit update template record, status %s, %v", resp.Status, string(data))
+			}
+		}
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+
+	// redirect HTTP to /tmpl/records end-point
+	msg := "record submitted to FOXDEN"
+	c.SetCookie("redirect_reason", msg, 3, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/tmpl/records")
+}
+
 // MetaTmplUploadHandler provides access to POST /meta/tmpl/upload endpoint
 func MetaTmplUploadHandler(c *gin.Context) {
 	user, _ := getUser(c)
