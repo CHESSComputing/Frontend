@@ -111,6 +111,7 @@ func setupRouter() *gin.Engine {
 		{Method: "POST", Path: "/meta/form/upload", Handler: MetaFormUploadHandler, Authorized: false},
 		{Method: "POST", Path: "/meta/file/upload", Handler: MetaFileUploadHandler, Authorized: false},
 		{Method: "POST", Path: "/meta/tmpl/upload", Handler: MetaTmplUploadHandler, Authorized: false},
+		{Method: "POST", Path: "/meta/tmpl/submit", Handler: MetaTmplSubmitHandler, Authorized: false},
 		{Method: "POST", Path: "/publish", Handler: PublishHandler, Authorized: false},
 		{Method: "POST", Path: "/publishform", Handler: PublishFormHandler, Authorized: false},
 		{Method: "POST", Path: "/populateform", Handler: UploadJSONHandler, Authorized: false},
