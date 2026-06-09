@@ -111,24 +111,32 @@ setTimeout(function() {
       <div class="form-item flex"
            style="display:flex; justify-content:flex-end; gap:10px">
 
+        <input type="hidden" name="SchemaName" value="{{index $record "SchemaName"}}"/>
+        <button
+            type="submit"
+            formaction="{{$.Base}}/meta/tmpl/submit"
+            class="button button-small">
+            Submit to FOXDEN
+        </button>
+
         <button
             type="submit"
             formaction="{{$.Base}}/meta/tmpl/upload"
             class="button button-small button-very-light-foxden">
-            Select
+            Select to Web form
         </button>
 
         <button
             type="submit"
             formaction="{{$.Base}}/tmpl/create"
             class="button button-small button-light-foxden">
-            Create
+            Create New Template
         </button>
 
         <button
             type="submit"
             class="button button-small button-dark-foxden">
-            Save
+            Validate & Save
         </button>
 
       </div>
