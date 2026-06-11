@@ -1281,6 +1281,9 @@ func getTmplRecords(btr string) ([]map[string]any, error) {
 	// fetch template records from MetaData service
 	_httpReadRequest.GetToken()
 	rurl := fmt.Sprintf("%s/tmpl/records", srvConfig.Config.Services.MetaDataURL)
+	if btr != "" {
+		rurl = fmt.Sprintf("%s/tmpl/records?btr=%s", srvConfig.Config.Services.MetaDataURL, btr)
+	}
 	var resp *http.Response
 	var err error
 	if btr == "" {
