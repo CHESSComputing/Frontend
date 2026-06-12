@@ -6,7 +6,13 @@
 <div class="grid">
     <div class="column column-11">
         <div>
-            User {{.User}}{{if .Btrs}}, BTRs: {{.Btrs}}{{end}}
+            User {{.User}}
+            {{if .Btrs}}
+              , BTRs:
+              {{range $i, $btr := .Btrs}}
+                  <a href="{{$.Base}}/?btr={{$btr}}">{{ $btr }}</a>
+              {{end}}
+          {{end}}
         </div>
     </div>
     <div class="column column-1">
@@ -116,7 +122,6 @@ function isCaseInsensitive() {
     return $('#caseInsensitive').is(':checked') ? '1' : '';
 }
 
-
 $(document).ready(function() {
     let totalRecords = 0;
     let columns = [];
@@ -218,6 +223,9 @@ $(document).ready(function() {
             url: "{{.DataURL}}",
             type: "GET",
             data: {
+                {{if .UserBtr}}
+                btr: {{.UserBtr}},
+                {{end}}
                 idx: startIndex,
                 limit: limit,
                 search: searchTerm,
@@ -315,7 +323,6 @@ $(document).ready(function() {
         });
     }
 });
-
 
 $('#help-btn').on('click', function () {
   $('#help-message').slideToggle(150);
