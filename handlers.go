@@ -3013,6 +3013,23 @@ func TmplRecordHandler(c *gin.Context, action string) {
 
 }
 
+// TmplRecordDeleteHandler handles updates of tmpl record
+func TmplRecordDeleteHandler(c *gin.Context) {
+	_httpDeleteRequest.GetToken()
+	did := c.PostForm("did")
+	rurl := fmt.Sprintf("%s/tmpl/record?did=%s", srvConfig.Config.Services.MetaDataURL, url.QueryEscape(did))
+	data := []byte{}
+	resp, err := _httpDeleteRequest.Delete(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil || resp.StatusCode != 200 {
+		msg := fmt.Sprintf("unable to delete template record, status %s", resp.Status)
+		handleError(c, http.StatusBadRequest, msg, err)
+		return
+	}
+	msg := fmt.Sprintf("did=%s record deletion is scheduled", did)
+	c.SetCookie("redirect_reason", msg, 3, "/", "", false, true)
+	c.Redirect(http.StatusFound, "/tmpl/records")
+}
+
 // AIChatHandler handles requests from AI assitance chat
 func AIChatHandler(c *gin.Context) {
 	user, err := getUser(c)
