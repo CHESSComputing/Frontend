@@ -1307,5 +1307,30 @@ func getTmplRecords(btr string) ([]map[string]any, error) {
 		return records, err
 	}
 	err = json.Unmarshal(data, &records)
+	// add title to each record
+	for _, r := range records {
+		log.Printf("record %+v", r)
+		var btr, cycle, sample, tst string
+		if v, ok := r["btr"]; ok {
+			btr = fmt.Sprintf("%s", v)
+		}
+		if v, ok := r["cycle"]; ok {
+			btr = fmt.Sprintf("%s", v)
+		}
+		if v, ok := r["sample"]; ok {
+			btr = fmt.Sprintf("%s", v)
+		}
+		if v, ok := r["timestamp"]; ok {
+			switch ts := v.(type) {
+			case float64:
+				tst = fmt.Sprintf("%d", int64(ts))
+			case int, int64:
+				tst = fmt.Sprintf("%d", ts)
+			}
+		}
+		if _, ok := r["did"]; !ok {
+			r["did"] = fmt.Sprintf("/btr=%s/cycle=%s/sample_name=%s/timestamp=%v", btr, cycle, sample, tst)
+		}
+	}
 	return records, err
 }
