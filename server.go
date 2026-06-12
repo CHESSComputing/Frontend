@@ -119,6 +119,7 @@ func setupRouter() *gin.Engine {
 		{Method: "POST", Path: "/aichat", Handler: AIChatHandler, Authorized: false},
 		{Method: "POST", Path: "/tmpl/create", Handler: TmplRecordCreateHandler, Authorized: false},
 		{Method: "POST", Path: "/tmpl/update", Handler: TmplRecordUpdateHandler, Authorized: false},
+		{Method: "POST", Path: "/tmpl/delete", Handler: TmplRecordDeleteHandler, Authorized: false},
 	}
 	r := server.Router(routes, StaticFs, "static", srvConfig.Config.Frontend.WebServer)
 
