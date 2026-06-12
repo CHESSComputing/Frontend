@@ -2508,6 +2508,11 @@ func DatasetsHandler(c *gin.Context) {
 	}
 
 	spec := makeSpec(searchFilter, attrs, caseInsensitive)
+	// check if user query /datasets?btr=<bla> explicitly, if so define spec with btr value
+	btr := c.Query("btr")
+	if btr != "" {
+		spec["btr"] = btr
+	}
 	if data, e := json.Marshal(spec); e == nil {
 		query = string(data)
 	}
@@ -2656,6 +2661,7 @@ func DatasetsTableHandler(c *gin.Context) {
 	tmpl["DataURL"] = "/datasets"
 	tmpl["CookieName"] = "userAttrs"
 	tmpl["DefaultAttrs"] = "date,beamline,btr,cycle,sample_name"
+	tmpl["UserBtr"] = c.Query("btr")
 	if user != "test" {
 		if fuser, err := _foxdenUser.Get(user); err == nil {
 			tmpl["Btrs"] = fuser.Btrs
