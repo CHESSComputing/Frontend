@@ -59,13 +59,15 @@ setTimeout(function() {
 <div class="record-container">
 
   <div class="grid">
-    <div class="column column-11">
-      <b>Schema:</b> {{index $record "SchemaName"}},
-      <b>BTR:</b> {{index $record "btr"}},
-      <b>Cycle:</b> {{index $record "cycle"}},
-      <b>Sample:</b> {{index $record "sample_name"}}
+    <div class="column column-2">
+      <b>Schema:</b> {{index $record "SchemaName"}}
     </div>
-
+    <div class="column column-2">
+      <b>BTR:</b> {{index $record "btr"}}
+    </div>
+    <div class="column column-7">
+      <b>DID:</b> {{index $record "did"}}
+    </div>
     <div class="column column-1">
       <button
           type="button"
