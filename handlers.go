@@ -2687,7 +2687,7 @@ func PublishHandler(c *gin.Context) {
 	r := c.Request
 	w := c.Writer
 	tmpl := server.MakeTmpl(StaticFs, "Login")
-	template := "success.tmpl"
+	templateName := "success.tmpl"
 	httpCode := http.StatusOK
 	srvCode := services.OK
 
@@ -2728,18 +2728,18 @@ func PublishHandler(c *gin.Context) {
 	}
 	content := fmt.Sprintf("SUCCESS:<br/><b>did=%s</b><br/>is published with<br/><b>DOI=%s</b><br/><b>URL=<a href=\"%s\">%s</a></b><br/>Please note: it will take some time for DOI record to appear", did, doi, doiLink, doiLink)
 	if err != nil {
-		template = "error.tmpl"
+		templateName = "error.tmpl"
 		httpCode = http.StatusBadRequest
 		content = fmt.Sprintf("ERROR:<br/>fail to publish<br/>did=%s<br/>error=%v", did, err)
 	} else if doi == "" || doiLink == "" {
-		template = "error.tmpl"
+		templateName = "error.tmpl"
 		httpCode = http.StatusBadRequest
 		content = fmt.Sprintf("ERROR:<br/>unable to get DOI info for <br/>did=%s<br/> from %s DOI provider", did, doiprovider)
 	} else {
 		// update metadata with DOI information
 		err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, publishmetadata, parents)
 		if err != nil {
-			template = "error.tmpl"
+			templateName = "error.tmpl"
 			httpCode = http.StatusBadRequest
 			content = fmt.Sprintf("ERROR:<br/>fail to update MetaData DOI for<br/>did=%s<br/>error=%v", did, err)
 		}
@@ -2754,7 +2754,7 @@ func PublishHandler(c *gin.Context) {
 		return
 	} else {
 		tmpl["Content"] = template.HTML(content)
-		page := server.TmplPage(StaticFs, template, tmpl)
+		page := server.TmplPage(StaticFs, templateName, tmpl)
 		w.Write([]byte(header() + page + footer()))
 	}
 }
@@ -2823,7 +2823,7 @@ func DoiPublicHandler(c *gin.Context) {
 	schema := r.FormValue("schema")
 	doiprovider := r.FormValue("doiprovider")
 	tmpl := server.MakeTmpl(StaticFs, "Login")
-	template := "success.tmpl"
+	templateName := "success.tmpl"
 	content := fmt.Sprintf("SUCCESS:<br/><b>DOI=%s</b><br/>is published with %s as public DOI<br/><b>URL=<a href=\"%s\">%s</a></b><br/>Please note: it will take some time for public DOI record to appear", doi, doiprovider, doiLink, doiLink)
 
 	// update dataset info in DOI provider
@@ -2832,17 +2832,17 @@ func DoiPublicHandler(c *gin.Context) {
 		doiPublic := true
 		doiParents := []string{}
 		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "preserve", doiParents); err != nil {
-			template = "error.tmpl"
+			templateName = "error.tmpl"
 			content = fmt.Sprintf("ERROR:<br/>fail to update Metadata DOI information<br/>DOI=%s<br/>error=%v", doi, err)
 			w.WriteHeader(http.StatusNotFound)
 		}
 	} else {
-		template = "error.tmpl"
+		templateName = "error.tmpl"
 		content = fmt.Sprintf("ERROR:<br/>fail to create public DOI record<br/>DOI=%s<br/>error=%v", doi, err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	tmpl["Content"] = template.HTML(content)
-	page := server.TmplPage(StaticFs, template, tmpl)
+	page := server.TmplPage(StaticFs, templateName, tmpl)
 	w.Write([]byte(header() + page + footer()))
 }
 
