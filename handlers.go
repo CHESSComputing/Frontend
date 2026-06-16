@@ -2753,7 +2753,7 @@ func PublishHandler(c *gin.Context) {
 		}
 		return
 	} else {
-		tmpl["Content"] = content
+		tmpl["Content"] = template.HTML(content)
 		page := server.TmplPage(StaticFs, template, tmpl)
 		w.Write([]byte(header() + page + footer()))
 	}
@@ -2841,7 +2841,7 @@ func DoiPublicHandler(c *gin.Context) {
 		content = fmt.Sprintf("ERROR:<br/>fail to create public DOI record<br/>DOI=%s<br/>error=%v", doi, err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	tmpl["Content"] = content
+	tmpl["Content"] = template.HTML(content)
 	page := server.TmplPage(StaticFs, template, tmpl)
 	w.Write([]byte(header() + page + footer()))
 }
