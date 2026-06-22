@@ -1317,7 +1317,7 @@ func getTmplRecords(btr string) ([]map[string]any, error) {
 		if v, ok := r["cycle"]; ok {
 			btr = fmt.Sprintf("%s", v)
 		}
-		if v, ok := r["sample"]; ok {
+		if v, ok := r["sample_name"]; ok {
 			btr = fmt.Sprintf("%s", v)
 		}
 		if v, ok := r["timestamp"]; ok {
@@ -1329,7 +1329,7 @@ func getTmplRecords(btr string) ([]map[string]any, error) {
 			}
 		}
 		if _, ok := r["did"]; !ok {
-			r["did"] = fmt.Sprintf("/btr=%s/cycle=%s/sample_name=%s/timestamp=%v", btr, cycle, sample, tst)
+			r["did"] = fmt.Sprintf("/tmpl/btr=%s/cycle=%s/sample_name=%s/timestamp=%v", btr, cycle, sample, tst)
 		}
 	}
 	return records, err
