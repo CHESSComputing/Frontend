@@ -1,0 +1,93 @@
+<section>
+    <article id="article">
+      <form class="form-content" method="post" action="{{.Base}}/addauxdata" enctype="multipart/form-data">
+        <h1 class="text-large">Add auxilary data</h1>
+          <div class="form-item">
+            <input class="hidden" type="text" value="{{.Did}}" id="did" name="did">
+          </div>
+          <div class="form-item">
+            You may provide any file or file archive (in tar.gz or zip data-format)
+            to enrich your metadata record.
+            <input class="input" name="file" type="file"/>
+          </div>
+          <div class="form-item">
+            <button class="button button-primary">Add</button>
+          </div>
+      </form>
+      <hr/>
+
+      <style>
+      .json-editor-container {
+        width: 100%;
+        height: 420px;
+        margin: 10px 0;
+      }
+      </style>
+
+      <form id="amend-form" class="form" action="{{.Base}}/amendrecord" method="post" onsubmit="return syncAmendRecord()">
+        <h1 class="text-large">Amend existing metadata record</h1>
+          <div class="form-item">
+            <input class="hidden" type="text" value="{{.Did}}" id="did" name="did">
+          </div>
+          <div class="form-item">
+            <div id="record-editor" class="json-editor-container"></div>
+
+            <textarea id="record" name="record_jsoneditor" style="display:none">{{.Record}}</textarea>
+          </div>
+          <div class="form-item">
+            <button class="button button-primary">Amend</button>
+          </div>
+      </form>
+    </article>
+</section>
+
+<script>
+(function () {
+    const textarea = document.getElementById('record');
+    const container = document.getElementById('record-editor');
+    const rawValue = textarea.value;
+
+    const options = {
+        mode: 'tree',
+        modes: ['tree', 'form', 'code'],
+        search: true,
+        onChange: function () {
+            try {
+                textarea.value = JSON.stringify(window.amendEditor.get());
+            } catch (e) {
+                // mid-edit / momentarily invalid JSON - leave the last
+                // good value in the textarea until the editor is valid again
+            }
+        }
+    };
+
+    let initial = {};
+    let parsedOk = true;
+    try {
+        initial = rawValue.trim() === '' ? {} : JSON.parse(rawValue);
+    } catch (e) {
+        parsedOk = false;
+    }
+
+    window.amendEditor = new JSONEditor(container, options, initial);
+
+    if (!parsedOk) {
+        // Whatever was stored isn't valid JSON - drop into raw text mode
+        // so the user can see and fix it instead of silently losing data.
+        window.amendEditor.setMode('code');
+        window.amendEditor.setText(rawValue);
+    } else {
+        textarea.value = JSON.stringify(initial);
+    }
+})();
+
+function syncAmendRecord() {
+    try {
+        document.getElementById('record').value = JSON.stringify(window.amendEditor.get());
+        return true;
+    } catch (e) {
+        alert('Please fix the highlighted JSON errors before submitting.');
+        return false;
+    }
+}
+</script>
