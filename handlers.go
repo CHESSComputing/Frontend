@@ -1395,9 +1395,9 @@ func TmplRecordsFormHandler(c *gin.Context) {
 	skipKeys := []string{"btr", "beamline", "schema", "tmpl_schema", "timestamp"}
 
 	// fetch existing elog entries
-	form_tmpl := "form_tmpl_records.tmpl"
-	if c.Query("editor") != "" {
-		form_tmpl = "form_tmpl_records_editor.tmpl"
+	form_tmpl := "form_tmpl_records_editor.tmpl"
+	if c.Query("web_form") != "" {
+		form_tmpl = "form_tmpl_records.tmpl"
 	}
 	tmpl["SkipKeys"] = skipKeys
 	tmpl["Records"] = records
@@ -3107,9 +3107,9 @@ func AmendFormHandler(c *gin.Context) {
 	} else {
 		tmpl["Record"] = record
 	}
-	content := server.TmplPage(StaticFs, "amend.tmpl", tmpl)
-	if c.Query("editor") != "" {
-		content = server.TmplPage(StaticFs, "amend_editor.tmpl", tmpl)
+	content := server.TmplPage(StaticFs, "amend_editor.tmpl", tmpl)
+	if c.Query("web_form") != "" {
+		content = server.TmplPage(StaticFs, "amend.tmpl", tmpl)
 	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
