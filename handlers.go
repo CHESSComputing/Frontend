@@ -1395,14 +1395,14 @@ func TmplRecordsFormHandler(c *gin.Context) {
 	skipKeys := []string{"btr", "beamline", "schema", "tmpl_schema", "timestamp"}
 
 	// fetch existing elog entries
-	form_tmpl := "form_tmpl_records_editor.tmpl"
+	formTmpl := "form_tmpl_records_editor.tmpl"
 	if c.Query("web_form") != "" {
-		form_tmpl = "form_tmpl_records.tmpl"
+		formTmpl = "form_tmpl_records.tmpl"
 	}
 	tmpl["SkipKeys"] = skipKeys
 	tmpl["Records"] = records
 	content := server.TmplPageWithFuncs(
-		StaticFs, form_tmpl, tmpl,
+		StaticFs, formTmpl, tmpl,
 		func(t *template.Template) *template.Template {
 			return t.Funcs(template.FuncMap{
 				"contains":    contains,
