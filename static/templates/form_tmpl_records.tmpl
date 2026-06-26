@@ -60,7 +60,7 @@ setTimeout(function() {
 
   <div class="grid">
     <div class="column column-2">
-      <b>Schema:</b> {{index $record "SchemaName"}}
+      <b>Schema:</b> {{index $record "tmpl_schema"}}
     </div>
     <div class="column column-2">
       <b>BTR:</b> {{index $record "btr"}}
@@ -92,11 +92,23 @@ setTimeout(function() {
           <tr>
             <td>{{$key}}</td>
             <td>
+              {{if isComposite $value}}
+
+              <textarea
+                  class="input"
+                  name="{{$key}}"
+                  rows="8"
+                  style="width:100%">{{stringify $value}}</textarea>
+
+              {{else}}
+
               <input
                 class="input"
                 type="text"
                 name="{{$key}}"
-                value="{{$value}}">
+                value="{{stringify $value}}">
+
+              {{end}}
             </td>
           </tr>
           {{else}}
@@ -113,7 +125,7 @@ setTimeout(function() {
       <div class="form-item flex"
            style="display:flex; justify-content:flex-end; gap:10px">
 
-        <input type="hidden" name="SchemaName" value="{{index $record "SchemaName"}}"/>
+        <input type="hidden" name="tmpl_schema" value="{{index $record "tmpl_schema"}}"/>
         <button
             type="submit"
             formaction="{{$.Base}}/meta/tmpl/submit"

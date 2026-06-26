@@ -19,14 +19,14 @@
         <legend>action</legend>
         <div class="form-item">
           <label>
-            <input type="checkbox" id="UpdateMetadata" name="UpdateMetadata">
+            <input type="checkbox" id="update_metadata" name="update_metadata">
             <strong>Update metadata record</strong>
           </label>
         </div>
         <div class="form-item">
             <div class="is-append is-push-right is-right">
                 <div class="is-80">
-                    <input type="hidden" name="SchemaName" value="{{.Beamline}}"/>
+                    <input type="hidden" name="schema" value="{{.Beamline}}"/>
                     <input type="hidden" name="User" value="{{.User}}"/>
                 </div>
                 <button class="button button-primary">Submit</button>

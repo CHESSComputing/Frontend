@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -1263,10 +1264,6 @@ func addAffiliation(members []string) []string {
 	return out
 }
 
-type AffiliationInfo struct {
-	Affiliation string `json:"affiliation"`
-}
-
 func contains(list []string, key string) bool {
 	for _, v := range list {
 		if v == key {
@@ -1274,6 +1271,41 @@ func contains(list []string, key string) bool {
 		}
 	}
 	return false
+}
+
+func FilterKeys(record map[string]any, skip []string) map[string]any {
+    filtered := make(map[string]any, len(record))
+    for k, v := range record {
+        if !contains(skip, k) {
+            filtered[k] = v
+        }
+    }
+    return filtered
+}
+
+func IsComposite(v any) bool {
+	if v == nil {
+		return false
+	}
+	k := reflect.TypeOf(v).Kind()
+	return k == reflect.Map || k == reflect.Slice || k == reflect.Array
+}
+
+func Stringify(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	default:
+		b, err := json.MarshalIndent(v, "", "  ")
+		if err != nil {
+			return fmt.Sprintf("%v", v)
+		}
+		return string(b)
+	}
+}
+
+type AffiliationInfo struct {
+	Affiliation string `json:"affiliation"`
 }
 
 func getTmplRecords(btr string) ([]map[string]any, error) {

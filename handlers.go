@@ -1392,18 +1392,23 @@ func TmplRecordsFormHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
-	skipKeys := []string{"btr", "beamline", "schema", "SchemaName", "timestamp"}
+	skipKeys := []string{"btr", "beamline", "schema", "tmpl_schema", "timestamp"}
 
 	// fetch existing elog entries
+	form_tmpl := "form_tmpl_records.tmpl"
+	if c.Query("editor") != "" {
+		form_tmpl = "form_tmpl_records_editor.tmpl"
+	}
 	tmpl["SkipKeys"] = skipKeys
 	tmpl["Records"] = records
 	content := server.TmplPageWithFuncs(
-		StaticFs,
-		"form_tmpl_records.tmpl",
-		tmpl,
+		StaticFs, form_tmpl, tmpl,
 		func(t *template.Template) *template.Template {
 			return t.Funcs(template.FuncMap{
-				"contains": contains,
+				"contains":    contains,
+				"filterKeys":  FilterKeys,
+				"isComposite": IsComposite,
+				"stringify":   Stringify,
 			})
 		},
 	)
@@ -1825,7 +1830,7 @@ func parseFileUploadForm(c *gin.Context) (services.MetaRecord, error) {
 
 	// read schema name from web form
 	var schema string
-	sname := r.FormValue("SchemaName")
+	sname := r.FormValue("tmpl_schema")
 	mrec.Schema = sname
 	if sname != "" {
 		schema = beamlines.SchemaFileName(sname)
@@ -1864,7 +1869,7 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 	user, _ := getUser(c)
 	// read schemaName from form beamlines drop-down
 	//     sname := r.FormValue("beamlines")
-	sname := r.FormValue("SchemaName")
+	sname := r.FormValue("tmpl_schema")
 	mrec.Schema = sname
 	fname := beamlines.SchemaFileName(sname)
 	schema, err := _smgr.Load(fname)
@@ -1902,16 +1907,15 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 			}
 			continue
 		}
-		if k == "SchemaName" || k == "User" || k == "user_metadata" {
+		if k == "tmpl_schema" || k == "User" || k == "user_metadata" {
 			continue
 		}
 		if k == "Description" {
 			desc = strings.Join(vals, " ")
 			continue
 		}
-		if k == "UpdateMetadata" {
+		if k == "update_metadata" {
 			for _, k := range vals {
-				log.Println("### checkbox UpdateMetadata", k)
 				if k == "on" {
 					updateMetadata = true
 				}
@@ -2099,7 +2103,7 @@ func MetaTmplUploadHandler(c *gin.Context) {
 	tmpl["Date"] = time.Now().Unix()
 	schemaFiles := srvConfig.Config.CHESSMetaData.SchemaFiles
 	var sname string
-	if val, ok := rec["SchemaName"]; ok {
+	if val, ok := rec["tmpl_schema"]; ok {
 		sname = fmt.Sprintf("%s", val)
 	} else {
 		err := errors.New("beamline key not found")
@@ -2858,7 +2862,7 @@ func UploadJSONHandler(c *gin.Context) {
 	r := c.Request
 	w := c.Writer
 	// get beamline value from the form
-	sname := r.FormValue("SchemaName")
+	sname := r.FormValue("schema")
 
 	// read form file
 	file, _, err := r.FormFile("file")
@@ -2984,6 +2988,16 @@ func TmplRecordHandler(c *gin.Context, action string) {
 			}
 		}
 	}
+	if val, ok := record["record_jsoneditor"]; ok {
+		// we receive from web form a string and need to cast it to map[string]any
+		var rec map[string]string
+		if err := json.Unmarshal([]byte(val), &rec); err == nil {
+			for k, v := range rec {
+				record[k] = v
+			}
+			delete(record, "record_jsoneditor")
+		}
+	}
 
 	// update records in MetaData service
 	data, err := json.Marshal(record)
@@ -3028,6 +3042,9 @@ func TmplRecordDeleteHandler(c *gin.Context) {
 	resp, err := _httpDeleteRequest.Delete(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil || resp.StatusCode != 200 {
 		msg := fmt.Sprintf("unable to delete template record, status %s", resp.Status)
+		if err != nil {
+			msg += fmt.Sprintf(", error=%v", err)
+		}
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
@@ -3091,6 +3108,9 @@ func AmendFormHandler(c *gin.Context) {
 		tmpl["Record"] = record
 	}
 	content := server.TmplPage(StaticFs, "amend.tmpl", tmpl)
+	if c.Query("editor") != "" {
+		content = server.TmplPage(StaticFs, "amend_editor.tmpl", tmpl)
+	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
@@ -3200,6 +3220,9 @@ func AmendRecordHandler(c *gin.Context) {
 	w := c.Writer
 	did := r.FormValue("did")
 	recStr := r.FormValue("record")
+	if recStr == "" {
+		recStr = r.FormValue("record_jsoneditor")
+	}
 	var rec map[string]any
 	template := "success.tmpl"
 	content := fmt.Sprintf("Record %s is successfully updated", did)
