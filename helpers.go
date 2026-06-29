@@ -1274,13 +1274,13 @@ func contains(list []string, key string) bool {
 }
 
 func FilterKeys(record map[string]any, skip []string) map[string]any {
-    filtered := make(map[string]any, len(record))
-    for k, v := range record {
-        if !contains(skip, k) {
-            filtered[k] = v
-        }
-    }
-    return filtered
+	filtered := make(map[string]any, len(record))
+	for k, v := range record {
+		if !contains(skip, k) {
+			filtered[k] = v
+		}
+	}
+	return filtered
 }
 
 func IsComposite(v any) bool {
@@ -1341,7 +1341,6 @@ func getTmplRecords(btr string) ([]map[string]any, error) {
 	err = json.Unmarshal(data, &records)
 	// add title to each record
 	for _, r := range records {
-		log.Printf("record %+v", r)
 		var btr, cycle, sample, tst string
 		if v, ok := r["btr"]; ok {
 			btr = fmt.Sprintf("%s", v)
