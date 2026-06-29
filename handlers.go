@@ -3037,6 +3037,16 @@ func TmplRecordHandler(c *gin.Context, action string) {
 func TmplRecordDeleteHandler(c *gin.Context) {
 	_httpDeleteRequest.GetToken()
 	did := c.PostForm("did")
+	if did == "" {
+		// try to extract did from record_jsoneditor
+		recStr := c.PostForm("record_jsoneditor")
+		var rec map[string]any
+		if err := json.Unmarshal([]byte(recStr), &rec); err == nil {
+			if val, ok := rec["did"]; ok {
+				did = fmt.Sprintf("%s", val)
+			}
+		}
+	}
 	rurl := fmt.Sprintf("%s/tmpl/record?did=%s", srvConfig.Config.Services.MetaDataURL, url.QueryEscape(did))
 	data := []byte{}
 	resp, err := _httpDeleteRequest.Delete(rurl, "application/json", bytes.NewBuffer(data))
