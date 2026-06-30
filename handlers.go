@@ -14,6 +14,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
@@ -1819,6 +1820,19 @@ func parseTmplUploadForm(c *gin.Context) (map[string]any, error) {
 			rec[k] = v[0]
 		}
 	}
+	if val, ok := rec["record_jsoneditor"]; ok {
+		// we receive from web form a string and need to cast it to map[string]any
+		switch vrec := val.(type) {
+		case map[string]any:
+			maps.Copy(rec, vrec)
+		case string:
+			var recNew map[string]any
+			if e := json.Unmarshal([]byte(vrec), &recNew); e == nil {
+				maps.Copy(rec, recNew)
+			}
+		}
+		delete(rec, "record_jsoneditor")
+	}
 	return rec, nil
 }
 
@@ -2120,12 +2134,14 @@ func MetaTmplUploadHandler(c *gin.Context) {
 				sfiles = append(sfiles, f)
 			}
 		}
-		// add rest of schema files
-		for _, f := range schemaFiles {
-			if !strings.Contains(f, sname) {
-				sfiles = append(sfiles, f)
+		/*
+			// add rest of schema files
+			for _, f := range schemaFiles {
+				if !strings.Contains(f, sname) {
+					sfiles = append(sfiles, f)
+				}
 			}
-		}
+		*/
 		schemaFiles = sfiles
 		// construct proper bemalines order
 		blines := []string{sname}
@@ -2971,7 +2987,7 @@ func TmplRecordHandler(c *gin.Context, action string) {
 	}
 
 	// Create dynamic record
-	record := make(map[string]string)
+	record := make(map[string]any)
 	var btr, sample string
 
 	// Iterate over submitted fields
@@ -2990,13 +3006,16 @@ func TmplRecordHandler(c *gin.Context, action string) {
 	}
 	if val, ok := record["record_jsoneditor"]; ok {
 		// we receive from web form a string and need to cast it to map[string]any
-		var rec map[string]string
-		if err := json.Unmarshal([]byte(val), &rec); err == nil {
-			for k, v := range rec {
-				record[k] = v
+		switch vrec := val.(type) {
+		case map[string]any:
+			maps.Copy(record, vrec)
+		case string:
+			var rec map[string]any
+			if e := json.Unmarshal([]byte(vrec), &rec); e == nil {
+				maps.Copy(record, rec)
 			}
-			delete(record, "record_jsoneditor")
 		}
+		delete(record, "record_jsoneditor")
 	}
 
 	// update records in MetaData service
