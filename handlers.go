@@ -1881,9 +1881,11 @@ func parseFormUploadForm(c *gin.Context) (services.MetaRecord, bool, error) {
 	r := c.Request
 	mrec := services.MetaRecord{}
 	user, _ := getUser(c)
-	// read schemaName from form beamlines drop-down
-	//     sname := r.FormValue("beamlines")
 	sname := r.FormValue("tmpl_schema")
+	if sname == "" {
+		// this is not tmpl_schema and we will use schema form value
+		sname = r.FormValue("schema")
+	}
 	mrec.Schema = sname
 	fname := beamlines.SchemaFileName(sname)
 	schema, err := _smgr.Load(fname)
