@@ -794,7 +794,7 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 		if srvConfig.Config.Frontend.TestMode && utils.InList(key, srvConfig.Config.CHESSMetaData.SkipKeys) {
 			return "", nil
 		}
-		msg := fmt.Sprintf("No key %s found in schema map", key)
+		msg := fmt.Sprintf("No key %s found in schema %s", key, schema.FileName)
 		log.Printf("ERROR: %s", msg)
 		return false, errors.New(msg)
 	} else if r.Type == "list_str" {
