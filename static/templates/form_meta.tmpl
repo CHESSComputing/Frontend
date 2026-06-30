@@ -18,7 +18,7 @@
                     <img src="{{.Base}}/images/chess-logo.png" width="200px" alt="CHESS MetaData" />
                 </div>
             <h3>Beamlines</h3>
-            <select id="beamlines" class="input column-5" onChange="selectBeamline();">
+            <select id="beamlines" name="select_beamlines" class="input column-5" onChange="selectBeamline();">
         {{range $b := .Beamlines}}
             <option value="{{$b}}">{{$b}}</option>
         {{end}}
