@@ -594,7 +594,7 @@ func genForm(fname string, record *map[string]any) (string, error) {
 			if strings.Contains(k, ".") {
 				subKey := r.Key
 				fname := r.File
-				rec = formStructEntry(fname, k, subKey)
+				rec = formStructEntry(fname, k, subKey, record)
 				section := r.Section
 				if legend == "Attributes" {
 					legend = section
@@ -755,7 +755,7 @@ func formEntry(
 }
 
 // helper function to build struct form entry
-func formStructEntry(schemaFileName, structKey, subKey string) string {
+func formStructEntry(schemaFileName, structKey, subKey string, record *map[string]any) string {
 	schema, err := _smgr.Load(schemaFileName)
 	if err != nil {
 		msg := fmt.Sprintf("unable to load %s error %v", schemaFileName, err)
@@ -763,11 +763,28 @@ func formStructEntry(schemaFileName, structKey, subKey string) string {
 		return msg
 	}
 	var section string
+	srecord := make(map[string]any)
 	// structKey represents <struct_entry.sub_key>
 	arr := strings.Split(structKey, ".")
 	if len(arr) > 0 {
 		// we use struct entry as section for web UI
 		section = arr[0]
+		// extract subrecord corresponding to our structKey (ID3A use case with sample_crystallographic_phases)
+		if record != nil {
+			rec := *record
+			if val, ok := rec[section]; ok {
+				switch sarr := val.(type) {
+				case []any:
+					elem := sarr[0]
+					switch smap := elem.(type) {
+					case map[string]any:
+						if vvv, ok := smap[subKey]; ok {
+							srecord[structKey] = vvv
+						}
+					}
+				}
+			}
+		}
 	}
 	smap := schema.Map
 	var subRecords []string
@@ -780,7 +797,7 @@ func formStructEntry(schemaFileName, structKey, subKey string) string {
 			}
 			// here we pass structKey to formEntry to ensure that HTML input name value will use
 			// see formEntry logic how it handles given key with period symbol in it
-			rec := formEntry(&smap, structKey, section, !srec.Optional, nil)
+			rec := formEntry(&smap, structKey, section, !srec.Optional, &srecord)
 			subRecords = append(subRecords, rec)
 		}
 	}
