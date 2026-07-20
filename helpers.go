@@ -305,8 +305,14 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey
 		tmpl["User"] = user
 		tmpl["DataAttributes"] = strings.Join(_foxdenAttrs, ",")
 	}
-	eQuery := url.QueryEscape(query)
-	url := fmt.Sprintf("/search?query=%s&sort_keys=%s&sort_order=%s", eQuery, sortKey, sortOrder)
+	urlValues := url.Values{}
+	urlValues.Set("query", query)
+	urlValues.Set("sort_keys", sortKey)
+	urlValues.Set("sort_order", sortOrder)
+
+	//  eQuery := url.QueryEscape(query)
+	//	href := "/search?" + urlValues.Encode()
+	//	url := fmt.Sprintf("/search?query=%s&sort_keys=%s&sort_order=%s", eQuery, sortKey, sortOrder)
 	if nres > 0 {
 		tmpl["StartIndex"] = fmt.Sprintf("%d", startIdx+1)
 	} else {
@@ -318,10 +324,26 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey
 		tmpl["EndIndex"] = fmt.Sprintf("%d", nres)
 	}
 	tmpl["Total"] = fmt.Sprintf("%d", nres)
-	tmpl["FirstUrl"] = makeURL(url, "first", startIdx, limit, nres)
-	tmpl["PrevUrl"] = makeURL(url, "prev", startIdx, limit, nres)
-	tmpl["NextUrl"] = makeURL(url, "next", startIdx, limit, nres)
-	tmpl["LastUrl"] = makeURL(url, "last", startIdx, limit, nres)
+	fIdx, fLimit := makeURL("first", startIdx, limit, nres)
+	urlValues.Set("idx", strconv.Itoa(fIdx))
+	urlValues.Set("limit", strconv.Itoa(fLimit))
+	tmpl["FirstUrl"] = "/search?" + urlValues.Encode()
+
+	fIdx, fLimit = makeURL("prev", startIdx, limit, nres)
+	urlValues.Set("idx", strconv.Itoa(fIdx))
+	urlValues.Set("limit", strconv.Itoa(fLimit))
+	tmpl["PrevUrl"] = "/search?" + urlValues.Encode()
+
+	fIdx, fLimit = makeURL("next", startIdx, limit, nres)
+	urlValues.Set("idx", strconv.Itoa(fIdx))
+	urlValues.Set("limit", strconv.Itoa(fLimit))
+	tmpl["NextUrl"] = "/search?" + urlValues.Encode()
+
+	fIdx, fLimit = makeURL("last", startIdx, limit, nres)
+	urlValues.Set("idx", strconv.Itoa(fIdx))
+	urlValues.Set("limit", strconv.Itoa(fLimit))
+	tmpl["LastUrl"] = "/search?" + urlValues.Encode()
+
 	tmpl["Query"] = template.HTML(query)
 	tmpl["SortKey"] = sortKey
 	tmpl["SortOrder"] = sortOrder
@@ -332,11 +354,10 @@ func pagination(c *gin.Context, query string, nres, startIdx, limit int, sortKey
 }
 
 // helper function to make URL
-func makeURL(url, urlType string, startIdx, limit, nres int) string {
+func makeURL(urlType string, startIdx, limit, nres int) (int, int) {
 	if limit < 0 {
 		limit = nres
 	}
-	var out string
 	var idx int
 	if urlType == "first" {
 		idx = 0
@@ -358,8 +379,7 @@ func makeURL(url, urlType string, startIdx, limit, nres int) string {
 		}
 		idx = j
 	}
-	out = fmt.Sprintf("%s&amp;idx=%d&&amp;limit=%d", url, idx, limit)
-	return out
+	return idx, limit
 }
 
 // helper function to find beameline web UI order from
