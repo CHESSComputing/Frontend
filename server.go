@@ -97,6 +97,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/sync/status/:uuid", Handler: SyncStatusHandler, Authorized: false},
 		{Method: "GET", Path: "/notesform", Handler: NotesFormHandler, Authorized: false},
 		{Method: "GET", Path: "/tmpl/records", Handler: TmplRecordsFormHandler, Authorized: false},
+		{Method: "GET", Path: "/graph", Handler: RecordsGraphHandler, Authorized: false},
 		{Method: "DELETE", Path: "/sync/delete/:uuid", Handler: SyncDeleteHandler, Authorized: false},
 		{Method: "POST", Path: "/notes", Handler: NotesHandler, Authorized: false},
 		{Method: "POST", Path: "/sync", Handler: SyncFormHandler, Authorized: false},
