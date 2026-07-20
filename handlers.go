@@ -1417,6 +1417,26 @@ func TmplRecordsFormHandler(c *gin.Context) {
 		"text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
+// RecordsGraphHandler provides access to GET /graph endpoint
+func RecordsGraphHandler(c *gin.Context) {
+	did := c.Query("did")
+	records := fetchGraphRecords(did)
+	elements := buildGraph(records)
+
+	elementsJSON, err := json.Marshal(elements)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "failed to build graph: %v", err)
+		return
+	}
+
+	tmpl := server.MakeTmpl(StaticFs, "RecordsGraph")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	tmpl["ElementsJSON"] = template.JS(elementsJSON)
+	content := server.TmplPage(StaticFs, "form_graph.tmpl", tmpl)
+	c.Data(http.StatusOK,
+		"text/html; charset=utf-8", []byte(header()+content+footer()))
+}
+
 // SearchHandler provides access to GET /search endpoint
 func SearchHandler(c *gin.Context) {
 	r := c.Request
