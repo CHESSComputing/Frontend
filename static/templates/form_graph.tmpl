@@ -1,23 +1,7 @@
-
-<script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
-<script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
-<script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
-<style>
-  #graph { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; display: flex; height: 100vh; }
-  #cy { flex: 1 1 auto; height: 100%; }
-  #sidebar { width: 340px; border-left: 1px solid #ddd; padding: 16px; overflow-y: auto; box-sizing: border-box; }
-  #sidebar h2 { font-size: 14px; margin: 0 0 4px; }
-  #sidebar .did { font-size: 12px; color: #666; word-break: break-all; margin-bottom: 12px; }
-  #sidebar pre { font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
-  #legend { padding: 12px 16px; border-bottom: 1px solid #ddd; font-size: 12px; }
-  .legend-item { display: inline-flex; align-items: center; margin-right: 14px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; display: inline-block; }
-  #controls { padding: 0 16px 12px; font-size: 12px; color: #666; }
-  button { font-size: 11px; padding: 2px 8px; margin-right: 6px; cursor: pointer; }
-</style>
+<section>
+<article id="article" class="wide">
 
 <div id="graph">
-
   <div style="flex:1 1 auto; display:flex; flex-direction:column;">
     <div id="legend"></div>
     <div id="controls">
@@ -29,8 +13,10 @@
   <div id="sidebar">
     <p style="font-size:13px;color:#888;">Select a record to see its full JSON.</p>
   </div>
-
 </div>
+
+</article>
+</section>
 
 <script>
     // Elements are injected server-side by the Go handler as
@@ -69,7 +55,7 @@
             'text-max-width': '80px',
             'width': 90,
             'height': 32,
-            'shape': 'round-rectangle'
+            'shape': 'ellipse'
           }
         },
         {
@@ -109,4 +95,5 @@
       descendants.connectedEdges().toggleClass('hidden', nowHidden);
       cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: 24, rankSep: 44 }).run();
     });
+
 </script>
