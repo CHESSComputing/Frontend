@@ -1,0 +1,112 @@
+
+<script src="https://unpkg.com/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+<script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+<style>
+  #graph { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; display: flex; height: 100vh; }
+  #cy { flex: 1 1 auto; height: 100%; }
+  #sidebar { width: 340px; border-left: 1px solid #ddd; padding: 16px; overflow-y: auto; box-sizing: border-box; }
+  #sidebar h2 { font-size: 14px; margin: 0 0 4px; }
+  #sidebar .did { font-size: 12px; color: #666; word-break: break-all; margin-bottom: 12px; }
+  #sidebar pre { font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  #legend { padding: 12px 16px; border-bottom: 1px solid #ddd; font-size: 12px; }
+  .legend-item { display: inline-flex; align-items: center; margin-right: 14px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; display: inline-block; }
+  #controls { padding: 0 16px 12px; font-size: 12px; color: #666; }
+  button { font-size: 11px; padding: 2px 8px; margin-right: 6px; cursor: pointer; }
+</style>
+
+<div id="graph">
+
+  <div style="flex:1 1 auto; display:flex; flex-direction:column;">
+    <div id="legend"></div>
+    <div id="controls">
+      Click a node for details. Double-click a node to collapse/expand its descendants.
+      <button onclick="cy.fit()">Fit graph</button>
+    </div>
+    <div id="cy"></div>
+  </div>
+  <div id="sidebar">
+    <p style="font-size:13px;color:#888;">Select a record to see its full JSON.</p>
+  </div>
+
+</div>
+
+<script>
+    // Elements are injected server-side by the Go handler as
+    // {"nodes":[{"data":{"id","label","group","details"}}], "edges":[...]}
+    const elements = {{.ElementsJSON}};
+
+    // Deterministic color per "group" (schema name) so the same
+    // schema always gets the same color across page loads.
+    const palette = ['#7F77DD', '#1D9E75', '#D85A30', '#D4537E', '#378ADD', '#EF9F27', '#639922'];
+    const groups = [...new Set(elements.nodes.map(n => n.data.group))];
+    const colorFor = {};
+    groups.forEach((g, i) => colorFor[g] = palette[i % palette.length]);
+
+    const legend = document.getElementById('legend');
+    groups.forEach(g => {
+      const span = document.createElement('span');
+      span.className = 'legend-item';
+      span.innerHTML = '<span class="legend-dot" style="background:' + colorFor[g] + '"></span>' + g;
+      legend.appendChild(span);
+    });
+
+    const cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements: elements,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            'label': 'data(label)',
+            'background-color': ele => colorFor[ele.data('group')] || '#999',
+            'color': '#fff',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'font-size': 9,
+            'text-wrap': 'wrap',
+            'text-max-width': '80px',
+            'width': 90,
+            'height': 32,
+            'shape': 'round-rectangle'
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'width': 1,
+            'line-color': '#ccc',
+            'target-arrow-color': '#ccc',
+            'target-arrow-shape': 'triangle',
+            'curve-style': 'bezier'
+          }
+        },
+        {
+          selector: '.hidden',
+          style: { 'display': 'none' }
+        }
+      ],
+      layout: { name: 'dagre', rankDir: 'TB', nodeSep: 24, rankSep: 44 }
+    });
+
+    // Click a node -> show its full record JSON in the sidebar.
+    cy.on('tap', 'node', evt => {
+      const d = evt.target.data();
+      document.getElementById('sidebar').innerHTML =
+        '<h2>' + d.group + '</h2>' +
+        '<div class="did">' + d.id + '</div>' +
+        '<pre>' + JSON.stringify(d.details, null, 2) + '</pre>';
+    });
+
+    // Double-click a node -> collapse/expand its descendant subtree.
+    cy.on('dbltap', 'node', evt => {
+      const node = evt.target;
+      const descendants = node.successors('node');
+      if (descendants.length === 0) return;
+      const nowHidden = !descendants.hasClass('hidden');
+      descendants.toggleClass('hidden', nowHidden);
+      descendants.connectedEdges().toggleClass('hidden', nowHidden);
+      cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: 24, rankSep: 44 }).run();
+    });
+</script>
