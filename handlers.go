@@ -565,6 +565,7 @@ func ProvenanceHandler(c *gin.Context) {
 	}
 	r := c.Request
 	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
+	ajaxHtml := r.FormValue("ajaxHtml")
 
 	// obtain valid token
 	_httpReadRequest.GetToken()
@@ -687,6 +688,10 @@ func ProvenanceHandler(c *gin.Context) {
 	}
 
 	page := server.TmplPage(StaticFs, "provenance.tmpl", tmpl)
+	if ajaxHtml != "" {
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(page))
+		return
+	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 

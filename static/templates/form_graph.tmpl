@@ -20,15 +20,50 @@
     const elements = {{.ElementsJSON}};
 
     const palette = ['#7F77DD', '#1D9E75', '#D85A30', '#D4537E', '#378ADD', '#EF9F27', '#639922'];
+
+    // Explicit color rules by label prefix. Add/edit entries here as
+    // new record categories show up (matched case-insensitively).
+    const prefixColors = [
+      { prefix: 'metadata',   color: '#7F77DD' },
+      { prefix: 'provenance', color: '#1D9E75' },
+      { prefix: 'doi',        color: '#D85A30' },
+      { prefix: 'composite',  color: '#D4537E' },
+      { prefix: 'user',       color: '#378ADD' },
+    ];
+
+    // Fallback: anything whose label doesn't match a known prefix gets
+    // a deterministic color from the palette, hashed by first-seen group,
+    // so it's still stable across reloads instead of falling back to gray.
     const groups = [...new Set(elements.nodes.map(n => n.data.group))];
-    const colorFor = {};
-    groups.forEach((g, i) => colorFor[g] = palette[i % palette.length]);
+    const fallbackColorFor = {};
+    groups.forEach((g, i) => fallbackColorFor[g] = palette[i % palette.length]);
+
+    function colorForNode(d) {
+      const label = (d.label || '').toLowerCase();
+      const match = prefixColors.find(p => label.startsWith(p.prefix));
+      if (match) return match.color;
+      return fallbackColorFor[d.group] || '#999';
+    }
+
+    // Legend now reflects the prefix rules that actually appear in the
+    // current graph, plus any fallback groups that didn't match a rule.
+    const legendEntries = [];
+    const seenLabels = new Set();
+    elements.nodes.forEach(n => {
+      const label = (n.data.label || '').toLowerCase();
+      const match = prefixColors.find(p => label.startsWith(p.prefix));
+      const key = match ? match.prefix : n.data.group;
+      if (!seenLabels.has(key)) {
+        seenLabels.add(key);
+        legendEntries.push({ name: match ? match.prefix : n.data.group, color: match ? match.color : fallbackColorFor[n.data.group] });
+      }
+    });
 
     const legend = document.getElementById('legend');
-    groups.forEach(g => {
+    legendEntries.forEach(e => {
       const span = document.createElement('span');
       span.className = 'legend-item';
-      span.innerHTML = '<span class="legend-dot" style="background:' + colorFor[g] + '"></span>' + g;
+      span.innerHTML = '<span class="legend-dot" style="background:' + e.color + '"></span>' + e.name;
       legend.appendChild(span);
     });
 
@@ -40,7 +75,7 @@
           selector: 'node',
           style: {
             'label': 'data(label)',
-            'background-color': ele => colorFor[ele.data('group')] || '#999',
+            'background-color': ele => colorForNode(ele.data()),
             'color': '#fff',
             'text-valign': 'center',
             'text-halign': 'center',
@@ -72,11 +107,17 @@
 
     // Click a node -> fetch its HTML detail snippet from /record?did=... and drop it into #details.
     cy.on('tap', 'node', evt => {
-      const did = evt.target.data('id');
+      // const did = evt.target.data('id');
+
+      const nodeid = evt.target.data('id');                // e.g. /provenance-idx/bla/path or /record/bla/path
+      const segments = nodeid.split('/').filter(Boolean);  // filter(Boolean) drops the empty string from the leading "/"
+      const apiPrefix = '/' + segments[0].split('-')[0];   // /provenance-idx or /record
+      const did = '/' + segments.slice(1).join('/');       // /bla/path
+
       const details = document.getElementById('details');
       details.innerHTML = '<p style="font-size:13px;color:#888;">Loading…</p>';
 
-      fetch('/record?ajaxHtml=true&did=' + encodeURIComponent(did))
+      fetch(apiPrefix+'?ajaxHtml=true&did=' + encodeURIComponent(did))
         .then(resp => {
           if (!resp.ok) throw new Error('status ' + resp.status);
           return resp.text();

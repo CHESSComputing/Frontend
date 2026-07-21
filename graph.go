@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"regexp"
+	"strings"
 
 	"github.com/CHESSComputing/golib/utils"
 )
@@ -47,21 +48,31 @@ func fetchGraphRecords(did string) []map[string]any {
 
 	if mrec, err := findMetadataRecord(did); err == nil {
 		records = append(records, mrec)
+		mdid, _ := mrec["did"].(string)
+		if provRecords, err := getData("provenance", mdid); err == nil {
+			records = append(records, provRecords...)
+		}
 	}
 
 	// loop over parents records and append them to our list of records
 	for _, r := range utils.List2Set(getParents(did)) {
 		if mrec, err := findMetadataRecord(r); err == nil {
 			records = append(records, mrec)
+			mdid, _ := mrec["did"].(string)
+			if provRecords, err := getData("provenance", mdid); err == nil {
+				records = append(records, provRecords...)
+			}
 		}
+	}
+
+	// get provenance record for our did
+	if provRecords, err := getData("provenance", did); err == nil {
+		records = append(records, provRecords...)
 	}
 
 	// get children from provenance service
 	var parents []string
-	provParents, err := getData("parents", did)
-	if err != nil {
-		log.Printf("WARNING: error while fetching parents for did=%s, error=%v", did, err)
-	}
+	provParents, _ := getData("parents", did)
 	for _, r := range provParents {
 		if f, ok := r["parent_did"]; ok {
 			if f != nil {
@@ -70,40 +81,13 @@ func fetchGraphRecords(did string) []map[string]any {
 			}
 		}
 	}
-	// ensure that children is unique list
+	// ensure that parents is unique list
 	parents = utils.List2Set(parents)
 	for _, r := range parents {
 		if mrec, err := findMetadataRecord(r); err == nil {
 			records = append(records, mrec)
-		}
-	}
-
-	// loop over children records
-	for _, r := range utils.List2Set(getChildren(did)) {
-		if mrec, err := findMetadataRecord(r); err == nil {
-			records = append(records, mrec)
-		}
-	}
-
-	// get children from provenance service
-	var children []string
-	provChildren, err := getData("child", did)
-	if err != nil {
-		log.Printf("WARNING: error while fetching children for did=%s, error=%v", did, err)
-	}
-	for _, r := range provChildren {
-		if f, ok := r["child_did"]; ok {
-			if f != nil {
-				v := f.(string)
-				children = append(children, v)
-			}
-		}
-	}
-	// ensure that children is unique list
-	children = utils.List2Set(children)
-	for _, r := range children {
-		if mrec, err := findMetadataRecord(r); err == nil {
-			records = append(records, mrec)
+			provRecords, _ := getData("provenance", did)
+			records = append(records, provRecords...)
 		}
 	}
 	return records
@@ -113,8 +97,11 @@ func fetchGraphRecords(did string) []map[string]any {
 // Each record's "did" becomes a node id; each entry in "parent_dids"
 // becomes a directed edge parent -> child.
 func buildGraph(records []map[string]any) GraphElements {
+	var re = regexp.MustCompile(`^/provenance-[^/]+`)
 	var els GraphElements
 
+	var provIdx int
+	var nodeids []string
 	for _, r := range records {
 		did, _ := r["did"].(string)
 		if did == "" {
@@ -122,27 +109,88 @@ func buildGraph(records []map[string]any) GraphElements {
 		}
 
 		schema, _ := r["schema"].(string)
-		if schema == "" {
-			schema = "Unknown"
+		group := schema
+		nodeID := fmt.Sprintf("/record%s", did)
+		if group == "" {
+			group = fmt.Sprintf("provenance-%d", provIdx)
+			nodeID = fmt.Sprintf("/provenance-%d%s", provIdx, did)
+			provIdx += 1
 		}
+		nodeids = append(nodeids, nodeID)
+		label := shortLabel(r, group)
 
 		els.Nodes = append(els.Nodes, GraphNode{Data: NodeData{
-			ID:      did,
-			Label:   shortLabel(r, did),
-			Group:   schema,
+			ID:      nodeID,
+			Label:   label,
+			Group:   group,
 			Details: r,
 		}})
 
-		for _, parent := range toStringSlice(r["parent_dids"]) {
-			if parent == "" {
+	}
+
+	provIdx = 0
+	for _, r := range records {
+		did, _ := r["did"].(string)
+		if did == "" {
+			continue // skip malformed records
+		}
+
+		// create nodeID from record did
+		schema, _ := r["schema"].(string)
+		group := schema
+		nodeID := fmt.Sprintf("/record%s", did)
+		if group == "" {
+			nodeID = fmt.Sprintf("/provenance-%d%s", provIdx, did)
+			provIdx += 1
+		}
+
+		for _, parentDid := range toStringSlice(r["parent_dids"]) {
+			if parentDid == "" {
 				continue
 			}
-			els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
-				ID:     parent + "->" + did,
-				Source: parent,
-				Target: did,
-			}})
+			var parentNodeID string
+			schema, _ := r["schema"].(string)
+			if schema != "" {
+				parentNodeID = fmt.Sprintf("/record%s", parentDid)
+				if utils.InList(parentNodeID, nodeids) {
+					els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
+						ID:     parentDid + "->" + nodeID,
+						Source: parentNodeID,
+						Target: nodeID,
+					}})
+				}
+			}
 		}
+		// if record only contain parent_did (provenance records)
+		if parentVal, ok := r["parent_did"]; ok {
+			parentDid := parentVal.(string)
+			var parentNodeID string
+			schema, _ := r["schema"].(string)
+			if schema != "" {
+				parentNodeID = fmt.Sprintf("/record%s", parentDid)
+				if parentDid != "" {
+					els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
+						ID:     parentDid + "->" + nodeID,
+						Source: parentNodeID,
+						Target: nodeID,
+					}})
+				}
+			}
+		}
+	}
+
+	// add provenance edges
+	for _, nodeID := range nodeids {
+		if !strings.HasPrefix(nodeID, "/provenance") {
+			continue
+		}
+		// check out provenance edges
+		recordID := re.ReplaceAllString(nodeID, "/record")
+		els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
+			ID:     nodeID + "->" + recordID,
+			Source: nodeID,
+			Target: recordID,
+		}})
 	}
 	return els
 }
@@ -167,19 +215,18 @@ func toStringSlice(v any) []string {
 
 // shortLabel picks a compact, human-readable node label instead of
 // the full did path.
-func shortLabel(r map[string]any, did string) string {
+func shortLabel(r map[string]any, group string) string {
 	doi, _ := r["doi"].(string)
 	if doi != "" {
-		return doi
+		return fmt.Sprintf("doi (%s)", doi)
 	}
-	label := "(raw)"
 	schema, _ := r["schema"].(string)
 	if schema != "" {
-		label = fmt.Sprintf("metadata (%s)", schema)
+		return fmt.Sprintf("metadata (%s)", schema)
 	}
 	app, _ := r["application"].(string)
 	if app != "" {
-		label = fmt.Sprintf("metadata (%s)", app)
+		return fmt.Sprintf("metadata (%s)", app)
 	}
-	return label
+	return group
 }
