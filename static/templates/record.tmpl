@@ -49,6 +49,7 @@ Date: {{.TimeStamp}}
 <a href="/notesform?did={{.DidEncoded}}" title="Notes">Notes</a>
 <a href="javascript:FlipRecJson('{{.Id}}')" title="JSON">JSON</a>
 <a href="javascript:SaveRecord('json-record-{{.Id}}')" title="Save">Save</a>
+<a href="/graph?did={{.DidEncoded}}" title="Graph">Graph</a>
 
 {{if and .DoiLink .Doi}}
     {{if not .DoiPublic}}
