@@ -1171,6 +1171,7 @@ func RecordHandler(c *gin.Context) {
 		LoginHandler(c)
 		return
 	}
+	ajaxHtml := r.FormValue("ajaxHtml")
 	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
 	spec := make(map[string]any)
 	spec["did"] = did
@@ -1197,6 +1198,12 @@ func RecordHandler(c *gin.Context) {
 				ServiceQuery: services.ServiceQuery{Spec: spec},
 			}
 		}
+	}
+	// return record HTML representation if requested via ajaxHtml url parameter
+	if ajaxHtml != "" {
+		content := getRecordHTML(c, rec, user)
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
+		return
 	}
 	// based on user query process request from all FOXDEN services
 	idx := 0

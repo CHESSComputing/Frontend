@@ -38,6 +38,53 @@ func validJSON(query string) error {
 }
 
 // helper function to process service request
+func getRecordHTML(c *gin.Context, rec services.ServiceRequest, user string) string {
+	tmpl := server.MakeTmpl(StaticFs, "Search")
+	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
+	query := cleanQuery(rec.ServiceQuery.Query)
+	tmpl["Query"] = query
+	err := validJSON(query)
+	if err != nil {
+		return fmt.Sprintf("unable to validate user query, error %v", err)
+	}
+	data, err := json.Marshal(rec)
+	if err != nil {
+		return fmt.Sprintf("unable to marshal record, error %v", err)
+	}
+	// search request to DataDiscovery service
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/search", srvConfig.Config.Services.DiscoveryURL)
+	resp, err := _httpReadRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return fmt.Sprintf("unable to get metadata record, error %v", err)
+	}
+	// parse data records from meta-data service
+	var response services.ServiceResponse
+	defer resp.Body.Close()
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Sprintf("unable to read response body, error %v", err)
+	}
+
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return fmt.Sprintf("unable to unmarshal response, error %v", err)
+	}
+
+	records := response.Results.Records
+	// extract userAttrs cookies which list which attributes to show in a record
+	var attrs2show []string
+	if cookie, err := c.Request.Cookie("userAttrs"); err == nil {
+		for _, v := range strings.Split(cookie.Value, ",") {
+			attrs2show = append(attrs2show, strings.Trim(v, " "))
+		}
+	}
+
+	content := records2html(user, records, attrs2show)
+	return content
+}
+
+// helper function to process service request
 func processResults(c *gin.Context, rec services.ServiceRequest, user string, idx, limit int, btrs []string) {
 	tmpl := server.MakeTmpl(StaticFs, "Search")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base

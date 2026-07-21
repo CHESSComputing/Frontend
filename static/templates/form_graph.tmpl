@@ -1,8 +1,7 @@
 <section>
-<article id="article" class="wide">
-
+<article id="article">
 <div id="graph">
-  <div style="flex:1 1 auto; display:flex; flex-direction:column;">
+  <div id="graph-top">
     <div id="legend"></div>
     <div id="controls">
       Click a node for details. Double-click a node to collapse/expand its descendants.
@@ -10,21 +9,16 @@
     </div>
     <div id="cy"></div>
   </div>
-  <div id="sidebar">
-    <p style="font-size:13px;color:#888;">Select a record to see its full JSON.</p>
+  <div id="details">
+    <p style="font-size:13px;color:#888;">Select a record to see its details.</p>
   </div>
 </div>
-
 </article>
 </section>
 
 <script>
-    // Elements are injected server-side by the Go handler as
-    // {"nodes":[{"data":{"id","label","group","details"}}], "edges":[...]}
     const elements = {{.ElementsJSON}};
 
-    // Deterministic color per "group" (schema name) so the same
-    // schema always gets the same color across page loads.
     const palette = ['#7F77DD', '#1D9E75', '#D85A30', '#D4537E', '#378ADD', '#EF9F27', '#639922'];
     const groups = [...new Set(elements.nodes.map(n => n.data.group))];
     const colorFor = {};
@@ -55,7 +49,7 @@
             'text-max-width': '80px',
             'width': 90,
             'height': 32,
-            'shape': 'ellipse'
+            'shape': 'round-rectangle'
           }
         },
         {
@@ -76,13 +70,21 @@
       layout: { name: 'dagre', rankDir: 'TB', nodeSep: 24, rankSep: 44 }
     });
 
-    // Click a node -> show its full record JSON in the sidebar.
+    // Click a node -> fetch its HTML detail snippet from /record?did=... and drop it into #details.
     cy.on('tap', 'node', evt => {
-      const d = evt.target.data();
-      document.getElementById('sidebar').innerHTML =
-        '<h2>' + d.group + '</h2>' +
-        '<div class="did">' + d.id + '</div>' +
-        '<pre>' + JSON.stringify(d.details, null, 2) + '</pre>';
+      const did = evt.target.data('id');
+      const details = document.getElementById('details');
+      details.innerHTML = '<p style="font-size:13px;color:#888;">Loading…</p>';
+
+      fetch('/record?ajaxHtml=true&did=' + encodeURIComponent(did))
+        .then(resp => {
+          if (!resp.ok) throw new Error('status ' + resp.status);
+          return resp.text();
+        })
+        .then(html => { details.innerHTML = html; })
+        .catch(err => {
+          details.innerHTML = '<p style="font-size:13px;color:#c0392b;">Failed to load record: ' + err.message + '</p>';
+        });
     });
 
     // Double-click a node -> collapse/expand its descendant subtree.
@@ -95,5 +97,4 @@
       descendants.connectedEdges().toggleClass('hidden', nowHidden);
       cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: 24, rankSep: 44 }).run();
     });
-
 </script>

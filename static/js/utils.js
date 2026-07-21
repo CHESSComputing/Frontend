@@ -236,6 +236,21 @@ function FlipRecord(rid) {
     jid.className = "hide";
   }
 }
+function FlipRecTable(id) {
+    HideTag('json-record-'+id);
+    HideTag('desc-record-'+id);
+    FlipTag('table-record-'+id);
+}
+function FlipRecJson(id) {
+    HideTag('table-record-'+id);
+    HideTag('desc-record-'+id);
+    FlipTag('json-record-'+id);
+}
+function FlipRecDesc(id) {
+    HideTag('json-record-'+id);
+    HideTag('table-record-'+id);
+    FlipTag('desc-record-'+id);
+}
 function ChangeHeight(tag) {
     var id = document.getElementById(tag);
     if (id) {

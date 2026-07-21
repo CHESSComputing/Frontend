@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"strings"
 
 	"github.com/CHESSComputing/golib/utils"
 )
@@ -168,17 +168,18 @@ func toStringSlice(v any) []string {
 // shortLabel picks a compact, human-readable node label instead of
 // the full did path.
 func shortLabel(r map[string]any, did string) string {
+	doi, _ := r["doi"].(string)
+	if doi != "" {
+		return doi
+	}
+	label := "(raw)"
 	schema, _ := r["schema"].(string)
-	if sn, ok := r["sample_name"].(string); ok && sn != "" {
-		if schema != "" {
-			return schema + ": " + sn
-		}
-		return sn
+	if schema != "" {
+		label = fmt.Sprintf("metadata (%s)", schema)
 	}
-	if desc, ok := r["description"].(string); ok && desc != "" {
-		return desc
+	app, _ := r["application"].(string)
+	if app != "" {
+		label = fmt.Sprintf("metadata (%s)", app)
 	}
-	// fall back to the last path segment of the did
-	segs := strings.Split(strings.Trim(did, "/"), "/")
-	return segs[len(segs)-1]
+	return label
 }
