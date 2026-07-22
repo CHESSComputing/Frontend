@@ -264,6 +264,7 @@ $(document).ready(function() {
                     const did = row["did"];
                     const noteText = notesMap[did] || "";
                     const hasNote = noteText !== "";
+                    const graphUrl = '/graph?ajaxHtml=true&did=' + did;
                     return `
                         <form action="/search" method="POST" style="display:inline;">
                             <input type="hidden" name="query" value='${payloadStr}'>
@@ -271,6 +272,8 @@ $(document).ready(function() {
                                     class="button button-small">
                                     Record
                             </button>
+                        </form>
+                        <a href='${graphUrl}' class="button button-small">Graph</a>
                         </form>
                         <form action="/notesform" method="POST" style="display:inline;">
                             <input type="hidden" name="query" value='${payloadStr}'>
