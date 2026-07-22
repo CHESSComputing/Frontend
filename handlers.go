@@ -1655,6 +1655,7 @@ func SpecScansHandler(c *gin.Context) {
 	}
 
 	did := c.Query("did")
+	ajaxHtml := c.Query("ajaxHtml")
 	if did != "" {
 		tmpl["PageTitle"] = fmt.Sprintf("FOXDEN: spec scans for %s", did)
 		tmpl["DataURL"] = fmt.Sprintf("/specscans/data?did=%s", url.QueryEscape(did))
@@ -1664,6 +1665,10 @@ func SpecScansHandler(c *gin.Context) {
 	}
 
 	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
+	if ajaxHtml != "" {
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
+		return
+	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+content+footer()))
 }
 
