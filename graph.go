@@ -173,7 +173,7 @@ func buildGraph(records []map[string]any) GraphElements {
 			}
 			var parentNodeID string
 			schema, _ := r["schema"].(string)
-			if schema != "" {
+			if schema != "" && schema != "specscans" {
 				parentNodeID = fmt.Sprintf("/record%s", parentDid)
 				if utils.InList(parentNodeID, nodeids) {
 					els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
@@ -189,7 +189,7 @@ func buildGraph(records []map[string]any) GraphElements {
 			parentDid := parentVal.(string)
 			var parentNodeID string
 			schema, _ := r["schema"].(string)
-			if schema != "" {
+			if schema != "" && schema != "specscans" {
 				parentNodeID = fmt.Sprintf("/record%s", parentDid)
 				if parentDid != "" {
 					els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
@@ -204,6 +204,7 @@ func buildGraph(records []map[string]any) GraphElements {
 
 	// add provenance and specscans edges
 	for _, nodeID := range nodeids {
+		// if !strings.HasPrefix(nodeID, "/provenance") {
 		if strings.HasPrefix(nodeID, "/record") {
 			continue
 		}
