@@ -111,7 +111,7 @@
 
       const nodeid = evt.target.data('id');                // e.g. /provenance-idx/bla/path or /record/bla/path
       const segments = nodeid.split('/').filter(Boolean);  // filter(Boolean) drops the empty string from the leading "/"
-      const apiPrefix = '/' + segments[0].split('-')[0];   // /provenance-idx or /record
+      const apiPrefix = '/' + segments[0].split('-')[0];   // /provenance-idx, /specscans-idx or /record
       const did = '/' + segments.slice(1).join('/');       // /bla/path
 
       const details = document.getElementById('details');

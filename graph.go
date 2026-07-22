@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -103,9 +102,11 @@ func fetchGraphRecords(did string) []map[string]any {
 	})
 	if err == nil {
 		for _, r := range specRecords {
-			log.Printf("spec rec %+v\n", r)
+			if _, ok := r["schema"]; !ok {
+				r["schema"] = "specscans"
+			}
+			records = append(records, r)
 		}
-		//records = append(records, specRecords...)
 	}
 
 	return records
@@ -118,7 +119,7 @@ func buildGraph(records []map[string]any) GraphElements {
 	var re = regexp.MustCompile(`^/provenance-[^/]+`)
 	var els GraphElements
 
-	var provIdx int
+	var provIdx, specIdx int
 	var nodeids []string
 	for _, r := range records {
 		did, _ := r["did"].(string)
@@ -129,7 +130,11 @@ func buildGraph(records []map[string]any) GraphElements {
 		schema, _ := r["schema"].(string)
 		group := schema
 		nodeID := fmt.Sprintf("/record%s", did)
-		if group == "" {
+		if schema == "specscans" {
+			group = schema
+			nodeID = fmt.Sprintf("/specscans-%d%s", specIdx, did)
+			specIdx += 1
+		} else if schema == "" || schema == "provenance" {
 			group = fmt.Sprintf("provenance-%d", provIdx)
 			nodeID = fmt.Sprintf("/provenance-%d%s", provIdx, did)
 			provIdx += 1
@@ -197,9 +202,9 @@ func buildGraph(records []map[string]any) GraphElements {
 		}
 	}
 
-	// add provenance edges
+	// add provenance and specscans edges
 	for _, nodeID := range nodeids {
-		if !strings.HasPrefix(nodeID, "/provenance") {
+		if strings.HasPrefix(nodeID, "/record") {
 			continue
 		}
 		// check out provenance edges
