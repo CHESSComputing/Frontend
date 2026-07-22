@@ -116,7 +116,8 @@ func fetchGraphRecords(did string) []map[string]any {
 // Each record's "did" becomes a node id; each entry in "parent_dids"
 // becomes a directed edge parent -> child.
 func buildGraph(records []map[string]any) GraphElements {
-	var re = regexp.MustCompile(`^/provenance-[^/]+`)
+	var re1 = regexp.MustCompile(`^/provenance-[^/]+`)
+	var re2 = regexp.MustCompile(`^/specscans-[^/]+`)
 	var els GraphElements
 
 	var provIdx, specIdx int
@@ -173,7 +174,7 @@ func buildGraph(records []map[string]any) GraphElements {
 			}
 			var parentNodeID string
 			schema, _ := r["schema"].(string)
-			if schema != "" && schema != "specscans" {
+			if schema != "" {
 				parentNodeID = fmt.Sprintf("/record%s", parentDid)
 				if utils.InList(parentNodeID, nodeids) {
 					els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
@@ -189,7 +190,7 @@ func buildGraph(records []map[string]any) GraphElements {
 			parentDid := parentVal.(string)
 			var parentNodeID string
 			schema, _ := r["schema"].(string)
-			if schema != "" && schema != "specscans" {
+			if schema != "" {
 				parentNodeID = fmt.Sprintf("/record%s", parentDid)
 				if parentDid != "" {
 					els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
@@ -209,12 +210,23 @@ func buildGraph(records []map[string]any) GraphElements {
 			continue
 		}
 		// check out provenance edges
-		recordID := re.ReplaceAllString(nodeID, "/record")
-		els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
-			ID:     nodeID + "->" + recordID,
-			Source: nodeID,
-			Target: recordID,
-		}})
+		if strings.HasPrefix(nodeID, "/provenance") {
+			recordID := re1.ReplaceAllString(nodeID, "/record")
+			els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
+				ID:     nodeID + "->" + recordID,
+				Source: nodeID,
+				Target: recordID,
+			}})
+		}
+		// check out specscans edges
+		if strings.HasPrefix(nodeID, "/specscans") {
+			recordID := re2.ReplaceAllString(nodeID, "/record")
+			els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
+				ID:     nodeID + "->" + recordID,
+				Source: nodeID,
+				Target: recordID,
+			}})
+		}
 	}
 	return els
 }
