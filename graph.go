@@ -131,7 +131,7 @@ func buildGraph(records []map[string]any) GraphElements {
 		group := schema
 		nodeID := fmt.Sprintf("/record%s", did)
 		if schema == "specscans" {
-			group = schema
+			group = fmt.Sprintf("specscans-%d", specIdx)
 			nodeID = fmt.Sprintf("/specscans-%d%s", specIdx, did)
 			specIdx += 1
 		} else if schema == "" || schema == "provenance" {
@@ -243,13 +243,16 @@ func shortLabel(r map[string]any, group string) string {
 	if doi != "" {
 		return fmt.Sprintf("doi (%s)", doi)
 	}
-	schema, _ := r["schema"].(string)
-	if schema != "" {
-		return fmt.Sprintf("metadata (%s)", schema)
-	}
 	app, _ := r["application"].(string)
 	if app != "" {
 		return fmt.Sprintf("metadata (%s)", app)
+	}
+	schema, _ := r["schema"].(string)
+	if schema == "specscans" {
+		return group
+	}
+	if schema != "" {
+		return fmt.Sprintf("metadata (%s)", schema)
 	}
 	return group
 }
