@@ -123,6 +123,12 @@ func buildGraph(records []map[string]any) GraphElements {
 	var provIdx, specIdx int
 	var nodeids []string
 	for _, r := range records {
+		schema, _ := r["schema"].(string)
+		if schema == "specscans" {
+			specIdx += 1
+		}
+	}
+	for _, r := range records {
 		did, _ := r["did"].(string)
 		if did == "" {
 			continue // skip malformed records
@@ -132,23 +138,26 @@ func buildGraph(records []map[string]any) GraphElements {
 		group := schema
 		nodeID := fmt.Sprintf("/record%s", did)
 		if schema == "specscans" {
-			group = fmt.Sprintf("specscans-%d", specIdx)
+			//group = fmt.Sprintf("specscans-%d", specIdx)
+			//specIdx += 1
+			group = "specscans"
 			nodeID = fmt.Sprintf("/specscans-%d%s", specIdx, did)
-			specIdx += 1
 		} else if schema == "" || schema == "provenance" {
 			group = fmt.Sprintf("provenance-%d", provIdx)
 			nodeID = fmt.Sprintf("/provenance-%d%s", provIdx, did)
 			provIdx += 1
 		}
-		nodeids = append(nodeids, nodeID)
 		label := shortLabel(r, group)
 
-		els.Nodes = append(els.Nodes, GraphNode{Data: NodeData{
-			ID:      nodeID,
-			Label:   label,
-			Group:   group,
-			Details: r,
-		}})
+		if !utils.InList(nodeID, nodeids) {
+			els.Nodes = append(els.Nodes, GraphNode{Data: NodeData{
+				ID:      nodeID,
+				Label:   label,
+				Group:   group,
+				Details: r,
+			}})
+		}
+		nodeids = append(nodeids, nodeID)
 
 	}
 
