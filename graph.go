@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
+	services "github.com/CHESSComputing/golib/services"
 	"github.com/CHESSComputing/golib/utils"
 )
 
@@ -90,6 +92,22 @@ func fetchGraphRecords(did string) []map[string]any {
 			records = append(records, provRecords...)
 		}
 	}
+	// get spec scan records
+	spec := make(map[string]any)
+	spec["did"] = did
+	specRecords, err := fetchSpecScans(services.ServiceRequest{
+		Client: "frontend",
+		ServiceQuery: services.ServiceQuery{
+			Spec: spec,
+		},
+	})
+	if err == nil {
+		for _, r := range specRecords {
+			log.Printf("spec rec %+v\n", r)
+		}
+		//records = append(records, specRecords...)
+	}
+
 	return records
 }
 
