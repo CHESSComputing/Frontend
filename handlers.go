@@ -1666,6 +1666,16 @@ func SpecScansHandler(c *gin.Context) {
 
 	content := server.TmplPage(StaticFs, "dyn_dstable.tmpl", tmpl)
 	if ajaxHtml != "" {
+		spec := make(map[string]any)
+		spec["did"] = did
+		if specRecords, err := fetchSpecScans(services.ServiceRequest{
+			                     Client: "frontend",	ServiceQuery: services.ServiceQuery{Spec: spec}}); err == nil {
+				if data, err := json.MarshalIndent(specRecords, "", "  "); err == nil {
+					content = fmt.Sprintf("<pre>%s</pre>", string(data))
+					c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
+					return
+				}
+		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
 		return
 	}
