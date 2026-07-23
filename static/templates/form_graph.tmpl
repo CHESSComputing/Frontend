@@ -103,8 +103,13 @@
           style: { 'display': 'none' }
         }
       ],
-      layout: { name: 'dagre', rankDir: 'TB', nodeSep: 24, rankSep: 44 }
+      layout: { name: 'dagre', rankDir: 'BT', nodeSep: 24, rankSep: 44 }
     });
+    // layout above use the following notations:
+    // 'TB'	top → bottom (current default — parents above children)
+    // 'BT'	bottom → top (parents below children)
+    // 'LR'	left → right (parents on the left, children flow right)
+    // 'RL'	right → left (parents on the right, children flow left)
 
     // Click a node -> fetch its HTML detail snippet from /record?did=... and drop it into #details.
     cy.on('tap', 'node', evt => {
