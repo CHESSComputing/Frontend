@@ -19,6 +19,38 @@
             <option value="Zenodo">Zenodo</option>
         </select>
     </div>
+    <div class="form-item">
+      <label class="hint hint-req">Data reuse license (&#42;)</label>
+      <select class="input" id="license" name="license">
+          <option value="CC-BY-4.0" selected>
+              Creative Commons Attribution 4.0 (CC BY 4.0)
+          </option>
+          <option value="CC0-1.0">
+              Creative Commons Zero 1.0 (CC0)
+          </option>
+          <option value="CC-BY-SA-4.0">
+              Creative Commons Attribution-ShareAlike 4.0
+          </option>
+          <option value="CC-BY-NC-4.0">
+              Creative Commons Attribution-NonCommercial 4.0
+          </option>
+          <option value="CC-BY-ND-4.0">
+              Creative Commons Attribution-NoDerivatives 4.0
+          </option>
+          <option value="ODC-By-1.0">
+              Open Data Commons Attribution (ODC-By)
+          </option>
+          <option value="ODbL-1.0">
+              Open Database License (ODbL)
+          </option>
+          <option value="PDDL-1.0">
+              Public Domain Dedication and License (PDDL)
+          </option>
+      </select>
+      <small class="hint">
+          Specifies how others may reuse this published dataset.
+      </small>
+    </div>
     <div class="form-item hide">
         <label class="hint hint-req">Project name (please use chess_ prefix to avoid overlap with other MC projects) (&#42;)</label>
         <input class="input" type="text" value="{{.MCProjectName}}" id="mcprojectname" name="mcprojectname">
