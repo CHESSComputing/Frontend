@@ -58,7 +58,7 @@ func getMetaData(user, did string) (map[string]any, error) {
 }
 
 // helper function to publish did with given provider
-func publishDataset(authors []string, user, provider, did, description string, parents []string, doiPublic bool, mcprojectname string) (string, string, error) {
+func publishDataset(authors []string, user, provider, did, description, license string, parents []string, doiPublic bool, mcprojectname string) (string, string, error) {
 
 	// get meta-data record associated with did
 	record, err := getMetaData(user, did)
@@ -68,6 +68,13 @@ func publishDataset(authors []string, user, provider, did, description string, p
 	if len(parents) > 0 {
 		record["doi_parents_dids"] = parents
 	}
+	info, ok := LicenseMap[license]
+	if !ok {
+		return "", "", fmt.Errorf("[Frontend.main.publishDataset] unable to get license error: %w", err)
+	}
+	record["license"] = license
+	record["license_name"] = info.Name
+	record["license_uri"] = info.URI
 
 	if val, ok := record["doi"]; ok {
 		if fmt.Sprintf("%v", val) != "" {
