@@ -1669,12 +1669,12 @@ func SpecScansHandler(c *gin.Context) {
 		spec := make(map[string]any)
 		spec["did"] = did
 		if specRecords, err := fetchSpecScans(services.ServiceRequest{
-			                     Client: "frontend",	ServiceQuery: services.ServiceQuery{Spec: spec}}); err == nil {
-				if data, err := json.MarshalIndent(specRecords, "", "  "); err == nil {
-					content = fmt.Sprintf("<pre>%s</pre>", string(data))
-					c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
-					return
-				}
+			Client: "frontend", ServiceQuery: services.ServiceQuery{Spec: spec}}); err == nil {
+			if data, err := json.MarshalIndent(specRecords, "", "  "); err == nil {
+				content = fmt.Sprintf("<pre>%s</pre>", string(data))
+				c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
+				return
+			}
 		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(content))
 		return
@@ -2771,6 +2771,8 @@ func PublishHandler(c *gin.Context) {
 	did := r.FormValue("did")
 	doiprovider := r.FormValue("doiprovider")
 	description := r.FormValue("description")
+	license := r.FormValue("license")
+
 	// add to description specific parts about dataset (did) access
 	tmpl["DID"] = did
 	//stagerequest := server.TmplPage(StaticFs, "stagerequest.tmpl", tmpl)
@@ -2791,7 +2793,7 @@ func PublishHandler(c *gin.Context) {
 	}
 
 	// publish our dataset
-	doi, doiLink, err := publishDataset(authors, user, doiprovider, did, description, parents, doiPublic, mcprojectname)
+	doi, doiLink, err := publishDataset(authors, user, doiprovider, did, description, license, parents, doiPublic, mcprojectname)
 	if Verbose > 0 {
 		log.Printf("### publish did=%s doiprovider=%s doi=%s doiLink=%s error=%v", did, doiprovider, doi, doiLink, err)
 	}
