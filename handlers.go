@@ -2808,7 +2808,7 @@ func PublishHandler(c *gin.Context) {
 		content = fmt.Sprintf("ERROR:<br/>unable to get DOI info for <br/>did=%s<br/> from %s DOI provider", did, doiprovider)
 	} else {
 		// update metadata with DOI information
-		err = updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, publishmetadata, parents)
+		err = updateMetaDataDOI(user, did, schema, license, doiprovider, doi, doiLink, doiPublic, publishmetadata, parents)
 		if err != nil {
 			templateName = "error.tmpl"
 			httpCode = http.StatusBadRequest
@@ -2893,6 +2893,7 @@ func DoiPublicHandler(c *gin.Context) {
 	doiLink := r.FormValue("doilink")
 	schema := r.FormValue("schema")
 	doiprovider := r.FormValue("doiprovider")
+	license := r.FormValue("license")
 	tmpl := server.MakeTmpl(StaticFs, "Login")
 	templateName := "success.tmpl"
 	content := fmt.Sprintf("SUCCESS:<br/><b>DOI=%s</b><br/>is published with %s as public DOI<br/><b>URL=<a href=\"%s\">%s</a></b><br/>Please note: it will take some time for public DOI record to appear", doi, doiprovider, doiLink, doiLink)
@@ -2902,7 +2903,7 @@ func DoiPublicHandler(c *gin.Context) {
 		// update DOI info in MetaData service to make it public
 		doiPublic := true
 		doiParents := []string{}
-		if err := updateMetaDataDOI(user, did, schema, doiprovider, doi, doiLink, doiPublic, "preserve", doiParents); err != nil {
+		if err := updateMetaDataDOI(user, did, schema, license, doiprovider, doi, doiLink, doiPublic, "preserve", doiParents); err != nil {
 			templateName = "error.tmpl"
 			content = fmt.Sprintf("ERROR:<br/>fail to update Metadata DOI information<br/>DOI=%s<br/>error=%v", doi, err)
 			w.WriteHeader(http.StatusNotFound)

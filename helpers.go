@@ -179,6 +179,9 @@ func records2html(user string, records []map[string]any, attrs2show []string) st
 		if val, ok := rec["doi_provider"]; ok {
 			tmpl["DoiProvider"] = val
 		}
+		if val, ok := rec["license"]; ok {
+			tmpl["license"] = val
+		}
 		if val, ok := rec["beamline"]; ok {
 			var beamlines []string
 			switch vvv := val.(type) {

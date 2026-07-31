@@ -117,7 +117,7 @@ func publishDataset(authors []string, user, provider, did, description, license 
 }
 
 // helper function to update DOI information in FOXDEN MetaData service
-func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiPublic bool, doiAccessMetadata string, doiParents []string) error {
+func updateMetaDataDOI(user, did, schema, license, doiProvider, doi, doiLink string, doiPublic bool, doiAccessMetadata string, doiParents []string) error {
 	var err error
 
 	if strings.Contains(schema, ",") {
@@ -165,6 +165,8 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		rec["doi_created_at"] = time.Now().Format(time.RFC3339)
 		if len(doiParents) > 0 {
 			rec["doi_parents_dids"] = doiParents
+		} else {
+			rec["doi_parents_dids"] = []string{}
 		}
 		if doiAccessMetadata == "on" {
 			rec["doi_access_metadata"] = true
@@ -177,6 +179,13 @@ func updateMetaDataDOI(user, did, schema, doiProvider, doi, doiLink string, doiP
 		if srvConfig.Config.DOIServiceURL != "" {
 			foxdenDoiLink := fmt.Sprintf("%s/dois/%s", srvConfig.Config.DOIServiceURL, doi)
 			rec["doi_foxden_url"] = foxdenDoiLink
+		}
+		if license != "" {
+			if info, ok := LicenseMap[license]; ok {
+				rec["license"] = license
+				rec["license_name"] = info.Name
+				rec["license_uri"] = info.URI
+			}
 		}
 
 		// create meta-data record for update
