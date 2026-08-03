@@ -1388,6 +1388,7 @@ func TmplRecordsFormHandler(c *gin.Context) {
 		return
 	}
 	btr := c.Query("btr")
+	label := c.Query("label")
 
 	tmpl := server.MakeTmpl(StaticFs, "TmpRecords")
 	tmpl["Base"] = srvConfig.Config.Frontend.WebServer.Base
@@ -1397,7 +1398,7 @@ func TmplRecordsFormHandler(c *gin.Context) {
 	}
 
 	// get tmp records from MetaData service
-	records, err := getTmplRecords(btr)
+	records, err := getTmplRecords(btr, label)
 	if err != nil {
 		tmpl["Content"] = fmt.Sprintf("Unable to fetch tmp records, %v", err)
 		page := server.TmplPage(StaticFs, "error.tmpl", tmpl)
@@ -3019,6 +3020,11 @@ func TmplRecordCreateHandler(c *gin.Context) {
 	TmplRecordHandler(c, "create")
 }
 
+// TmplRecordValidateHandler handles creation of tmpl record
+func TmplRecordValidateHandler(c *gin.Context) {
+	TmplRecordHandler(c, "validate")
+}
+
 // TmplRecordUpdateHandler handles updates of tmpl record
 func TmplRecordUpdateHandler(c *gin.Context) {
 	TmplRecordHandler(c, "update")
@@ -3082,6 +3088,9 @@ func TmplRecordHandler(c *gin.Context, action string) {
 	var resp *http.Response
 	if action == "update" {
 		resp, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
+	} else if action == "validate" {
+		rurl = fmt.Sprintf("%s?validate=true", rurl)
+		resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	} else if action == "create" {
 		resp, err = _httpWriteRequest.Post(rurl, "application/json", bytes.NewBuffer(data))
 	}
