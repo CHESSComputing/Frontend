@@ -60,7 +60,7 @@ setTimeout(function() {
       <b>BTR:</b> {{index $record "btr"}}
     </div>
     <div class="column column-7">
-      <b>DID:</b> {{index $record "did"}}
+      <b>Label:</b> {{index $record "label"}}
     </div>
     <div class="column column-1">
       <button
@@ -96,19 +96,11 @@ setTimeout(function() {
 
       <div class="form-item flex"
            style="display:flex; justify-content:flex-end; gap:10px">
-
         <button
             type="submit"
-            formaction="{{$.Base}}/meta/tmpl/submit"
+            formaction="{{$.Base}}/tmpl/create"
             class="button button-small">
-            Submit to FOXDEN
-        </button>
-
-        <button
-            type="submit"
-            formaction="{{$.Base}}/meta/tmpl/upload"
-            class="button button-small button-very-light-foxden">
-            Select to Web form
+            Create New Template
         </button>
 
         <button
@@ -120,17 +112,16 @@ setTimeout(function() {
 
         <button
             type="submit"
-            formaction="{{$.Base}}/tmpl/create"
+            formaction="{{$.Base}}/tmpl/validate"
             class="button button-small button-light-foxden">
-            Create New Template
+            Validate
         </button>
 
         <button
             type="submit"
             class="button button-small button-dark-foxden">
-            Validate & Save
+            Save
         </button>
-
       </div>
 
     </form>
