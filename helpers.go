@@ -1348,13 +1348,16 @@ type AffiliationInfo struct {
 	Affiliation string `json:"affiliation"`
 }
 
-func getTmplRecords(btr string) ([]map[string]any, error) {
+func getTmplRecords(btr, label string) ([]map[string]any, error) {
 	var records []map[string]any
 	// fetch template records from MetaData service
 	_httpReadRequest.GetToken()
 	rurl := fmt.Sprintf("%s/tmpl/records", srvConfig.Config.Services.MetaDataURL)
 	if btr != "" {
 		rurl = fmt.Sprintf("%s/tmpl/records?btr=%s", srvConfig.Config.Services.MetaDataURL, btr)
+	}
+	if label != "" {
+		rurl = fmt.Sprintf("%s/tmpl/records?label=%s", srvConfig.Config.Services.MetaDataURL, label)
 	}
 	var resp *http.Response
 	var err error
