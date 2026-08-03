@@ -119,6 +119,7 @@ func setupRouter() *gin.Engine {
 		{Method: "POST", Path: "/doipublic", Handler: DoiPublicHandler, Authorized: false},
 		{Method: "POST", Path: "/aichat", Handler: AIChatHandler, Authorized: false},
 		{Method: "POST", Path: "/tmpl/create", Handler: TmplRecordCreateHandler, Authorized: false},
+		{Method: "POST", Path: "/tmpl/validate", Handler: TmplRecordValidateHandler, Authorized: false},
 		{Method: "POST", Path: "/tmpl/update", Handler: TmplRecordUpdateHandler, Authorized: false},
 		{Method: "POST", Path: "/tmpl/delete", Handler: TmplRecordDeleteHandler, Authorized: false},
 	}
