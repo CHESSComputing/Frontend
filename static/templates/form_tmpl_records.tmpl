@@ -126,6 +126,7 @@ setTimeout(function() {
            style="display:flex; justify-content:flex-end; gap:10px">
 
         <input type="hidden" name="tmpl_schema" value="{{index $record "tmpl_schema"}}"/>
+        <input type="hidden" name="btr" value="{{index $record "btr"}}"/>
         <button
             type="submit"
             formaction="{{$.Base}}/tmpl/create"
