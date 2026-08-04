@@ -3115,8 +3115,14 @@ func TmplRecordHandler(c *gin.Context, action string) {
 
 // TmplRecordDeleteHandler handles updates of tmpl record
 func TmplRecordDeleteHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
 	_httpDeleteRequest.GetToken()
 	did := c.PostForm("did")
+	btr := c.PostForm("btr")
 	if did == "" {
 		// try to extract did from record_jsoneditor
 		recStr := c.PostForm("record_jsoneditor")
@@ -3125,6 +3131,20 @@ func TmplRecordDeleteHandler(c *gin.Context) {
 			if val, ok := rec["did"]; ok {
 				did = fmt.Sprintf("%s", val)
 			}
+		}
+	}
+	// check user's btr and decide if (s)he can delete the template record
+	if user != "test" && srvConfig.Config.Frontend.CheckBtrs && srvConfig.Config.Embed.DocDb == "" {
+		fuser, err := _foxdenUser.Get(user)
+		if err != nil {
+			msg := fmt.Sprintf("unable to find foxden user %s", user)
+			handleError(c, http.StatusBadRequest, msg, err)
+			return
+		}
+		if !utils.InList(btr, fuser.Btrs) {
+			msg := fmt.Sprintf("user %s is not authorized to delete tmpl record with btr", user, btr)
+			handleError(c, http.StatusBadRequest, msg, errors.New("unauthorized action"))
+			return
 		}
 	}
 	rurl := fmt.Sprintf("%s/tmpl/record?did=%s", srvConfig.Config.Services.MetaDataURL, url.QueryEscape(did))
