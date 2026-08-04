@@ -3142,7 +3142,7 @@ func TmplRecordDeleteHandler(c *gin.Context) {
 			return
 		}
 		if !utils.InList(btr, fuser.Btrs) {
-			msg := fmt.Sprintf("user %s is not authorized to delete tmpl record with btr", user, btr)
+			msg := fmt.Sprintf("user %s is not authorized to delete tmpl record with btr %s", user, btr)
 			handleError(c, http.StatusBadRequest, msg, errors.New("unauthorized action"))
 			return
 		}
