@@ -3123,6 +3123,7 @@ func TmplRecordDeleteHandler(c *gin.Context) {
 	_httpDeleteRequest.GetToken()
 	did := c.PostForm("did")
 	btr := c.PostForm("btr")
+	label := c.PostForm("label")
 	if did == "" {
 		// try to extract did from record_jsoneditor
 		recStr := c.PostForm("record_jsoneditor")
@@ -3147,7 +3148,9 @@ func TmplRecordDeleteHandler(c *gin.Context) {
 			return
 		}
 	}
-	rurl := fmt.Sprintf("%s/tmpl/record?did=%s", srvConfig.Config.Services.MetaDataURL, url.QueryEscape(did))
+	rurl := fmt.Sprintf("%s/tmpl/record?did=%s&btr=%s&label=%s",
+		srvConfig.Config.Services.MetaDataURL,
+		url.QueryEscape(did), url.QueryEscape(btr), url.QueryEscape(label))
 	data := []byte{}
 	resp, err := _httpDeleteRequest.Delete(rurl, "application/json", bytes.NewBuffer(data))
 	if err != nil || resp.StatusCode != 200 {
