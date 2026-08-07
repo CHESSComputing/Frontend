@@ -1355,8 +1355,10 @@ func getTmplRecords(btr, label string) ([]map[string]any, error) {
 	rurl := fmt.Sprintf("%s/tmpl/records", srvConfig.Config.Services.MetaDataURL)
 	if btr != "" {
 		rurl = fmt.Sprintf("%s/tmpl/records?btr=%s", srvConfig.Config.Services.MetaDataURL, btr)
-	}
-	if label != "" {
+		if label != "" {
+			rurl = fmt.Sprintf("%s/tmpl/records?btr=%s&label=%s", srvConfig.Config.Services.MetaDataURL, btr, label)
+		}
+	} else if label != "" {
 		rurl = fmt.Sprintf("%s/tmpl/records?label=%s", srvConfig.Config.Services.MetaDataURL, label)
 	}
 	var resp *http.Response
