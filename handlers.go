@@ -1406,6 +1406,10 @@ func TmplRecordsFormHandler(c *gin.Context) {
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
+	if c.Request.Header.Get("Accept") == "application/json" {
+		c.JSON(http.StatusOK, records)
+		return
+	}
 	skipKeys := []string{"btr", "beamline", "schema", "tmpl_schema", "timestamp"}
 
 	// fetch existing elog entries
