@@ -84,6 +84,7 @@ setTimeout(function() {
       <div id="json-editor-{{$idx}}" class="json-editor-container"></div>
 
       <input type="hidden" name="record_jsoneditor" id="record-json-{{$idx}}" value="">
+      <input type="hidden" name="label" value="{{index $record "label"}}">
 
       {{range $key, $value := $record}}
         {{if contains $.SkipKeys $key}}
