@@ -3050,7 +3050,7 @@ func TmplRecordHandler(c *gin.Context, action string) {
 
 	// Create dynamic record
 	record := make(map[string]any)
-	var btr, sample string
+	var btr, sample, label string
 
 	// Iterate over submitted fields
 	for key, values := range c.Request.PostForm {
@@ -3063,6 +3063,9 @@ func TmplRecordHandler(c *gin.Context, action string) {
 			}
 			if key == "sample_name" {
 				sample = values[0]
+			}
+			if key == "label" {
+				label = values[0]
 			}
 		}
 	}
@@ -3088,7 +3091,7 @@ func TmplRecordHandler(c *gin.Context, action string) {
 		return
 	}
 	_httpWriteRequest.GetToken()
-	rurl := fmt.Sprintf("%s/tmpl/record", srvConfig.Config.Services.MetaDataURL)
+	rurl := fmt.Sprintf("%s/tmpl/record?label=%s", srvConfig.Config.Services.MetaDataURL, label)
 	var resp *http.Response
 	if action == "update" {
 		resp, err = _httpWriteRequest.Put(rurl, "application/json", bytes.NewBuffer(data))
