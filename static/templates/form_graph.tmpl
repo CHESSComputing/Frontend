@@ -17,6 +17,11 @@
 </section>
 
 <script>
+function isProvOrSpec(n) {
+  const g = (n.data.group || '').toLowerCase();
+  return g.startsWith('provenance') || g.startsWith('specscans');
+}
+
 const elements = {{.ElementsJSON}};
 
 // Go's nil slices marshal to JSON `null`, not `[]` — a record with no
@@ -30,64 +35,34 @@ elements.edges = elements.edges || [];
 elements.edges = elements.edges.filter(e => e && e.data && e.data.source && e.data.target);
 elements.nodes = elements.nodes.filter(n => n && n.data && n.data.id);
 
-// ---- INSERT THIS BLOCK (was missing) ----------------------------------
-// Provenance is injected as its own node/DID, separate from the
-// metadata record it describes. Fold it out of the visible graph and
-// remember which node(s) it documents, so we can stamp that onto a
-// "prov" edge instead of drawing a box for it.
-function isProvenanceNode(n) {
-  return (n.data.label || '').toLowerCase().startsWith('provenance');
-}
-
-const provNodes = elements.nodes.filter(isProvenanceNode);
-const provIds = new Set(provNodes.map(n => n.data.id));
-const provenanceForNode = new Map(); // child node id -> provenance node id
-
-if (provIds.size > 0) {
-  const newEdges = [];
-
-  provNodes.forEach(p => {
-    const incoming = elements.edges.filter(e => e.data.target === p.data.id);
-    const outgoing = elements.edges.filter(e => e.data.source === p.data.id);
-
-    if (incoming.length === 0) {
-      outgoing.forEach(o => provenanceForNode.set(o.data.target, p.data.id));
-    } else {
-      incoming.forEach(i => {
-        outgoing.forEach(o => {
-          newEdges.push({
-            data: {
-              id: i.data.source + '__prov__' + o.data.target,
-              source: i.data.source,
-              target: o.data.target,
-              prov: true,
-              provDid: p.data.id
-            }
-          });
-        });
-      });
-    }
-  });
-
-  elements.edges = elements.edges
-    .filter(e => !provIds.has(e.data.source) && !provIds.has(e.data.target))
-    .concat(newEdges);
-  elements.nodes = elements.nodes.filter(n => !provIds.has(n.data.id));
-}
-// ---- END INSERTED BLOCK -------------------------------------------------
-
 // Find nodes that are never a target of any edge — these are the
 // roots of this record's lineage. Anchor each one with a synthetic
 // black "start" node so the flow direction is visually obvious.
 const targetIds = new Set(elements.edges.map(e => e.data.target));
-const rootNodes = elements.nodes.filter(n => !targetIds.has(n.data.id));
+//const rootNodes = elements.nodes.filter(n => !targetIds.has(n.data.id));
+
+const nodeById = new Map(elements.nodes.map(n => [n.data.id, n]));
+
+// Only metadata->metadata edges count toward "this node has a parent."
+// Provenance/specscans nodes are leaves that hang off a metadata node;
+// they should never themselves need a start anchor.
+const lineageTargets = new Set(
+  elements.edges
+    .filter(e => {
+      const src = nodeById.get(e.data.source);
+      return src && !isProvOrSpec(src);
+    })
+    .map(e => e.data.target)
+);
+
+const rootNodes = elements.nodes.filter(
+  n => !isProvOrSpec(n) && !lineageTargets.has(n.data.id)
+);
 
 rootNodes.forEach((n, i) => {
   const startId = '__start__' + i;
-  const provId = provenanceForNode.get(n.data.id) || null;
-
   elements.nodes.push({ data: { id: startId, label: '', group: 'start' } });
-  elements.edges.push({ data: { id: startId + '-edge', source: startId, target: n.data.id, prov: !!provId, provDid: provId } });
+  elements.edges.push({ data: { id: startId + '-edge', source: startId, target: n.data.id } });
 });
 
 const palette = ['#7F77DD', '#1D9E75', '#D85A30', '#D4537E', '#378ADD', '#EF9F27', '#639922'];
