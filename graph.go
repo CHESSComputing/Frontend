@@ -8,8 +8,6 @@ import (
 	"github.com/CHESSComputing/golib/utils"
 )
 
-// ---- cytoscape.js element shapes ----
-
 type NodeData struct {
 	ID      string         `json:"id"`
 	Label   string         `json:"label"`
@@ -22,9 +20,11 @@ type GraphNode struct {
 }
 
 type EdgeData struct {
-	ID     string `json:"id"`
-	Source string `json:"source"`
-	Target string `json:"target"`
+	ID      string `json:"id"`
+	Source  string `json:"source"`
+	Target  string `json:"target"`
+	Prov    bool   `json:"prov,omitempty"`
+	ProvDid string `json:"provDid,omitempty"`
 }
 
 type GraphEdge struct {
@@ -36,9 +36,6 @@ type GraphElements struct {
 	Edges []GraphEdge `json:"edges"`
 }
 
-// toStringSlice safely reads a []any or []string field from
-// a decoded JSON map, tolerating records where the field is missing,
-// null, or an empty string (as in the ID1A3 example's doi_* fields).
 func toStringSlice(v any) []string {
 	var out []string
 	switch t := v.(type) {
@@ -54,8 +51,6 @@ func toStringSlice(v any) []string {
 	return out
 }
 
-// shortLabel picks a compact, human-readable node label instead of
-// the full did path.
 func shortLabel(r map[string]any, group string) string {
 	doi, _ := r["doi"].(string)
 	if doi != "" {
@@ -75,13 +70,8 @@ func shortLabel(r map[string]any, group string) string {
 	return group
 }
 
-// ownerDidKey tags a provenance/specscans record with the did of the
-// metadata record it belongs to, so buildGraph can wire them together
-// directly instead of guessing from the record's own "did" field.
 const ownerDidKey = "_owner_did"
 
-// fetchOwned fetches the metadata record for did, plus its provenance
-// and specscans, tagging the latter two with the owning metadata did.
 func fetchOwned(did string, records *[]map[string]any) {
 	mrec, err := findMetadataRecord(did)
 	if err != nil {
@@ -147,82 +137,119 @@ func buildGraph(records []map[string]any) GraphElements {
 
 	nodeIDs := make([]string, len(records))
 	groups := make([]string, len(records))
+	provDidByOwner := make(map[string]string)
+
 	var provIdx, specIdx int
 
-	// Pass 1: assign each record its canonical node ID + group exactly
-	// once. Everything downstream indexes into this slice rather than
-	// recomputing IDs, so the two sides can never disagree.
+	// Pass 1: Identify records and map provenance DIDs by owner metadata record
 	for i, r := range records {
 		did, _ := r["did"].(string)
-		if did == "" {
-			continue // skip malformed records
-		}
 		schema, _ := r["schema"].(string)
-		switch schema {
-		case "specscans":
+		ownerDid, hasOwner := r[ownerDidKey].(string)
+
+		isSpec := (schema == "specscans")
+		// Provenance records often have schema == "", so check ownerDidKey as well
+		isProv := (schema == "provenance" || strings.HasPrefix(schema, "provenance") || (hasOwner && ownerDid != "" && !isSpec))
+
+		if isSpec {
 			groups[i] = "specscans"
 			nodeIDs[i] = fmt.Sprintf("/specscans-%d%s", specIdx, did)
 			specIdx++
-		case "", "provenance":
-			groups[i] = fmt.Sprintf("provenance-%d", provIdx)
-			nodeIDs[i] = fmt.Sprintf("/provenance-%d%s", provIdx, did)
+		} else if isProv {
+			provID := fmt.Sprintf("/provenance-%d%s", provIdx, did)
 			provIdx++
-		default:
+			targetOwner := ownerDid
+			if targetOwner == "" {
+				targetOwner = did
+			}
+			if targetOwner != "" {
+				provDidByOwner[targetOwner] = provID
+			}
+		} else {
 			groups[i] = schema
-			nodeIDs[i] = fmt.Sprintf("/record%s", did)
+			if did != "" {
+				nodeIDs[i] = fmt.Sprintf("/record%s", did)
+			}
 		}
 	}
 
-	// Pass 2: nodes, de-duplicated (a record can be pulled in via more
-	// than one path — e.g. as both a parent and a provenance owner).
+	// Pass 2: Create nodes (provenance records are skipped from becoming nodes)
 	seen := make(map[string]bool)
 	for i, r := range records {
-		if nodeIDs[i] == "" || seen[nodeIDs[i]] {
+		nodeID := nodeIDs[i]
+		schema, _ := r["schema"].(string)
+		ownerDid, hasOwner := r[ownerDidKey].(string)
+		isSpec := (schema == "specscans")
+		isProv := (schema == "provenance" || strings.HasPrefix(schema, "provenance") || (hasOwner && ownerDid != "" && !isSpec))
+
+		if isProv || nodeID == "" || seen[nodeID] {
 			continue
 		}
-		seen[nodeIDs[i]] = true
+		seen[nodeID] = true
+
+		did, _ := r["did"].(string)
+		// Attach provenance DID to metadata details so frontend root-node logic can pick it up
+		if provDid, ok := provDidByOwner[did]; ok {
+			r["_prov_did"] = provDid
+		}
+
 		els.Nodes = append(els.Nodes, GraphNode{Data: NodeData{
-			ID:      nodeIDs[i],
+			ID:      nodeID,
 			Label:   shortLabel(r, groups[i]),
 			Group:   groups[i],
 			Details: r,
 		}})
 	}
 
-	// metadata did -> its node id, used both for parent_dids lineage
-	// edges and for wiring provenance/specscans to their owner.
 	metaNodeByDid := make(map[string]string)
 	for i, r := range records {
 		if strings.HasPrefix(nodeIDs[i], "/record") {
 			did, _ := r["did"].(string)
-			metaNodeByDid[did] = nodeIDs[i]
+			if did != "" {
+				metaNodeByDid[did] = nodeIDs[i]
+			}
 		}
 	}
 
-	addEdge := func(source, target string) {
+	addEdge := func(source, target string, provDid string) {
 		if source == "" || target == "" || source == target || !seen[source] || !seen[target] {
 			return
 		}
-		els.Edges = append(els.Edges, GraphEdge{Data: EdgeData{
-			ID: source + "->" + target, Source: source, Target: target,
-		}})
+		edge := GraphEdge{Data: EdgeData{
+			ID:     source + "->" + target,
+			Source: source,
+			Target: target,
+		}}
+		if provDid != "" {
+			edge.Data.Prov = true
+			edge.Data.ProvDid = provDid
+		}
+		els.Edges = append(els.Edges, edge)
 	}
 
 	for i, r := range records {
 		nodeID := nodeIDs[i]
-		if nodeID == "" {
+		if nodeID == "" || !strings.HasPrefix(nodeID, "/record") {
 			continue
 		}
-		// metadata -> metadata lineage
+
+		did, _ := r["did"].(string)
+		targetProvDid := provDidByOwner[did]
+
+		// Metadata -> Metadata lineage (tagged with target node's provenance DID)
 		for _, parentDid := range toStringSlice(r["parent_dids"]) {
-			addEdge(metaNodeByDid[parentDid], nodeID)
+			addEdge(metaNodeByDid[parentDid], nodeID, targetProvDid)
 		}
 		if parentDid, ok := r["parent_did"].(string); ok && parentDid != "" {
-			addEdge(metaNodeByDid[parentDid], nodeID)
+			addEdge(metaNodeByDid[parentDid], nodeID, targetProvDid)
 		}
-		// provenance / specscans -> the metadata record they belong to
+
+		// Specscans -> Metadata link
 		if ownerDid, ok := r[ownerDidKey].(string); ok && ownerDid != "" {
-			addEdge(nodeID, metaNodeByDid[ownerDid])
+			schema, _ := r["schema"].(string)
+			if schema == "specscans" {
+				addEdge(nodeID, metaNodeByDid[ownerDid], "")
+			}
 		}
 	}
 

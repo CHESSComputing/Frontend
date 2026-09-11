@@ -4,7 +4,7 @@
   <div id="graph-top">
     <div id="legend"></div>
     <div id="controls">
-      Click a node for details. Double-click a node to collapse/expand its descendants.
+      Click a node or green provenance arrow for details. Double-click a node to collapse/expand.
       <button onclick="cy.fit()">Fit graph</button>
     </div>
     <div id="cy"></div>
@@ -24,28 +24,14 @@ function isProvOrSpec(n) {
 
 const elements = {{.ElementsJSON}};
 
-// Go's nil slices marshal to JSON `null`, not `[]` — a record with no
-// edges yet (e.g. no provenance, or first node in a lineage) will come
-// through that way. Normalize so array methods below don't throw.
 elements.nodes = elements.nodes || [];
 elements.edges = elements.edges || [];
 
-// Drop malformed entries — e.g. a placeholder provenance record with
-// did: "" coming back instead of a true empty result (seen in your logs).
 elements.edges = elements.edges.filter(e => e && e.data && e.data.source && e.data.target);
 elements.nodes = elements.nodes.filter(n => n && n.data && n.data.id);
 
-// Find nodes that are never a target of any edge — these are the
-// roots of this record's lineage. Anchor each one with a synthetic
-// black "start" node so the flow direction is visually obvious.
-const targetIds = new Set(elements.edges.map(e => e.data.target));
-//const rootNodes = elements.nodes.filter(n => !targetIds.has(n.data.id));
-
 const nodeById = new Map(elements.nodes.map(n => [n.data.id, n]));
 
-// Only metadata->metadata edges count toward "this node has a parent."
-// Provenance/specscans nodes are leaves that hang off a metadata node;
-// they should never themselves need a start anchor.
 const lineageTargets = new Set(
   elements.edges
     .filter(e => {
@@ -62,13 +48,18 @@ const rootNodes = elements.nodes.filter(
 rootNodes.forEach((n, i) => {
   const startId = '__start__' + i;
   elements.nodes.push({ data: { id: startId, label: '', group: 'start' } });
-  elements.edges.push({ data: { id: startId + '-edge', source: startId, target: n.data.id } });
+  
+  const edgeData = { id: startId + '-edge', source: startId, target: n.data.id };
+  const provDid = n.data && n.data.details && n.data.details._prov_did;
+  if (provDid) {
+    edgeData.prov = true;
+    edgeData.provDid = provDid;
+  }
+  elements.edges.push({ data: edgeData });
 });
 
 const palette = ['#7F77DD', '#1D9E75', '#D85A30', '#D4537E', '#378ADD', '#EF9F27', '#639922'];
 
-// Explicit color rules by label prefix. Add/edit entries here as
-// new record categories show up (matched case-insensitively).
 const prefixColors = [
   { prefix: 'metadata',   color: '#7F77DD' },
   { prefix: 'provenance', color: '#1D9E75' },
@@ -78,9 +69,6 @@ const prefixColors = [
   { prefix: 'user',       color: '#378ADD' },
 ];
 
-// Fallback: anything whose label doesn't match a known prefix gets
-// a deterministic color from the palette, hashed by first-seen group,
-// so it's still stable across reloads instead of falling back to gray.
 const groups = [...new Set(elements.nodes.map(n => n.data.group))];
 const fallbackColorFor = {};
 groups.forEach((g, i) => fallbackColorFor[g] = palette[i % palette.length]);
@@ -92,20 +80,25 @@ function colorForNode(d) {
   return fallbackColorFor[d.group] || '#999';
 }
 
-// Legend now reflects the prefix rules that actually appear in the
-// current graph, plus any fallback groups that didn't match a rule.
 const legendEntries = [];
 const seenLabels = new Set();
 elements.nodes.forEach(n => {
-  if (n.data.group === 'start') return;   // skip it in the legend
+  if (n.data.group === 'start') return;
   const label = (n.data.label || '').toLowerCase();
   const match = prefixColors.find(p => label.startsWith(p.prefix));
   const key = match ? match.prefix : n.data.group;
   if (!seenLabels.has(key)) {
     seenLabels.add(key);
-    legendEntries.push({ name: match ? match.prefix : n.data.group, color: match ? match.color : fallbackColorFor[n.data.group] });
+    legendEntries.push({ name: key, color: match ? match.color : fallbackColorFor[n.data.group] });
   }
 });
+
+// Always include provenance in legend if provenance edges exist
+const hasProvEdges = elements.edges.some(e => e.data && e.data.prov);
+if (hasProvEdges && !seenLabels.has('provenance')) {
+  seenLabels.add('provenance');
+  legendEntries.push({ name: 'provenance', color: '#1D9E75' });
+}
 
 const legend = document.getElementById('legend');
 legendEntries.forEach(e => {
@@ -114,6 +107,15 @@ legendEntries.forEach(e => {
   span.innerHTML = '<span class="legend-dot" style="background:' + e.color + '"></span>' + e.name;
   legend.appendChild(span);
 });
+
+const dagreLayoutOptions = {
+  name: 'dagre',
+  rankDir: 'LR',                       // Left -> Right layout (Start on left, DOI on right)
+  nodeSep: 45,                         // Vertical distance between parallel nodes
+  rankSep: 90,                         // Horizontal distance between ranks/columns
+  nodeDimensionsIncludeLabels: true,   // Accounts for expanded text bounds
+  spacingFactor: 1.2
+};
 
 const cy = cytoscape({
   container: document.getElementById('cy'),
@@ -127,20 +129,22 @@ const cy = cytoscape({
         'color': '#fff',
         'text-valign': 'center',
         'text-halign': 'center',
-        'font-size': 9,
+        'font-size': 12,                // Increased from 9 for better legibility
+        'font-weight': '500',
         'text-wrap': 'wrap',
-        'text-max-width': '80px',
-        'width': 90,
-        'height': 32,
-        'shape': 'round-rectangle'
+        'text-max-width': '130px',      // Expanded max text width
+        'width': 150,                   // Expanded node box width (was 90)
+        'height': 48,                   // Expanded node box height (was 32)
+        'shape': 'round-rectangle',
+        'padding': '8px'
       }
     },
     {
       selector: 'node[group = "start"]',
       style: {
         shape: 'ellipse',
-        width: 18,
-        height: 18,
+        width: 22,                      // Scaled up start anchor node slightly
+        height: 22,
         label: '',
         'background-color': '#111'
       }
@@ -148,7 +152,7 @@ const cy = cytoscape({
     {
       selector: 'edge',
       style: {
-        'width': 1,
+        'width': 1.5,
         'line-color': '#ccc',
         'target-arrow-color': '#ccc',
         'target-arrow-shape': 'triangle',
@@ -156,15 +160,13 @@ const cy = cytoscape({
       }
     },
     {
-      selector: 'edge[?prov]',   // matches edges where data.prov is truthy
+      selector: 'edge[?prov]',
       style: {
-        'label': 'prov',
-        'font-size': 8,
-        'color': '#fff',
-        'text-background-color': '#1D9E75',
-        'text-background-opacity': 1,
-        'text-background-shape': 'roundrectangle',
-        'text-background-padding': '4px'
+        'width': 3.5,                   // Slightly bolder provenance line
+        'line-color': '#1D9E75',
+        'target-arrow-color': '#1D9E75',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier'
       }
     },
     {
@@ -172,15 +174,16 @@ const cy = cytoscape({
       style: { 'display': 'none' }
     }
   ],
-  layout: { name: 'dagre', rankDir: 'BT', nodeSep: 24, rankSep: 44 }
+  layout: dagreLayoutOptions
 });
-// layout above use the following notations:
-// 'TB'	top → bottom (current default — parents above children)
-// 'BT'	bottom → top (parents below children)
-// 'LR'	left → right (parents on the left, children flow right)
-// 'RL'	right → left (parents on the right, children flow left)
 
-// Double-click a node -> collapse/expand its descendant subtree.
+// layout above use the following notations:
+// 'TB'        top → bottom (current default — parents above children)
+// 'BT'        bottom → top (parents below children)
+// 'LR'        left → right (parents on the left, children flow right)
+// 'RL'        right → left (parents on the right, children flow left)
+
+// Double-click handler preserving left-to-right layout
 cy.on('dbltap', 'node', evt => {
   const node = evt.target;
   const descendants = node.successors('node');
@@ -188,7 +191,7 @@ cy.on('dbltap', 'node', evt => {
   const nowHidden = !descendants.hasClass('hidden');
   descendants.toggleClass('hidden', nowHidden);
   descendants.connectedEdges().toggleClass('hidden', nowHidden);
-  cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: 24, rankSep: 44 }).run();
+  cy.layout(dagreLayoutOptions).run();
 });
 
 function fetchDetails(rawId) {
