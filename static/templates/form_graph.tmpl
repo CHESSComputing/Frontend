@@ -10,7 +10,7 @@
     <div id="cy"></div>
   </div>
   <div id="details">
-    <p style="font-size:13px;color:#888;">Select a record to see its details.</p>
+    <p style="font-size:14px;color:#888;">Select a record to see its details.</p>
   </div>
 </div>
 </article>
@@ -45,17 +45,13 @@ const rootNodes = elements.nodes.filter(
   n => !isProvOrSpec(n) && !lineageTargets.has(n.data.id)
 );
 
+// Create plain grey origin edges (no prov flag or labels attached)
 rootNodes.forEach((n, i) => {
   const startId = '__start__' + i;
   elements.nodes.push({ data: { id: startId, label: '', group: 'start' } });
-  
-  const edgeData = { id: startId + '-edge', source: startId, target: n.data.id };
-  const provDid = n.data && n.data.details && n.data.details._prov_did;
-  if (provDid) {
-    edgeData.prov = true;
-    edgeData.provDid = provDid;
-  }
-  elements.edges.push({ data: edgeData });
+  elements.edges.push({
+    data: { id: startId + '-edge', source: startId, target: n.data.id }
+  });
 });
 
 const palette = ['#7F77DD', '#1D9E75', '#D85A30', '#D4537E', '#378ADD', '#EF9F27', '#639922'];
@@ -93,7 +89,6 @@ elements.nodes.forEach(n => {
   }
 });
 
-// Always include provenance in legend if provenance edges exist
 const hasProvEdges = elements.edges.some(e => e.data && e.data.prov);
 if (hasProvEdges && !seenLabels.has('provenance')) {
   seenLabels.add('provenance');
@@ -110,10 +105,10 @@ legendEntries.forEach(e => {
 
 const dagreLayoutOptions = {
   name: 'dagre',
-  rankDir: 'LR',                       // Left -> Right layout (Start on left, DOI on right)
-  nodeSep: 45,                         // Vertical distance between parallel nodes
-  rankSep: 90,                         // Horizontal distance between ranks/columns
-  nodeDimensionsIncludeLabels: true,   // Accounts for expanded text bounds
+  rankDir: 'LR',
+  nodeSep: 45,
+  rankSep: 90,
+  nodeDimensionsIncludeLabels: true,
   spacingFactor: 1.2
 };
 
@@ -129,12 +124,12 @@ const cy = cytoscape({
         'color': '#fff',
         'text-valign': 'center',
         'text-halign': 'center',
-        'font-size': 12,                // Increased from 9 for better legibility
+        'font-size': 14,
         'font-weight': '500',
         'text-wrap': 'wrap',
-        'text-max-width': '130px',      // Expanded max text width
-        'width': 150,                   // Expanded node box width (was 90)
-        'height': 48,                   // Expanded node box height (was 32)
+        'text-max-width': '130px',
+        'width': 150,
+        'height': 48,
         'shape': 'round-rectangle',
         'padding': '8px'
       }
@@ -143,7 +138,7 @@ const cy = cytoscape({
       selector: 'node[group = "start"]',
       style: {
         shape: 'ellipse',
-        width: 22,                      // Scaled up start anchor node slightly
+        width: 22,
         height: 22,
         label: '',
         'background-color': '#111'
@@ -162,7 +157,7 @@ const cy = cytoscape({
     {
       selector: 'edge[?prov]',
       style: {
-        'width': 3.5,                   // Slightly bolder provenance line
+        'width': 3.5,
         'line-color': '#1D9E75',
         'target-arrow-color': '#1D9E75',
         'target-arrow-shape': 'triangle',
@@ -171,8 +166,9 @@ const cy = cytoscape({
         'target-label': 'children',
         'source-text-offset': 25,
         'target-text-offset': 25,
-        'font-size': 12,
-        'color': '#0096FF'
+        'font-size': 14,
+        'font-weight': 'bold',
+        'color': '#797979'
       }
     },
     {
@@ -183,13 +179,6 @@ const cy = cytoscape({
   layout: dagreLayoutOptions
 });
 
-// layout above use the following notations:
-// 'TB'        top → bottom (current default — parents above children)
-// 'BT'        bottom → top (parents below children)
-// 'LR'        left → right (parents on the left, children flow right)
-// 'RL'        right → left (parents on the right, children flow left)
-
-// Double-click handler preserving left-to-right layout
 cy.on('dbltap', 'node', evt => {
   const node = evt.target;
   const descendants = node.successors('node');
@@ -206,7 +195,7 @@ function fetchDetails(rawId) {
   const did = '/' + segments.slice(1).join('/');
 
   const details = document.getElementById('details');
-  details.innerHTML = '<p style="font-size:13px;color:#888;">Loading…</p>';
+  details.innerHTML = '<p style="font-size:14px;color:#888;">Loading…</p>';
 
   fetch(apiPrefix + '?ajaxHtml=true&did=' + encodeURIComponent(did))
     .then(resp => {
@@ -215,7 +204,7 @@ function fetchDetails(rawId) {
     })
     .then(html => { details.innerHTML = html; })
     .catch(err => {
-      details.innerHTML = '<p style="font-size:13px;color:#c0392b;">Failed to load record: ' + err.message + '</p>';
+      details.innerHTML = '<p style="font-size:14px;color:#c0392b;">Failed to load record: ' + err.message + '</p>';
     });
 }
 
@@ -224,15 +213,6 @@ cy.on('tap', 'node', evt => {
   if (nodeid.startsWith('__start__')) return;
   fetchDetails(nodeid);
 });
-
-/*
-cy.on('tap', 'edge', evt => {
-  const provDid = evt.target.data('provDid');
-  if (!provDid) return;
-  fetchDetails(provDid);
-});
-*/
-
 
 function getDidFromNode(node) {
   if (!node || !node.data()) return '';
@@ -244,7 +224,7 @@ function getDidFromNode(node) {
 function fetchEndpoint(endpoint, did) {
   if (!did) return;
   const details = document.getElementById('details');
-  details.innerHTML = '<p style="font-size:13px;color:#888;">Loading…</p>';
+  details.innerHTML = '<p style="font-size:14px;color:#888;">Loading…</p>';
 
   fetch(endpoint + '?ajaxHtml=true&did=' + encodeURIComponent(did))
     .then(resp => {
@@ -253,37 +233,30 @@ function fetchEndpoint(endpoint, did) {
     })
     .then(html => { details.innerHTML = html; })
     .catch(err => {
-      details.innerHTML = '<p style="font-size:13px;color:#c0392b;">Failed to load: ' + err.message + '</p>';
+      details.innerHTML = '<p style="font-size:14px;color:#c0392b;">Failed to load: ' + err.message + '</p>';
     });
 }
+
 cy.on('tap', 'edge', evt => {
   const edge = evt.target;
-  const clickPos = evt.position; // Canvas coordinates of the click
-
   const srcNode = edge.source();
   const tgtNode = edge.target();
 
-  // Handle synthetic start circle clicks
+  // Ignore clicks on origin edges originating from the black circle
   if (srcNode.data('group') === 'start') {
-    const provDid = edge.data('provDid');
-    if (provDid) fetchDetails(provDid);
     return;
   }
 
+  const clickPos = evt.position;
   const srcPos = srcNode.position();
   const tgtPos = tgtNode.position();
 
-  // Measure Euclidean distance from click to source vs target
   const distToSource = Math.hypot(clickPos.x - srcPos.x, clickPos.y - srcPos.y);
   const distToTarget = Math.hypot(clickPos.x - tgtPos.x, clickPos.y - tgtPos.y);
 
   if (distToSource < distToTarget) {
-    // Clicked near the STARTING point -> Parent DIDs API
-    //fetchEndpoint('/parents', getDidFromNode(srcNode));
     fetchEndpoint('/parents', getDidFromNode(tgtNode));
   } else {
-    // Clicked near the ENDING point (arrowhead) -> Children DIDs API
-    //fetchEndpoint('/children', getDidFromNode(tgtNode));
     fetchEndpoint('/children', getDidFromNode(srcNode));
   }
 });
