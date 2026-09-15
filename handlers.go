@@ -527,6 +527,56 @@ func PostProvenanceHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+// ChildrenHandler provides access to GET /children endpoint
+func ChildrenHandler(c *gin.Context) {
+	user, err := getUser(c)
+	if Verbose > 1 {
+		log.Printf("ProvenanceHandler %s user=%s error=%v", c.Request.Method, user, err)
+	}
+	if err != nil {
+		LoginHandler(c)
+		return
+	}
+	r := c.Request
+	did := r.FormValue("did") // extract did from post form or from /provenance?did=did
+
+	// obtain valid token
+	_httpReadRequest.GetToken()
+
+	children := getChildren(did)
+	/*
+	records, err := getData("child", did)
+	if err != nil {
+		content := errorTmpl(c, "unable to get child data from provenance service, error", err)
+		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+		return
+	}
+	for _, r := range records {
+		if f, ok := r["child_did"]; ok {
+			if f != nil {
+				v := f.(string)
+				children = append(children, v)
+			}
+		}
+	}
+	*/
+	// ensure that children is unique list
+	children = utils.List2Set(children)
+	log.Printf("did=%s children %+v", did, children)
+	if r.FormValue("ajaxHtml") != "" {
+		page := ""
+		for _, r := range children {
+			page = fmt.Sprintf("%s<br>%s", page, r)
+		}
+		if page == "" {
+			page = "No children found"
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(page))
+		return
+	}
+	c.JSON(http.StatusOK, children)
+}
+
 // ParentsHandler provides access to GET /parents endpoint
 func ParentsHandler(c *gin.Context) {
 	user, err := getUser(c)
@@ -543,14 +593,39 @@ func ParentsHandler(c *gin.Context) {
 	// obtain valid token
 	_httpReadRequest.GetToken()
 
-	// get files from provenance service
+	parents := getParents(did)
+	/*
 	records, err := getData("parents", did)
 	if err != nil {
 		msg := fmt.Sprintf("unable to find parents for did=%s", did)
 		handleError(c, http.StatusBadRequest, msg, err)
 		return
 	}
-	c.JSON(http.StatusOK, records)
+	for _, r := range records {
+		if f, ok := r["parent_did"]; ok {
+			if f != nil {
+				v := f.(string)
+				parents = append(parents, v)
+			}
+		}
+	}
+	*/
+
+	// ensure that parents is unique list
+	parents = utils.List2Set(parents)
+	log.Printf("did=%s parents %+v", did, parents)
+	if r.FormValue("ajaxHtml") != "" {
+		page := ""
+		for _, r := range parents {
+			page = fmt.Sprintf("%s<br>%s", page, r)
+		}
+		if page == "" {
+			page = "No parents found"
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(page))
+		return
+	}
+	c.JSON(http.StatusOK, parents)
 }
 
 // ProvenanceHandler provides access to GET /provenance endpoint

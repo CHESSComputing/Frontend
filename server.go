@@ -90,6 +90,7 @@ func setupRouter() *gin.Engine {
 		{Method: "GET", Path: "/info/datamanagement", Handler: DataManagementInfoHandler, Authorized: false},
 		{Method: "GET", Path: "/provenance", Handler: ProvenanceHandler, Authorized: false},
 		{Method: "GET", Path: "/parents", Handler: ParentsHandler, Authorized: false},
+		{Method: "GET", Path: "/children", Handler: ChildrenHandler, Authorized: false},
 		{Method: "GET", Path: "/dm", Handler: DataManagementHandler, Authorized: false},
 		{Method: "GET", Path: "/datahub", Handler: DataHubHandler, Authorized: false},
 		{Method: "GET", Path: "/amend", Handler: AmendFormHandler, Authorized: false},
