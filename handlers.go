@@ -545,31 +545,31 @@ func ChildrenHandler(c *gin.Context) {
 
 	children := getChildren(did)
 	/*
-	records, err := getData("child", did)
-	if err != nil {
-		content := errorTmpl(c, "unable to get child data from provenance service, error", err)
-		c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
-		return
-	}
-	for _, r := range records {
-		if f, ok := r["child_did"]; ok {
-			if f != nil {
-				v := f.(string)
-				children = append(children, v)
+		records, err := getData("child", did)
+		if err != nil {
+			content := errorTmpl(c, "unable to get child data from provenance service, error", err)
+			c.Data(http.StatusBadRequest, "text/html; charset=utf-8", []byte(header()+content+footer()))
+			return
+		}
+		for _, r := range records {
+			if f, ok := r["child_did"]; ok {
+				if f != nil {
+					v := f.(string)
+					children = append(children, v)
+				}
 			}
 		}
-	}
 	*/
 	// ensure that children is unique list
 	children = utils.List2Set(children)
 	log.Printf("did=%s children %+v", did, children)
 	if r.FormValue("ajaxHtml") != "" {
-		page := ""
+		page := fmt.Sprintf("Immediate children of did=<b>%s</b>\n<br>", did)
 		for _, r := range children {
-			page = fmt.Sprintf("%s<br>%s", page, r)
+			page = fmt.Sprintf("%s\n &#10148; %s\n<br>", page, r)
 		}
-		if page == "" {
-			page = "No children found"
+		if len(children) == 0 {
+			page = fmt.Sprintf("No children found for did=%s", did)
 		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(page))
 		return
@@ -595,32 +595,32 @@ func ParentsHandler(c *gin.Context) {
 
 	parents := getParents(did)
 	/*
-	records, err := getData("parents", did)
-	if err != nil {
-		msg := fmt.Sprintf("unable to find parents for did=%s", did)
-		handleError(c, http.StatusBadRequest, msg, err)
-		return
-	}
-	for _, r := range records {
-		if f, ok := r["parent_did"]; ok {
-			if f != nil {
-				v := f.(string)
-				parents = append(parents, v)
+		records, err := getData("parents", did)
+		if err != nil {
+			msg := fmt.Sprintf("unable to find parents for did=%s", did)
+			handleError(c, http.StatusBadRequest, msg, err)
+			return
+		}
+		for _, r := range records {
+			if f, ok := r["parent_did"]; ok {
+				if f != nil {
+					v := f.(string)
+					parents = append(parents, v)
+				}
 			}
 		}
-	}
 	*/
 
 	// ensure that parents is unique list
 	parents = utils.List2Set(parents)
 	log.Printf("did=%s parents %+v", did, parents)
 	if r.FormValue("ajaxHtml") != "" {
-		page := ""
+		page := fmt.Sprintf("Immediate parents of did=<b>%s</b>\n<br>", did)
 		for _, r := range parents {
-			page = fmt.Sprintf("%s<br>%s", page, r)
+			page = fmt.Sprintf("%s\n &#10148; %s\n<br>", page, r)
 		}
-		if page == "" {
-			page = "No parents found"
+		if len(parents) == 0 {
+			page = fmt.Sprintf("No parents found for did=%s", did)
 		}
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(page))
 		return
