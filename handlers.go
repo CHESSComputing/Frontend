@@ -528,6 +528,8 @@ func PostProvenanceHandler(c *gin.Context) {
 }
 
 // ChildrenHandler provides access to GET /children endpoint
+// the endpoint supports did=<did> and recursive=<true> options 
+// (to find all children through recursive iteration across all recrods)
 func ChildrenHandler(c *gin.Context) {
 	user, err := getUser(c)
 	if Verbose > 1 {
@@ -544,7 +546,7 @@ func ChildrenHandler(c *gin.Context) {
 	_httpReadRequest.GetToken()
 
 	children := getChildren(did)
-	/*
+	if r.FormValue("recursive") != "" {
 		records, err := getData("child", did)
 		if err != nil {
 			content := errorTmpl(c, "unable to get child data from provenance service, error", err)
@@ -559,7 +561,7 @@ func ChildrenHandler(c *gin.Context) {
 				}
 			}
 		}
-	*/
+	}
 	// ensure that children is unique list
 	children = utils.List2Set(children)
 	log.Printf("did=%s children %+v", did, children)
@@ -578,6 +580,8 @@ func ChildrenHandler(c *gin.Context) {
 }
 
 // ParentsHandler provides access to GET /parents endpoint
+// the endpoint supports did=<did> and recursive=<true> options 
+// (to find all parents through recursive iteration across all recrods)
 func ParentsHandler(c *gin.Context) {
 	user, err := getUser(c)
 	if Verbose > 1 {
@@ -594,7 +598,7 @@ func ParentsHandler(c *gin.Context) {
 	_httpReadRequest.GetToken()
 
 	parents := getParents(did)
-	/*
+	if r.FormValue("recursive") != "" {
 		records, err := getData("parents", did)
 		if err != nil {
 			msg := fmt.Sprintf("unable to find parents for did=%s", did)
@@ -609,7 +613,7 @@ func ParentsHandler(c *gin.Context) {
 				}
 			}
 		}
-	*/
+	}
 
 	// ensure that parents is unique list
 	parents = utils.List2Set(parents)
