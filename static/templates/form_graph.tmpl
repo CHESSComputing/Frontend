@@ -103,14 +103,13 @@ legendEntries.forEach(e => {
   legend.appendChild(span);
 });
 
-// Compact horizontal distance with expanded vertical separation
 const dagreLayoutOptions = {
   name: 'dagre',
   rankDir: 'LR',
-  nodeSep: 130,                        // Vertical distance (height of the triangle)
-  rankSep: 85,                         // Horizontal distance (prevents graph from stretching wide)
-  nodeDimensionsIncludeLabels: true,  // Accounts for text bounds in node layout
-  spacingFactor: 1.0,                  // Keeps viewport scaling at 1:1
+  nodeSep: 140,                        // Increased to accommodate 3-line taller nodes
+  rankSep: 90,
+  nodeDimensionsIncludeLabels: true,
+  spacingFactor: 1.0,
   fit: true,
   padding: 25
 };
@@ -122,19 +121,27 @@ const cy = cytoscape({
     {
       selector: 'node',
       style: {
-        'label': 'data(label)',
-        'background-color': ele => colorForNode(ele.data()),
-        'color': '#fff',
-        'text-valign': 'center',
-        'text-halign': 'center',
-        'font-size': 13,                // Clear, legible typography
-        'font-weight': '600',
-        'text-wrap': 'wrap',
-        'text-max-width': '140px',
-        'width': 160,                   // Large explicit node width
-        'height': 52,                   // Large explicit node height
+        'label': '', // Handled inside the SVG below
+        'width': 160,
+        'height': 72,
         'shape': 'round-rectangle',
-        'padding': '6px'
+        'background-fit': 'cover',
+        'background-image': ele => {
+          if (ele.data('group') === 'start') return 'none';
+
+          const label = ele.data('label') || '';
+          const bgColor = colorForNode(ele.data());
+
+          // Create an SVG card with white title, black parents, and yellow children text
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="72">
+            <rect width="100%" height="100%" rx="10" fill="${bgColor}"/>
+            <text x="50%" y="22" fill="#FFFFFF" font-size="12" font-weight="500" text-anchor="middle" font-family="sans-serif">${label}</text>
+            <text x="50%" y="42" fill="#000000" font-size="12" font-weight="bold" text-anchor="middle" font-family="sans-serif">parents</text>
+            <text x="50%" y="62" fill="#FFD700" font-size="12" font-weight="bold" text-anchor="middle" font-family="sans-serif">children</text>
+          </svg>`;
+
+          return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
       }
     },
     {
@@ -144,7 +151,8 @@ const cy = cytoscape({
         width: 22,
         height: 22,
         label: '',
-        'background-color': '#111'
+        'background-color': '#111',
+        'background-image': 'none'
       }
     },
     {
@@ -185,6 +193,7 @@ cy.on('dbltap', 'node', evt => {
   cy.layout(dagreLayoutOptions).run();
 });
 
+// Helper functions for record detail and parent/child API lookups
 function fetchDetails(rawId) {
   const segments = rawId.split('/').filter(Boolean);
   const apiPrefix = '/' + segments[0].split('-')[0];
@@ -204,13 +213,52 @@ function fetchDetails(rawId) {
     });
 }
 
+function getDidFromNode(node) {
+  if (!node || !node.data()) return '';
+  const d = node.data('details');
+  if (d && d.did) return d.did;
+  return (node.data('id') || '').replace(/^\/record/, '');
+}
+
+function fetchEndpoint(endpoint, did) {
+  if (!did) return;
+  const details = document.getElementById('details');
+  details.innerHTML = '<p style="font-size:14px;color:#888;">Loading…</p>';
+
+  fetch(endpoint + '?ajaxHtml=true&did=' + encodeURIComponent(did))
+    .then(resp => {
+      if (!resp.ok) throw new Error('status ' + resp.status);
+      return resp.text();
+    })
+    .then(html => { details.innerHTML = html; })
+    .catch(err => {
+      details.innerHTML = '<p style="font-size:14px;color:#c0392b;">Failed to load: ' + err.message + '</p>';
+    });
+}
+
+// Node click router: partitions the node height into 3 vertical zones
 cy.on('tap', 'node', evt => {
-  const nodeid = evt.target.data('id');
-  if (nodeid.startsWith('__start__')) return;
-  fetchDetails(nodeid);
+  const node = evt.target;
+  if (node.data('group') === 'start') return;
+
+  const clickPos = evt.position;
+  const nodePos = node.position();
+  const relY = clickPos.y - nodePos.y;
+  const height = node.height();
+
+  if (relY < -height / 6) {
+    // Top line click: Record Details lookup
+    fetchDetails(node.data('id'));
+  } else if (relY > height / 6) {
+    // Bottom line click: /children?did=...
+    fetchEndpoint('/children', getDidFromNode(node));
+  } else {
+    // Middle line click: /parents?did=...
+    fetchEndpoint('/parents', getDidFromNode(node));
+  }
 });
 
-// Displays explicit provenance info message upon clicking green provenance edges
+// Green provenance arrow click handler
 cy.on('tap', 'edge', evt => {
   const edge = evt.target;
   if (edge.data('prov')) {
