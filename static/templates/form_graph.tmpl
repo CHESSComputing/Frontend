@@ -45,7 +45,7 @@ const rootNodes = elements.nodes.filter(
   n => !isProvOrSpec(n) && !lineageTargets.has(n.data.id)
 );
 
-// Create plain grey origin edges (no prov flag or labels attached)
+// Create plain grey origin edges
 rootNodes.forEach((n, i) => {
   const startId = '__start__' + i;
   elements.nodes.push({ data: { id: startId, label: '', group: 'start' } });
@@ -103,13 +103,16 @@ legendEntries.forEach(e => {
   legend.appendChild(span);
 });
 
+// Compact horizontal distance with expanded vertical separation
 const dagreLayoutOptions = {
   name: 'dagre',
   rankDir: 'LR',
-  nodeSep: 45,
-  rankSep: 90,
-  nodeDimensionsIncludeLabels: true,
-  spacingFactor: 1.2
+  nodeSep: 130,                        // Vertical distance (height of the triangle)
+  rankSep: 85,                         // Horizontal distance (prevents graph from stretching wide)
+  nodeDimensionsIncludeLabels: true,  // Accounts for text bounds in node layout
+  spacingFactor: 1.0,                  // Keeps viewport scaling at 1:1
+  fit: true,
+  padding: 25
 };
 
 const cy = cytoscape({
@@ -124,14 +127,14 @@ const cy = cytoscape({
         'color': '#fff',
         'text-valign': 'center',
         'text-halign': 'center',
-        'font-size': 14,
-        'font-weight': '500',
+        'font-size': 13,                // Clear, legible typography
+        'font-weight': '600',
         'text-wrap': 'wrap',
-        'text-max-width': '130px',
-        'width': 150,
-        'height': 48,
+        'text-max-width': '140px',
+        'width': 160,                   // Large explicit node width
+        'height': 52,                   // Large explicit node height
         'shape': 'round-rectangle',
-        'padding': '8px'
+        'padding': '6px'
       }
     },
     {
@@ -161,14 +164,7 @@ const cy = cytoscape({
         'line-color': '#1D9E75',
         'target-arrow-color': '#1D9E75',
         'target-arrow-shape': 'triangle',
-        'curve-style': 'bezier',
-        'source-label': 'parents',
-        'target-label': 'children',
-        'source-text-offset': 25,
-        'target-text-offset': 25,
-        'font-size': 14,
-        'font-weight': 'bold',
-        'color': '#797979'
+        'curve-style': 'bezier'
       }
     },
     {
@@ -214,50 +210,14 @@ cy.on('tap', 'node', evt => {
   fetchDetails(nodeid);
 });
 
-function getDidFromNode(node) {
-  if (!node || !node.data()) return '';
-  const d = node.data('details');
-  if (d && d.did) return d.did;
-  return (node.data('id') || '').replace(/^\/record/, '');
-}
-
-function fetchEndpoint(endpoint, did) {
-  if (!did) return;
-  const details = document.getElementById('details');
-  details.innerHTML = '<p style="font-size:14px;color:#888;">Loading…</p>';
-
-  fetch(endpoint + '?ajaxHtml=true&did=' + encodeURIComponent(did))
-    .then(resp => {
-      if (!resp.ok) throw new Error('status ' + resp.status);
-      return resp.text();
-    })
-    .then(html => { details.innerHTML = html; })
-    .catch(err => {
-      details.innerHTML = '<p style="font-size:14px;color:#c0392b;">Failed to load: ' + err.message + '</p>';
-    });
-}
-
+// Displays explicit provenance info message upon clicking green provenance edges
 cy.on('tap', 'edge', evt => {
   const edge = evt.target;
-  const srcNode = edge.source();
-  const tgtNode = edge.target();
-
-  // Ignore clicks on origin edges originating from the black circle
-  if (srcNode.data('group') === 'start') {
-    return;
-  }
-
-  const clickPos = evt.position;
-  const srcPos = srcNode.position();
-  const tgtPos = tgtNode.position();
-
-  const distToSource = Math.hypot(clickPos.x - srcPos.x, clickPos.y - srcPos.y);
-  const distToTarget = Math.hypot(clickPos.x - tgtPos.x, clickPos.y - tgtPos.y);
-
-  if (distToSource < distToTarget) {
-    fetchEndpoint('/parents', getDidFromNode(tgtNode));
-  } else {
-    fetchEndpoint('/children', getDidFromNode(srcNode));
+  if (edge.data('prov')) {
+    const details = document.getElementById('details');
+    details.innerHTML = '<p style="font-size:14px;color:#333;line-height:1.5;">' +
+      'The provenance information of the metadata record is available through the record itself. ' +
+      'Just click on corresponding metadata record box and choose <b>Provenance</b> button.</p>';
   }
 });
 </script>
