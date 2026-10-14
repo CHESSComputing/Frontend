@@ -528,7 +528,7 @@ func PostProvenanceHandler(c *gin.Context) {
 }
 
 // ChildrenHandler provides access to GET /children endpoint
-// the endpoint supports did=<did> and recursive=<true> options 
+// the endpoint supports did=<did> and recursive=<true> options
 // (to find all children through recursive iteration across all recrods)
 func ChildrenHandler(c *gin.Context) {
 	user, err := getUser(c)
@@ -580,7 +580,7 @@ func ChildrenHandler(c *gin.Context) {
 }
 
 // ParentsHandler provides access to GET /parents endpoint
-// the endpoint supports did=<did> and recursive=<true> options 
+// the endpoint supports did=<did> and recursive=<true> options
 // (to find all parents through recursive iteration across all recrods)
 func ParentsHandler(c *gin.Context) {
 	user, err := getUser(c)
@@ -1640,7 +1640,7 @@ func SearchHandler(c *gin.Context) {
 	sortKeys := r.FormValue("sort_keys")
 	var skeys []string
 	if sortKeys != "" {
-		for _, k := range strings.Split(sortKeys, ",") {
+		for k := range strings.SplitSeq(sortKeys, ",") {
 			if strings.Contains(k, "-ascending") {
 				k = strings.Replace(k, "-ascending", "", -1)
 			} else if strings.Contains(k, "-descending") {
@@ -1806,7 +1806,7 @@ func SpecScansDataHandler(c *gin.Context) {
 	inputAttrs := c.DefaultQuery("attrs", "")
 	var attrs []string
 	if inputAttrs != "" {
-		for _, a := range strings.Split(inputAttrs, ",") {
+		for a := range strings.SplitSeq(inputAttrs, ",") {
 			if a = strings.TrimSpace(a); a != "" {
 				attrs = append(attrs, a)
 			}
@@ -2624,7 +2624,7 @@ func DatasetsHandler(c *gin.Context) {
 	inputAttributes := c.DefaultQuery("attrs", "")
 	var attrs []string
 	if len(inputAttributes) != 0 {
-		for _, a := range strings.Split(inputAttributes, ",") {
+		for a := range strings.SplitSeq(inputAttributes, ",") {
 			attrs = append(attrs, a)
 		}
 	} else {

@@ -155,12 +155,12 @@ func getAllParents(did string) []string {
 func columnNames(attrs []string) []string {
 	var out []string
 	for _, attr := range attrs {
-		var camel string
-		words := strings.Split(attr, "_")
-		for _, word := range words {
-			camel += strings.Title(word)
+		var camel strings.Builder
+		words := strings.SplitSeq(attr, "_")
+		for word := range words {
+			camel.WriteString(strings.Title(word))
 		}
-		out = append(out, camel)
+		out = append(out, camel.String())
 	}
 	return out
 }

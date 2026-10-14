@@ -75,7 +75,7 @@ func getRecordHTML(c *gin.Context, rec services.ServiceRequest, user string) str
 	// extract userAttrs cookies which list which attributes to show in a record
 	var attrs2show []string
 	if cookie, err := c.Request.Cookie("userAttrs"); err == nil {
-		for _, v := range strings.Split(cookie.Value, ",") {
+		for v := range strings.SplitSeq(cookie.Value, ",") {
 			attrs2show = append(attrs2show, strings.Trim(v, " "))
 		}
 	}
@@ -155,7 +155,7 @@ func processResults(c *gin.Context, rec services.ServiceRequest, user string, id
 	// extract userAttrs cookies which list which attributes to show in a record
 	var attrs2show []string
 	if cookie, err := c.Request.Cookie("userAttrs"); err == nil {
-		for _, v := range strings.Split(cookie.Value, ",") {
+		for v := range strings.SplitSeq(cookie.Value, ",") {
 			attrs2show = append(attrs2show, strings.Trim(v, " "))
 		}
 	}

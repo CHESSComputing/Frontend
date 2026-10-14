@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -857,7 +858,7 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 		// parse given values to int data type
 		var vals []int
 		for _, values := range items {
-			for _, val := range strings.Split(values, " ") {
+			for val := range strings.SplitSeq(values, " ") {
 				v, err := strconv.Atoi(val)
 				if err == nil {
 					vals = append(vals, v)
@@ -872,7 +873,7 @@ func parseValue(schema *beamlines.Schema, key string, items []string) (any, erro
 		// parse given values to float data type
 		var vals []float64
 		for _, values := range items {
-			for _, val := range strings.Split(values, " ") {
+			for val := range strings.SplitSeq(values, " ") {
 				// if passed web form value contained comma we will replace it
 				val = strings.ReplaceAll(val, ",", "")
 				val = strings.Trim(val, " ")
@@ -936,7 +937,7 @@ func formFiles(val any) []string {
 	case []string:
 		for _, f := range files {
 			if strings.Contains(f, ",") {
-				for _, v := range strings.Split(f, ",") {
+				for v := range strings.SplitSeq(f, ",") {
 					v = strings.Replace(v, "\n", "", -1)
 					v = strings.Replace(v, "\r", "", -1)
 					v = strings.Trim(v, " ")
@@ -945,7 +946,7 @@ func formFiles(val any) []string {
 					}
 				}
 			} else if strings.Contains(f, "\r") {
-				for _, v := range strings.Split(f, "\r") {
+				for v := range strings.SplitSeq(f, "\r") {
 					v = strings.Replace(v, "\n", "", -1)
 					v = strings.Replace(v, "\r", "", -1)
 					v = strings.Trim(v, " ")
@@ -954,7 +955,7 @@ func formFiles(val any) []string {
 					}
 				}
 			} else if strings.Contains(f, "\n") {
-				for _, v := range strings.Split(f, "\n") {
+				for v := range strings.SplitSeq(f, "\n") {
 					v = strings.Replace(v, "\n", "", -1)
 					v = strings.Replace(v, "\r", "", -1)
 					v = strings.Trim(v, " ")
@@ -975,7 +976,7 @@ func formFiles(val any) []string {
 // helper function to extract beamline, btr, cycle, sample_name parts from did
 func extractParts(did string) (string, string, string, string) {
 	var beamline, btr, cycle, sample_name string
-	for _, part := range strings.Split(did, "/") {
+	for part := range strings.SplitSeq(did, "/") {
 		if strings.HasPrefix(part, "beamline=") {
 			beamline = strings.Replace(part, "beamline=", "", -1)
 		}
@@ -1305,12 +1306,7 @@ func addAffiliation(members []string) []string {
 }
 
 func contains(list []string, key string) bool {
-	for _, v := range list {
-		if v == key {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, key)
 }
 
 func FilterKeys(record map[string]any, skip []string) map[string]any {
