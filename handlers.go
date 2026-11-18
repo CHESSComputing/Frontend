@@ -1345,6 +1345,84 @@ func AdvancedSearchHandler(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(header()+page+footer()))
 }
 
+// GonexusRecord represents request from gonexus server
+type GonexusRecord struct {
+	User  string   `json:"user"`
+	Scope string   `json:"scope"`
+	Btrs  []string `json:"btrs"`
+	Did   string   `json:"did"`
+	File  string   `json:"file"`
+}
+
+// GonexusValidateHandler provides access to POST /notesform endpoint
+func GonexusValidateHandler(c *gin.Context) {
+	// read HTTP POST payload for this API
+	var rec GonexusRecord
+	if err := c.ShouldBindJSON(&rec); err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// check foxden user
+	fuser, err := _foxdenUser.Get(rec.User)
+	if err != nil {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	for _, btr := range rec.Btrs {
+		if !utils.InList(btr, fuser.Btrs) {
+			log.Println("ERROR: GonexusValidateHandler: btr is not in users btrs")
+			c.Writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
+	// check user's scope
+	if rec.Scope != "read" {
+		log.Println("ERROR: GonexusValidateHandler: wrong scope")
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// get metadata record for given did
+	_httpReadRequest.GetToken()
+	rurl := fmt.Sprintf("%s/record?did=%s", srvConfig.Config.Services.MetaDataURL, rec.Did)
+	resp, err := _httpReadRequest.Get(rurl)
+	if err != nil {
+		log.Println("ERROR: GonexusValidateHandler: unable to fetch metadata record")
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// parse data records from meta-data service
+	var metaRecords []map[string]any
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("ERROR: GonexusValidateHandler: unable to read payload data")
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	err = json.Unmarshal(data, &metaRecords)
+	if err != nil {
+		log.Println("ERROR: GonexusValidateHandler: unable to unmarshall metadata records")
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	if len(metaRecords) != 1 {
+		log.Println("ERROR: GonexusValidateHandler: found more than one metadata record")
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// compare that provided rec.File is indeed in metadata record paths
+	metaRec := metaRecords[0]
+	if val, ok := metaRec["data_location_raw"]; ok {
+		path := fmt.Sprintf("%v", val)
+		if !strings.HasPrefix(rec.File, path) {
+			log.Println("ERROR: GonexusValidateHandler: wrong file path")
+			c.Writer.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
+	log.Println("INFO: validated gonexus request successfully")
+}
+
 // NotesHandler provides access to POST /notesform endpoint
 func NotesHandler(c *gin.Context) {
 	r := c.Request
