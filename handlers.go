@@ -1359,12 +1359,14 @@ func GonexusValidateHandler(c *gin.Context) {
 	// read HTTP POST payload for this API
 	var rec GonexusRecord
 	if err := c.ShouldBindJSON(&rec); err != nil {
+		log.Println("ERROR: GonexusValidateHandler: unable to read gonexus record")
 		c.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	// check foxden user
 	fuser, err := _foxdenUser.Get(rec.User)
 	if err != nil {
+		log.Println("ERROR: GonexusValidateHandler: unable to get foxnden user")
 		c.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
