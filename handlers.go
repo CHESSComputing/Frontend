@@ -877,7 +877,6 @@ func DataManagementHandler(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing 'did' parameter"})
 			return
 		}
-		did = url.QueryEscape(did)
 		attr := c.Query("attr")
 
 		// Prepare redirection URL
@@ -890,19 +889,31 @@ func DataManagementHandler(c *gin.Context) {
 		}
 		if fname != "" {
 			targetURL = fmt.Sprintf("%s&file=%s", targetURL, url.QueryEscape(fname))
+			if path != "" {
+				if p, e := url.QueryUnescape(path); e == nil {
+					fileName := filepath.Join(p, fname)
+					targetURL = fmt.Sprintf("%s&file=%s", targetURL, url.QueryEscape(fileName))
+				} else {
+					msg := "unable to fetch parse given path"
+					handleError(c, http.StatusBadRequest, msg, e)
+					return
+				}
+			}
 		}
 
 		// get new read token
 		token, err := newToken(user, "read")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			msg := "unable to fetch new token"
+			handleError(c, http.StatusBadRequest, msg, err)
 			return
 		}
 
 		// Create a new HTTP request to the target URL
 		req, err := http.NewRequest(http.MethodGet, targetURL, nil)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create request"})
+			msg := "unable to create HTTP request"
+			handleError(c, http.StatusBadRequest, msg, err)
 			return
 		}
 
@@ -921,7 +932,8 @@ func DataManagementHandler(c *gin.Context) {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to forward request"})
+			msg := "unable to perform HTTP request"
+			handleError(c, http.StatusBadRequest, msg, err)
 			return
 		}
 		defer resp.Body.Close()
