@@ -68,7 +68,7 @@ jobs:
     - name: Scan image with Trivy (vulnerability report)
       uses: aquasecurity/trivy-action@v0.36.0
       with:
-        image-ref: "${{ env.GHCR_IMAGE }}:ci-scan"
+        image-ref: "${{ env.GHCR_IMAGE }}"
         format: "table"
         output: "trivy-report.txt"
         severity: "CRITICAL,HIGH,MEDIUM"
@@ -77,7 +77,7 @@ jobs:
     - name: Generate SARIF report for GitHub Security tab
       uses: aquasecurity/trivy-action@v0.36.0
       with:
-        image-ref: "${{ env.GHCR_IMAGE }}:ci-scan"
+        image-ref: "${{ env.GHCR_IMAGE }}"
         format: "sarif"
         output: "trivy-results.sarif"
         severity: "CRITICAL,HIGH,MEDIUM"
