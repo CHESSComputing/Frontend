@@ -45,8 +45,12 @@ jobs:
           GOPATH: /home/runner/go
         run: |
           # use make build_all to generate srv executables for all platforms
-          make build_all
-          tar cvfz frontend.tar.gz srv*
+          make
+          if [ -d static ]; then
+            tar cvfz frontend.tar.gz srv* static
+          else
+            tar cvfz frontend.tar.gz srv*
+          fi
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
