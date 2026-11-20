@@ -5,7 +5,11 @@ on:
     tags:
       - "v*" # triggers only if push new tag version, like `v0.8.4` or else
 
-permissions: write-all
+permissions:
+  security-events: write
+  packages: write
+  contents: write
+  actions: read
 
 jobs:
   build:
@@ -13,12 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v7
         with:
           go-version: "1.27"
+          cache: false # set to true and configure cache-dependency-path if go.sum is in a subdir
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -26,39 +31,41 @@ jobs:
       - name: Branch name
         id: branch_name
         run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG_VAL="${GITHUB_REF#refs/tags/}"
+          else
+            TAG_VAL="${GITHUB_REF#refs/heads/}"
+          fi
           echo "SOURCE_NAME=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
           echo "SOURCE_BRANCH=${GITHUB_REF#refs/heads/}" >> "$GITHUB_OUTPUT"
-          echo "SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
-      # - name: Echo
-      #   run: |
-      #     echo ${{ steps.branch_name.outputs.SOURCE_NAME }}
-      #     echo ${{ steps.branch_name.outputs.SOURCE_BRANCH }}
-      #     echo ${{ steps.branch_name.outputs.SOURCE_TAG }}
+          echo "SOURCE_TAG=${TAG_VAL}" >> "$GITHUB_OUTPUT"
 
       - name: Build
         env:
           GOPATH: /home/runner/go
         run: |
+          # use make build_all to generate srv executables for all platforms
           make build_all
           tar cvfz frontend.tar.gz srv*
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build image for local scan
         run: |
           make golib
+          make
+          make changes
           # use multi-stage build to run on mac ARM:
           # https://stackoverflow.com/questions/71000707/docker-get-started-warning-the-requested-images-platform-linux-arm64-v8-doe
           # https://github.com/docker/for-mac/issues/6356
           # https://docs.docker.com/build/ci/github-actions/multi-platform/
           docker buildx build --platform linux/amd64 --load \
             -t "ghcr.io/chesscomputing/frontend:${{ steps.branch_name.outputs.SOURCE_TAG }}" \
-            --label "org.opencontainers.image.description=FOXDEN Frontend service" \
+            --label "org.opencontainers.image.description=FOXDEN frontend service" \
             --label "org.opencontainers.image.source=https://github.com/chesscomputing/frontend" \
             --label "org.opencontainers.image.licenses=MIT" \
             .
@@ -82,15 +89,15 @@ jobs:
           exit-code: "0"
 
       - name: Upload Trivy SARIF to GitHub Security tab
-        if: always() && hashFiles('trivy-results.sarif') != ''
+        if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: "trivy-results.sarif"
-        continue-on-error: false
+          category: "trivy-container-image"
 
       - name: Upload vulnerability report artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trivy-vulnerability-report
           if-no-files-found: ignore
@@ -100,45 +107,30 @@ jobs:
           retention-days: 30
 
       - name: Login to ghcr.io registry
-        uses: docker/login-action@v1.6.0
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v7
         with:
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: |
             ghcr.io/chesscomputing/frontend:latest
             ghcr.io/chesscomputing/frontend:${{ steps.branch_name.outputs.SOURCE_TAG }}
 
-      # - name: "✏️ Generate release changelog"
-      #   uses: heinrichreimer/action-github-changelog-generator@v2.3
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        id: create_release
-        uses: ncipollo/release-action@v1
+      - name: Create Release and Upload Binaries
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          bodyFile: "LAST_CHANGES.md"
+          tag_name: ${{ steps.branch_name.outputs.SOURCE_TAG }}
+          name: Release ${{ steps.branch_name.outputs.SOURCE_TAG }}
+          body_path: "LAST_CHANGES.md"
           draft: false
           prerelease: false
-
-      - name: Upload binaries
-        id: upload_binaries
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./frontend.tar.gz
-          asset_name: frontend.tar.gz
-          asset_content_type: application/octet-stream
+          files: ./frontend.tar.gz
