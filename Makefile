@@ -4,6 +4,16 @@ flags=-ldflags="-s -w"
 # flags=-ldflags="-s -w -extldflags -static"
 TAG := $(shell git tag | sed -e "s,v,," | sort -r | head -n 1)
 
+.PHONY: docs
+
+GOLIB    ?= ../golib
+# module path from go.mod, without a trailing /vN major-version suffix
+MODULE   := $(shell go list -m 2>/dev/null | sed -E 's|/v[0-9]+$$||')
+SRV      ?= $(notdir $(MODULE))
+REPO     ?= https://$(MODULE)
+REF      ?= main
+DOCS_OUT ?= docs/ENDPOINTS.md
+
 all: golib build
 
 golib:
@@ -11,6 +21,11 @@ golib:
 
 gorelease:
 	goreleaser release --snapshot --clean
+
+docs:
+	@echo "generating $(DOCS_OUT) for $(SRV) ($(REPO), ref $(REF)) ..."
+	mkdir -p $(dir $(DOCS_OUT))
+	go run $(GOLIB)/tools/gendocs/main.go -root . -service $(SRV) -ref $(REF) -repo $(REPO) -out $(DOCS_OUT)
 
 build:
 ifdef TAG
